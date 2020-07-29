@@ -1,0 +1,26 @@
+﻿<Window x:Class="BookletXlsxDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lib="clr-namespace:iqb.lib.components;assembly=iqblib-components"
+
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Icon="pack://application:,,,/iqblib-components;component/Resources/iqbGrau.ico"
+        lib:HelpProvider.HelpTopicId="1027"
+        Title="Title" Height="524" Width="406">
+    <Window.Resources>
+        <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
+    </Window.Resources>
+    <DockPanel>
+        <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="20">
+            <Button Name="BtnClose">Schließen</Button>
+            <Button Name="BtnCancel">Abbrechen</Button>
+            <Button Name="BtnEditor" ToolTip="Die Meldungen in einen Texteditor übertragen.">Texteditor</Button>
+        </ItemsControl>
+        <DockPanel DockPanel.Dock="Top" Margin="10">
+            <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
+            <lib:MessageBoxUserControl Name="MBUC"/>
+        </DockPanel>
+
+    </DockPanel>
+</Window>

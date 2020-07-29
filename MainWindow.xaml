@@ -1,0 +1,73 @@
+﻿<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:libco="clr-namespace:iqb.lib.components;assembly=iqblib-components"
+        xmlns:local="clr-namespace:iqb.testcenter.toolbox"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Icon="Resources/IQB-Testcenter.ico">
+    <Window.Resources>
+        <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
+    </Window.Resources>
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="2">
+            <libco:ButtonHelp DockPanel.Dock="Right" Height="26" VerticalAlignment="Top"/>
+            <Label Style="{StaticResource gsTip}" Margin="10" DockPanel.Dock="Top">
+                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Excel-Dateien zu XML-Steuerdateien verarbeitet, die
+                für die Definition einer Studie erforderlich sind. Im unteren Abschnitt werden Antwortdaten aus dem IQB-Testcenter (csv/JSON-Rohdaten des
+                Verona-Players) in eine Excel-Datei geschrieben, die sich besser verarbeiten lässt.
+            </Label>
+        </DockPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel.Resources>
+                    <VisualBrush
+                        x:Key="HatchBrush1"
+                        TileMode="Tile" Viewport="0,0,20,20"
+                        ViewportUnits="Absolute" Viewbox="0,0,20,20"   
+                        ViewboxUnits="Absolute">
+                        <VisualBrush.Visual>
+                            <Canvas>
+                                <Rectangle Fill="#FFEAEAEA" Width="20" Height="20" />
+
+                                <Path Stroke="White" Data="M 0 10 l 10 10" />
+                                <Path Stroke="White" Data="M 10 0 l 7 3" />
+                                <Path Stroke="White" Data="M 17 3 l 3 7" />
+
+                                <Path Stroke="White" Data="M 6 0 l -6 20" />
+                                <Path Stroke="White" Data="M 20 0 l -14 20" />
+                            </Canvas>
+                        </VisualBrush.Visual>
+                   </VisualBrush>
+                </StackPanel.Resources>
+                <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}">
+                    <Run Text="Testmaterial" FontSize="16"/></TextBlock>
+                <Grid Margin="10 0 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="2*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Height="30" Click="BtnBookletXlsx_Click" Margin="3" Padding="10 0 10 0" VerticalAlignment="Top">Booklet-Xlsx</Button>
+                    <TextBlock TextWrapping="Wrap" Margin="4" Grid.Column="1">
+                            Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
+                    </TextBlock>
+                </Grid>
+                <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}">
+                    <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
+                <Grid Margin="10 0 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"></ColumnDefinition>
+                        <ColumnDefinition Width="2*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Height="30" Click="BtnSysCheck_Click" Margin="3" Padding="10 0 10 0" VerticalAlignment="Top">SysCheck csv -> xlsx</Button>
+                    <TextBlock TextWrapping="Wrap" Margin="4" Grid.Column="1">
+                            Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

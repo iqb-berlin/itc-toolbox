@@ -1,0 +1,127 @@
+﻿Imports iqb.lib.components
+Class MainWindow
+    Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
+        AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
+
+        Me.Title = My.Application.Info.AssemblyName
+
+        DialogFactory.MainWindow = Me
+
+        Dim ContinueStart As Boolean = True
+        Dim ErrMsg As String = "Es gibt ein Problem bei dem Versuch, die alten lokalen Programmeinstellungen zu laden. Bitte deinstallieren Sie die Anwendung über die Systemsteuerung und installieren Sie sie dann erneut!"
+        Dim UserConfigFilename As String = ""
+        Try
+            'neue Programmversion -> alte Settings holen
+            If Not My.Settings.updated Then
+                My.Settings.Upgrade()
+                My.Settings.updated = True
+                My.Settings.Save()
+            End If
+        Catch ex As System.Configuration.ConfigurationException
+            ContinueStart = False
+            If ex.InnerException Is Nothing Then
+                Debug.Print("Configuration.ConfigurationException ohne InnerException")
+            Else
+                ErrMsg += " Alternativ können Sie die unten genannte Datei löschen (Achtung: Apps ist ein verstecktes Verzeichnis)." + vbNewLine + vbNewLine + ex.InnerException.Message
+                Debug.Print(ex.InnerException.Message)
+                Dim pos As Integer = ex.InnerException.Message.IndexOf("(")
+                If pos > 0 Then
+                    UserConfigFilename = ex.InnerException.Message.Substring(pos + 1)
+                    pos = UserConfigFilename.IndexOf("\user.config ")
+                    If pos > 0 Then
+                        UserConfigFilename = UserConfigFilename.Substring(0, pos) + "\user.config"
+                        Debug.Print(">>" + UserConfigFilename + "<<")
+                    Else
+                        UserConfigFilename = ""
+                    End If
+                End If
+            End If
+        End Try
+
+        If Not ContinueStart Then
+            If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
+                UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
+                IO.File.Exists(UserConfigFilename) Then
+                Try
+                    IO.File.Delete(UserConfigFilename)
+                    ErrMsg = "Die lokalen Programmeinstellungen mussten gelöscht werden. Bitte starten Sie die Anwendung erneut!"
+                Catch ex As Exception
+                    ErrMsg += vbNewLine + vbNewLine + "Löschen gescheitert: " + ex.Message
+                End Try
+            End If
+            DialogFactory.MsgError(Me, Me.Title, ErrMsg)
+            Me.Close()
+        End If
+    End Sub
+
+    '############################################
+    Private Sub MyUnhandledExceptionEventHandler(sender As Object, e As UnhandledExceptionEventArgs)
+        Dim MsgText As String = "??"
+        If TypeOf (e.ExceptionObject) Is System.Exception Then
+            Dim myException As System.Exception = e.ExceptionObject
+            MsgText = myException.Message
+            If myException.InnerException IsNot Nothing Then MsgText += "; " + myException.InnerException.Message
+            If Not String.IsNullOrEmpty(myException.StackTrace) Then
+                If myException.StackTrace.Length > 500 Then
+                    MsgText += vbNewLine + myException.StackTrace.Substring(0, 500) + "..."
+                Else
+                    MsgText += vbNewLine + myException.StackTrace
+                End If
+            End If
+        ElseIf TypeOf (e.ExceptionObject) Is Runtime.CompilerServices.RuntimeWrappedException Then
+            Dim myException As Runtime.CompilerServices.RuntimeWrappedException = e.ExceptionObject
+            If myException.InnerException IsNot Nothing Then MsgText += "; " + myException.InnerException.Message
+            If Not String.IsNullOrEmpty(myException.StackTrace) Then
+                If myException.StackTrace.Length > 500 Then
+                    MsgText += vbNewLine + myException.StackTrace.Substring(0, 500) + "..."
+                Else
+                    MsgText += vbNewLine + myException.StackTrace
+                End If
+            End If
+        End If
+
+        DialogFactory.MsgError(Me, "Absturz " + My.Application.Info.AssemblyName, "Die Anwendung hat einen unerwarteten Abbruch erlitten. Folgende Informationen könnten bei der Fehlersuche helfen:" +
+                               vbNewLine + vbNewLine + MsgText)
+
+        Me.Close()
+    End Sub
+    Private Sub BtnLoginXlsx_Click(sender As Object, e As RoutedEventArgs)
+
+    End Sub
+
+    Private Sub BtnBookletXlsx_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_BookletXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_BookletXlsx)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = My.Settings.lastfile_BookletXlsx, .Filter = "Excel-Dateien|*.xlsx",
+            .InitialDirectory = defaultDir, .DefaultExt = "Xlsx", .Title = "BookletXlsx - Wähle Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_BookletXlsx = filepicker.FileName
+            My.Settings.Save()
+
+            Dim ActionDlg As New BookletXlsxDialog() With {.Owner = Me, .Title = "BookletXlsx"}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub BtnSysCheck_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SysCheckCsv) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SysCheckCsv)
+        Dim filepickerSource As New Microsoft.Win32.OpenFileDialog With {.FileName = My.Settings.lastfile_SysCheckCsv, .Filter = "CSV-Dateien|*.csv",
+            .InitialDirectory = defaultDir, .DefaultExt = "csv", .Title = "SysCheck - Wähle Quell-Datei"}
+        If filepickerSource.ShowDialog Then
+            My.Settings.lastfile_SysCheckCsv = filepickerSource.FileName
+            My.Settings.Save()
+            Dim csvData = New transformCsv2Xlsx(My.Settings.lastfile_SysCheckCsv)
+            defaultDir = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_SysCheckXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SysCheckXlsx)
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_SysCheckXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                           .DefaultExt = "xlsx", .Title = "SysCheck - Wähle Ziel-Datei"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_SysCheckXlsx = filepicker.FileName
+                My.Settings.Save()
+
+                csvData.ToXlsx(filepicker.FileName)
+            End If
+        End If
+    End Sub
+End Class
