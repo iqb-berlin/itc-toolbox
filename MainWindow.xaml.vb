@@ -124,4 +124,23 @@ Class MainWindow
             End If
         End If
     End Sub
+
+    Private Sub BtnResponses_Click(sender As Object, e As RoutedEventArgs)
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim myDlg As New OutputDialog With {.Owner = Me}
+            myDlg.ShowDialog()
+        End If
+    End Sub
+    Private Sub HyperlinkClick(sender As Object, e As RoutedEventArgs)
+        Dim linkcontrol As System.Windows.Documents.Hyperlink = sender
+        Dim NavUri As Uri = linkcontrol.NavigateUri
+        Process.Start(New ProcessStartInfo(NavUri.AbsoluteUri))
+        e.Handled = True
+    End Sub
+
 End Class

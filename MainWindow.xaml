@@ -40,6 +40,15 @@
                             </Canvas>
                         </VisualBrush.Visual>
                    </VisualBrush>
+                    <Style TargetType="Button">
+                        <Setter Property="Padding" Value="10 4 10 4"/>
+                        <Setter Property="Margin" Value="10 2 2 2"/>
+                        <Setter Property="VerticalAlignment" Value="Top"/>
+                    </Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="TextWrapping" Value="Wrap"/>
+                        <Setter Property="Margin" Value="10 2 2 2"/>
+                    </Style>
                 </StackPanel.Resources>
                 <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}">
                     <Run Text="Testmaterial" FontSize="16"/></TextBlock>
@@ -49,8 +58,8 @@
                         <ColumnDefinition Width="2*"></ColumnDefinition>
                         <ColumnDefinition Width="1*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Height="30" Click="BtnBookletXlsx_Click" Margin="3" Padding="10 0 10 0" VerticalAlignment="Top">Booklet-Xlsx</Button>
-                    <TextBlock TextWrapping="Wrap" Margin="4" Grid.Column="1">
+                    <Button Grid.Column="0" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
+                    <TextBlock Grid.Column="1">
                             Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
                     </TextBlock>
                 </Grid>
@@ -62,9 +71,28 @@
                         <ColumnDefinition Width="2*"></ColumnDefinition>
                         <ColumnDefinition Width="1*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Height="30" Click="BtnSysCheck_Click" Margin="3" Padding="10 0 10 0" VerticalAlignment="Top">SysCheck csv -> xlsx</Button>
-                    <TextBlock TextWrapping="Wrap" Margin="4" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Button Grid.Column="0" Grid.Row="0" Click="BtnSysCheck_Click">SysCheck csv -> xlsx</Button>
+                    <TextBlock Grid.Column="1" Grid.Row="0">
                             Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
+                    </TextBlock>
+                    <Button Grid.Column="0" Grid.Row="1" Click="BtnResponses_Click">
+                        <Button.Content>
+                            <TextBlock>
+                                Antworten und Logs csv -> xlsx
+                            </TextBlock>
+                        </Button.Content>
+                    </Button>
+                    <TextBlock Grid.Column="1" Grid.Row="1">
+                            Einlesen aller CSV mit Antworten und Logdaten, Speichern als Xlsx (Umlaute korrigiert)
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Grid.Column="2">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-output.md">
+                            <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                        </Hyperlink>
                     </TextBlock>
                 </Grid>
             </StackPanel>

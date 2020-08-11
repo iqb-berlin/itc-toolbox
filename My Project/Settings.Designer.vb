@@ -100,6 +100,42 @@ Partial Friend NotInheritable Class MySettings
             Me("lastfile_SysCheckXlsx") = value
         End Set
     End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastdir_OutputSource() As String
+        Get
+            Return CType(Me("lastdir_OutputSource"),String)
+        End Get
+        Set
+            Me("lastdir_OutputSource") = value
+        End Set
+    End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastfile_BookletSizeTxt() As String
+        Get
+            Return CType(Me("lastfile_BookletSizeTxt"),String)
+        End Get
+        Set
+            Me("lastfile_BookletSizeTxt") = value
+        End Set
+    End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastfile_OutputTargetXlsx() As String
+        Get
+            Return CType(Me("lastfile_OutputTargetXlsx"),String)
+        End Get
+        Set
+            Me("lastfile_OutputTargetXlsx") = value
+        End Set
+    End Property
 End Class
 
 Namespace My

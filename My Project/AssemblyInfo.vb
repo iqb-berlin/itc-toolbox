@@ -11,10 +11,10 @@ Imports System.Windows
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("IQB-Testcenter ToolBox")>
+<Assembly: AssemblyTitle("IQB-Testcenter Toolbox")>
 <Assembly: AssemblyDescription("Diese Anwendung transformiert Daten des IQB-Testcenters.")>
 <Assembly: AssemblyCompany("IQB Berlin")>
-<Assembly: AssemblyProduct("itc_ToolBox")>
+<Assembly: AssemblyProduct("itc-Toolbox")>
 <Assembly: AssemblyCopyright("IQB © 2018, 2020")>
 <Assembly: AssemblyTrademark("")>
 <Assembly: ComVisible(false)>
