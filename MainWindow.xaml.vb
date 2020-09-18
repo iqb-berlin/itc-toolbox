@@ -143,4 +143,11 @@ Class MainWindow
         e.Handled = True
     End Sub
 
+    Private Sub BtnBookletXmlNew_Click(sender As Object, e As RoutedEventArgs)
+
+    End Sub
+
+    Private Sub BtnBookletXmlOpen_Click(sender As Object, e As RoutedEventArgs)
+
+    End Sub
 End Class

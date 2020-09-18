@@ -103,6 +103,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="itc-input\BookletXmlDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-input\BookletXlsxDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -126,6 +130,9 @@
     <Compile Include="Application.xaml.vb">
       <DependentUpon>Application.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="itc-input\BookletXmlDialog.xaml.vb">
+      <DependentUpon>BookletXmlDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>

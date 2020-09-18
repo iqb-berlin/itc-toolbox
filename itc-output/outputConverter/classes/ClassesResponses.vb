@@ -71,22 +71,30 @@
         If Not String.IsNullOrEmpty(response) Then
 
             '################## VERAOnlineV1 ################################
-            If responseType = "VERAOnlineV1" Then
+            If responseType = "IQBVisualUnitPlayerV2.1.0" Then
                 Dim tmpResponse As String = response.Replace("""""", """")
                 tmpResponse = tmpResponse.Replace("\\", "\")
-                Dim localdata As New Dictionary(Of String, String)
+                Dim localdata As New Dictionary(Of String, Object)
                 Try
-                    localdata = Newtonsoft.Json.JsonConvert.DeserializeObject(tmpResponse, GetType(Dictionary(Of String, String)))
+                    localdata = Newtonsoft.Json.JsonConvert.DeserializeObject(tmpResponse, GetType(Dictionary(Of String, Object)))
                 Catch ex As Exception
                     localdata.Add("ConverterError", "parsing " + responseType + "failed: " + ex.Message)
                     If Not String.IsNullOrEmpty(errorLocation) Then localdata.Add("ErrorLocation", errorLocation)
                     Debug.Print("parseError " + ex.Message + " @ " + errorLocation)
                     Debug.Print(tmpResponse)
                 End Try
+                Dim stringedData As New Dictionary(Of String, String)
+                For Each s As KeyValuePair(Of String, Object) In localdata
+                    If TypeOf (s.Value) Is String Then
+                        stringedData.Add(s.Key, s.Value)
+                    Else
+                        stringedData.Add(s.Key, s.Value.ToString)
+                    End If
+                Next
                 myreturn.Add(New ResponseEntry With {
                              .booklet = localbooklet,
                              .code = localcode,
-                             .data = localdata,
+                             .data = stringedData,
                              .group = localgroup,
                              .login = locallogin,
                              .responseTimestamp = localresponseTimestamp,

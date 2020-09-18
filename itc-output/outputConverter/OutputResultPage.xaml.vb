@@ -80,23 +80,22 @@ Public Class OutputResultPage
                     Exit For
                 End If
 
-                Dim line As String
-                Dim readFile As System.IO.TextReader = Nothing
+                Dim allLines As String()
                 Try
-                    readFile = New IO.StreamReader(fi.FullName)
-                    line = readFile.ReadLine()
+                    allLines = IO.File.ReadAllLines(fi.FullName)
                 Catch ex As Exception
-                    line = ""
-                    readFile = Nothing
+                    allLines = Nothing
                     myworker.ReportProgress(0.0#, "e:Fehler mein Lesen von " + fi.Name + "; noch geöffnet?")
                 End Try
-                If readFile IsNot Nothing Then
+                If allLines IsNot Nothing Then
                     myworker.ReportProgress(0.0#, "Lese " + fi.Name)
-                    If line = OutputDialog.LogFileFirstLine Then
+                    If allLines.First = OutputDialog.LogFileFirstLine Then
                         '#########################
-                        Do While line IsNot Nothing
-                            line = readFile.ReadLine()
-                            If line IsNot Nothing Then
+                        Dim isFirstLine As Boolean = True
+                        For Each line As String In allLines
+                            If isFirstLine Then
+                                isFirstLine = False
+                            Else
                                 Dim lineSplits As String() = line.Split({""";"}, StringSplitOptions.RemoveEmptyEntries)
                                 If lineSplits.Count = 7 Then
                                     LogEntryCount += 1
@@ -115,13 +114,31 @@ Public Class OutputResultPage
                                     Dim entry As String = lineSplits(6)
                                     Dim key As String = entry
                                     Dim parameter As String = ""
-                                    If key.IndexOf(": ") > 0 Then
-                                        parameter = key.Substring(key.IndexOf(": ") + 2)
-                                        If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then parameter = parameter.Substring(1, parameter.Length - 2)
-                                        key = key.Substring(0, key.IndexOf(": "))
+                                    If key.IndexOf(" : ") > 0 Then
+                                        parameter = key.Substring(key.IndexOf(" : ") + 3)
+                                        If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
+                                            parameter = parameter.Substring(1, parameter.Length - 2)
+                                            parameter = parameter.Replace("""""", """")
+                                            parameter = parameter.Replace("\\", "\")
+                                        End If
+                                        key = key.Substring(0, key.IndexOf(" : "))
+                                    ElseIf key.IndexOf(" = ") > 0 Then
+                                        parameter = key.Substring(key.IndexOf(" = ") + 3)
+                                        key = key.Substring(0, key.IndexOf(" = "))
                                     End If
 
                                     Select Case key
+                                        Case "LOADCOMPLETE"
+                                            Dim sysdata As Dictionary(Of String, String) = Nothing
+                                            Try
+                                                sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
+                                            Catch ex As Exception
+                                                sysdata = Nothing
+                                                Debug.Print("sysdata json convert failed: " + ex.Message)
+                                            End Try
+                                            myTestPersonList.SetSysdata(group, login, code, booklet, sysdata)
+                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
+
                                         Case "BOOKLETLOADSTART"
                                             myTestPersonList.SetFirstBookletLoadStart(group, login, code, booklet, timestampInt)
 
@@ -150,15 +167,16 @@ Public Class OutputResultPage
                                     End Select
                                 End If
                             End If
-                        Loop
-                    ElseIf line = OutputDialog.ResponsesFileFirstLine Then
+                        Next
+                    ElseIf allLines.First = OutputDialog.ResponsesFileFirstLine Then
                         '#########################
                         Dim lineCount As Integer = 1
-                        Do While line IsNot Nothing
-                            line = readFile.ReadLine()
-                            lineCount += 1
-                            If line IsNot Nothing Then
-                                '######
+                        Dim isFirstLine As Boolean = True
+                        For Each line As String In allLines
+                            If isFirstLine Then
+                                isFirstLine = False
+                            Else
+                                lineCount += 1
                                 For Each entry As ResponseEntry In ResponseEntry.getResponseEntriesFromLine(line, "file '" + fi.Name + "', line " + lineCount.ToString())
                                     If entry.data.Count > 0 Then
                                         For Each d As KeyValuePair(Of String, String) In entry.data
@@ -173,10 +191,8 @@ Public Class OutputResultPage
                                     End If
                                 Next
                             End If
-                            '######
-                        Loop
+                        Next
                     End If
-                    readFile.Close()
                 End If
             Next
 
