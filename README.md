@@ -17,4 +17,4 @@ Dokumentationen:
 * [Erzeugen von Codes für Logins](docs/manual-logins.md)
 * [Aufbereitung von Antworten und Logs](docs/manual-output.md).
 
-Die Windows-Anwendung können Sie über [diese Internetseite](https://www.iqb.hu-berlin.de/institut/ab/it/itc-Toolbox) installieren.
+Die Windows-Anwendung können Sie über [diese Internetseite](https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox) installieren.

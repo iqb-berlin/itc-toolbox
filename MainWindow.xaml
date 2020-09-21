@@ -60,12 +60,12 @@
                     <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
                     <StackPanel DockPanel.Dock="Right" Width="110">
                         <TextBlock>
-                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-booklet.md">
+                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-ToolBox/blob/master/docs/manual-booklet.md">
                                 <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                             </Hyperlink>
                         </TextBlock>
                         <TextBlock>
-                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/Booklet-Template.xlsx">
+                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-ToolBox/blob/master/Booklet-Template.xlsx">
                                 <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
                             </Hyperlink>
                         </TextBlock>
@@ -77,7 +77,7 @@
                 <DockPanel>
                     <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
                     <TextBlock DockPanel.Dock="Right" Width="100">
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-logins.md">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-ToolBox/blob/master/docs/manual-logins.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
@@ -111,7 +111,7 @@
                         </Button.Content>
                     </Button>
                     <TextBlock DockPanel.Dock="Right" Width="100">
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-output.md">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-ToolBox/blob/master/docs/manual-output.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
