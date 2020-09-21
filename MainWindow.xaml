@@ -14,9 +14,9 @@
         <DockPanel DockPanel.Dock="Top" Margin="2">
             <libco:ButtonHelp DockPanel.Dock="Right" Height="26" VerticalAlignment="Top"/>
             <Label Style="{StaticResource gsTip}" Margin="10" DockPanel.Dock="Top">
-                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Excel-Dateien zu XML-Steuerdateien verarbeitet, die
-                für die Definition einer Studie erforderlich sind. Im unteren Abschnitt werden Antwortdaten aus dem IQB-Testcenter (csv/JSON-Rohdaten des
-                Verona-Players) in eine Excel-Datei geschrieben, die sich besser verarbeiten lässt.
+                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
+                dienen können oder ein Zwischenschritt dafür darstellen. Im unteren Abschnitt werden Ergebnisdaten aus dem IQB-Testcenter
+                in das Excel-Format übertragen.
             </Label>
         </DockPanel>
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -58,12 +58,29 @@
                     <Run Text="Testmaterial" FontSize="16"/></TextBlock>
                 <DockPanel>
                     <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
+                    <StackPanel DockPanel.Dock="Right" Width="110">
+                        <TextBlock>
+                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-booklet.md">
+                                <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                            </Hyperlink>
+                        </TextBlock>
+                        <TextBlock>
+                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/Booklet-Template.xlsx">
+                                <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
                     <TextBlock>
                             Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
                     </TextBlock>
                 </DockPanel>
                 <DockPanel>
                     <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
+                    <TextBlock DockPanel.Dock="Right" Width="100">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/docs/manual-logins.md">
+                            <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                        </Hyperlink>
+                    </TextBlock>
                     <TextBlock>
                             Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
                     </TextBlock>

@@ -5,10 +5,11 @@ VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "itc-ToolBox", "itc-ToolBox.vbproj", "{F204F08A-E02F-4A65-9F2D-3B56CAB52F0F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B006B15-047B-4BD8-A6F5-82802D28B2A0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{96124BF8-1173-4726-A627-E41B6A4E4041}"
 	ProjectSection(SolutionItems) = preProject
-		..\itc-AntwortKonverter\LICENSE = ..\itc-AntwortKonverter\LICENSE
-		..\itc-AntwortKonverter\README.md = ..\itc-AntwortKonverter\README.md
+		Booklet-Template.xlsx = Booklet-Template.xlsx
+		LICENSE = LICENSE
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global

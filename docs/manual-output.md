@@ -1,8 +1,8 @@
-﻿# IQB-Testcenter – AntwortKonverter
+﻿# itc-ToolBox – Antworten
 Über den Admin-Bereich des Testcenters lassen sich vor allem zwei Dateiarten 
 herunterladen: Responses und Logs. Diese Rohdaten sind schlecht auswertbar. 
-Die Desktop-Anwendung itc-AntwortKonverter transformiert diese Daten. 
-Dieser Text beschreibt die Struktur dieser transformierten Daten.
+Die Funktion "Antworten und Logs csv -> xlsx" transformiert diese Daten. 
+Dieser Text beschreibt die Struktur dieser erzeugten Daten.
 
 Der Anwendung wird zunächst ein Verzeichnis mitgeteilt, in dem die 
 Response- und Log-Daten im CSV-Format liegen. Bei kleineren Erhebungen 
@@ -10,7 +10,9 @@ sind dies zwei Dateien, bei größeren Studien könnte eine Aufteilung in
 viele Dateien erforderlich sein. Zusätzlich kann der Anwendung eine txt-Datei 
 übergeben werden, die für jedes Booklet die Größe angibt (pro Zeile jeweils 
 Booklet-ID, Leerzeichen, Größe in Bytes). Dies kann zur Schätzung der 
-Geschwindigkeit der Netzwerkverbindung des Testcomputers verwendet werden.
+Geschwindigkeit der Netzwerkverbindung des Testcomputers verwendet werden. Man
+kann diese Information über die Funktion "Arbeitsbereich prüfen" im Admin-Bereich 
+des IQB-Testcenters erhalten.
 
 Als Ausgabe wird eine Xlsx-Datei erzeugt. Diese enthält in drei Tabellen die 
 gewünschten Daten. Nachfolgend wird die Bedeutung der Spalten jeder dieser 
