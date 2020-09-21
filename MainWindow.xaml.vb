@@ -150,4 +150,18 @@ Class MainWindow
     Private Sub BtnBookletXmlOpen_Click(sender As Object, e As RoutedEventArgs)
 
     End Sub
+
+    Private Sub BtnLoginPoolXlsx_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Logins Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+            My.Settings.Save()
+
+            Dim myDlg As New LoginsXlsxDialog With {.Owner = Me, .Title = "Logins/Codes erzeugen"}
+            myDlg.ShowDialog()
+        End If
+    End Sub
 End Class

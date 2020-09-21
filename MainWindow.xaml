@@ -62,6 +62,12 @@
                             Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
                     </TextBlock>
                 </DockPanel>
+                <DockPanel>
+                    <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
+                    <TextBlock>
+                            Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
+                    </TextBlock>
+                </DockPanel>
                 <!--<DockPanel>
                     <StackPanel DockPanel.Dock="Left">
                         <Button Click="BtnBookletXmlNew_Click">Booklet-Xml neu</Button>
