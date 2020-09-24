@@ -57,41 +57,8 @@ Class MainWindow
     End Sub
 
     Private Sub HandleHelpExecuted(sender As Object, e As ExecutedRoutedEventArgs)
-        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-        If Not String.IsNullOrEmpty(My.Settings.lastfile_Yaml) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_Yaml)
-        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_Yaml, .Filter = "Yaml-Dateien|*.yaml",
-                                                           .DefaultExt = "xlsx", .Title = "Konfiguration - Wähle Ziel-Datei"}
-        If filepicker.ShowDialog Then
-            My.Settings.lastfile_Yaml = filepicker.FileName
-            My.Settings.Save()
-
-            Dim fileString As String = IO.File.ReadAllText(My.Settings.lastfile_Yaml)
-            Dim deserializer As New YamlDotNet.Serialization.Deserializer
-            Dim yamlData As OutputConfig = deserializer.Deserialize(fileString, GetType(OutputConfig))
-            Debug.Print("yo")
-            'Dim yamlData As New OutputConfig With {
-            '    .bookletSizes = New Dictionary(Of String, Integer) From {
-            '        {"THTLK1", 123445},
-            '        {"THTLK2", 1234466}
-            '    },
-            '    .omitUnits = New List(Of String) From {
-            '        "ER153ex", "ER342ex"
-            '    },
-            '    .replaceVariables = New Dictionary(Of String, Dictionary(Of String, List(Of String)))
-            '}
-            'yamlData.replaceVariables.Add("ER888", New Dictionary(Of String, List(Of String)) From {
-            '        {"ER888a", New List(Of String) From {"canvasElement23", "canvasElement24", "canvasElement25"}},
-            '        {"ER888b", New List(Of String) From {"canvasElement28"}}
-            '    })
-            'yamlData.replaceVariables.Add("ER889", New Dictionary(Of String, List(Of String)) From {
-            '        {"ER889a", New List(Of String) From {"canvasElement31"}},
-            '        {"ER889b", New List(Of String) From {"canvasElement42"}}
-            '    })
-            'Dim serializer As New YamlDotNet.Serialization.Serializer
-            'Dim yamlSerialzed As String = serializer.Serialize(yamlData)
-            'IO.File.WriteAllText(My.Settings.lastfile_Yaml, yamlSerialzed)
-        End If
-
+        Dim myDlg As New iqb.lib.components.AppAboutDialog With {.Owner = Me}
+        myDlg.ShowDialog()
     End Sub
 
     '############################################

@@ -5,121 +5,116 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:libco="clr-namespace:iqb.lib.components;assembly=iqblib-components"
         xmlns:local="clr-namespace:iqb.testcenter.toolbox"
+        SizeToContent="Height"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Icon="Resources/IQB-Testcenter.ico">
+        Title="MainWindow" Width="800" Icon="Resources/IQB-Testcenter.ico">
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
     </Window.Resources>
     <DockPanel>
-        <DockPanel DockPanel.Dock="Top" Margin="2">
-            <libco:ButtonHelp DockPanel.Dock="Right" Height="26" VerticalAlignment="Top"/>
-            <Label Style="{StaticResource gsTip}" Margin="10" DockPanel.Dock="Top">
-                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
-                dienen können oder ein Zwischenschritt dafür darstellen. Im unteren Abschnitt werden Ergebnisdaten aus dem IQB-Testcenter
-                in das Excel-Format übertragen.
-            </Label>
-        </DockPanel>
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <StackPanel.Resources>
-                    <VisualBrush
+        <DockPanel.Resources>
+            <VisualBrush
                         x:Key="HatchBrush1"
                         TileMode="Tile" Viewport="0,0,20,20"
                         ViewportUnits="Absolute" Viewbox="0,0,20,20"   
                         ViewboxUnits="Absolute">
-                        <VisualBrush.Visual>
-                            <Canvas>
-                                <Rectangle Fill="#FFEAEAEA" Width="20" Height="20" />
+                <VisualBrush.Visual>
+                    <Canvas>
+                        <Rectangle Fill="#FFEAEAEA" Width="20" Height="20" />
 
-                                <Path Stroke="White" Data="M 0 10 l 10 10" />
-                                <Path Stroke="White" Data="M 10 0 l 7 3" />
-                                <Path Stroke="White" Data="M 17 3 l 3 7" />
+                        <Path Stroke="White" Data="M 0 10 l 10 10" />
+                        <Path Stroke="White" Data="M 10 0 l 7 3" />
+                        <Path Stroke="White" Data="M 17 3 l 3 7" />
 
-                                <Path Stroke="White" Data="M 6 0 l -6 20" />
-                                <Path Stroke="White" Data="M 20 0 l -14 20" />
-                            </Canvas>
-                        </VisualBrush.Visual>
-                   </VisualBrush>
-                    <Style TargetType="Button">
-                        <Setter Property="Padding" Value="10 4 10 4"/>
-                        <Setter Property="Margin" Value="0 1 5 1"/>
-                        <Setter Property="VerticalAlignment" Value="Top"/>
-                        <Setter Property="MinWidth" Value="150"/>
-                    </Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="TextWrapping" Value="Wrap"/>
-                        <Setter Property="Margin" Value="10 2 2 2"/>
-                    </Style>
-                    <Style TargetType="DockPanel">
-                        <Setter Property="Margin" Value="10 5 0 0"/>
-                    </Style>
-                </StackPanel.Resources>
-                <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}">
-                    <Run Text="Testmaterial" FontSize="16"/></TextBlock>
-                <DockPanel>
-                    <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
-                    <StackPanel DockPanel.Dock="Right" Width="110">
-                        <TextBlock>
-                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-booklet.md">
-                                <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
-                            </Hyperlink>
-                        </TextBlock>
-                        <TextBlock>
-                            <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Booklet-Template.xlsx">
-                                <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
-                            </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
+                        <Path Stroke="White" Data="M 6 0 l -6 20" />
+                        <Path Stroke="White" Data="M 20 0 l -14 20" />
+                    </Canvas>
+                </VisualBrush.Visual>
+            </VisualBrush>
+        </DockPanel.Resources>
+        <DockPanel DockPanel.Dock="Top" Margin="10">
+            <libco:ButtonHelp DockPanel.Dock="Right" Height="26" Width="26" Margin="10 0 0 10" VerticalAlignment="Top"/>
+            <TextBlock TextWrapping="Wrap" Margin="0 0 10 0" DockPanel.Dock="Top">
+                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
+                dienen können oder ein Zwischenschritt dafür darstellen. Im unteren Abschnitt werden Ergebnisdaten aus dem IQB-Testcenter
+                in das Excel-Format übertragen.
+            </TextBlock>
+        </DockPanel>
+        <StackPanel Margin="10">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Padding" Value="10 4 10 4"/>
+                    <Setter Property="Margin" Value="0 1 5 1"/>
+                    <Setter Property="VerticalAlignment" Value="Top"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="Width" Value="150"/>
+                </Style>
+            </StackPanel.Resources>
+            <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 0 0 10">
+                <Run Text="Testmaterial" FontSize="16"/></TextBlock>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
+                <StackPanel DockPanel.Dock="Right" Width="110">
                     <TextBlock>
-                            Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
-                    </TextBlock>
-                </DockPanel>
-                <DockPanel>
-                    <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
-                    <TextBlock DockPanel.Dock="Right" Width="100">
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins.md">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-booklet.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
                     <TextBlock>
-                            Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
-                    </TextBlock>
-                </DockPanel>
-                <!--<DockPanel>
-                    <StackPanel DockPanel.Dock="Left">
-                        <Button Click="BtnBookletXmlNew_Click">Booklet-Xml neu</Button>
-                        <Button Click="BtnBookletXmlOpen_Click">Booklet-Xml öffnen</Button>
-                    </StackPanel>
-                    <TextBlock>
-                            Neu oder Öffnen einer Booklet-Xml - Editieren - Speichern.
-                    </TextBlock>
-                </DockPanel>-->
-                <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}">
-                    <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
-                <DockPanel>
-                    <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv -> xlsx</Button>
-                    <TextBlock>
-                            Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
-                    </TextBlock>
-                </DockPanel>
-                <DockPanel>
-                    <Button DockPanel.Dock="Left" Click="BtnResponses_Click">
-                        <Button.Content>
-                            <TextBlock>
-                                Antworten und Logs csv -> xlsx
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <TextBlock DockPanel.Dock="Right" Width="100">
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-output.md">
-                            <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Booklet-Template.xlsx">
+                            <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
-                    <TextBlock>
-                            Einlesen aller CSV mit Antworten und Logdaten, Speichern als Xlsx (Umlaute korrigiert)
-                    </TextBlock>
-                </DockPanel>
-            </StackPanel>
-        </ScrollViewer>
+                </StackPanel>
+                <TextBlock TextWrapping="Wrap">
+                        Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
+                </TextBlock>
+            </DockPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
+                <TextBlock DockPanel.Dock="Right" Width="100">
+                    <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins.md">
+                        <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                    </Hyperlink>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                        Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
+                </TextBlock>
+            </DockPanel>
+            <!--<DockPanel>
+                <StackPanel DockPanel.Dock="Left">
+                    <Button Click="BtnBookletXmlNew_Click">Booklet-Xml neu</Button>
+                    <Button Click="BtnBookletXmlOpen_Click">Booklet-Xml öffnen</Button>
+                </StackPanel>
+                <TextBlock>
+                        Neu oder Öffnen einer Booklet-Xml - Editieren - Speichern.
+                </TextBlock>
+            </DockPanel>-->
+            <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 10 0 10">
+                <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv -> xlsx</Button>
+                <TextBlock TextWrapping="Wrap">
+                        Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
+                </TextBlock>
+            </DockPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnResponses_Click">
+                    <Button.Content>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                            Antworten und Logs csv -> xlsx
+                        </TextBlock>
+                    </Button.Content>
+                </Button>
+                <TextBlock DockPanel.Dock="Right" Width="100">
+                    <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-output.md">
+                        <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                    </Hyperlink>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                        Einlesen aller CSV mit Antworten und Logdaten, Speichern als Xlsx (Umlaute korrigiert), ggf. Transformieren/Umbenennen von Variablen
+                </TextBlock>
+            </DockPanel>
+        </StackPanel>
     </DockPanel>
 </Window>
