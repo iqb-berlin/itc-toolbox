@@ -33,7 +33,8 @@ verwendet eine Auswahl aus Kleinbuchstaben und Ziffern - keine Sonderzeichen und
 Kleinbuchstaben wechseln sich dabei mit Ziffern ab. Die Codes kommen in der Tabelle 
 jeweils nur einmal vor.
 
-Diese Tabelle soll längere Zeit für eine Studie als eine Quelle benutzt werden, aus 
+Diese Tabelle soll für eine Studie als Quelle benutzt werden, aus 
 der man nach Bedarf Codes entnimmt (Copy & Paste) und in die eigentlichen Dokumente zur 
-Login-Verwaltung überträgt. Die genutzten Codes sollten gelöscht oder markiert werden, um 
+Login-Verwaltung überträgt. Bei Codes für Logins (Eindeutigkeit erforderlich über die 
+gesamte Studie) sollten die Codes in der Tabelle gelöscht oder markiert werden, um 
 eine Mehrfachverwendung auszuschließen.

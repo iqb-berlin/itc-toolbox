@@ -112,22 +112,19 @@ Public Class LoginsXlsxDialog
 
 #End Region
 
-    Private Shared Function GetNewCode(codeLen As Integer) As String
-        Dim code As String = ""
-        Dim isNumber As Boolean = False
-        Do
-            code = code & IIf(isNumber, Mid(codeNumbers, Int(codeNumbers.Length * Rnd() + 1), 1), Mid(codeCharacters, Int(codeCharacters.Length * Rnd() + 1), 1))
-            isNumber = Not isNumber
-        Loop Until code.Length = codeLen
-        Return code
-    End Function
 
     Private Shared Function GetNewCodeList(codeLen As Integer, codeCount As Integer) As List(Of String)
         Dim codeList As New List(Of String)
+        Randomize()
         For i As Integer = 1 To codeCount
             Dim newCode As String
             Do
-                newCode = GetNewCode(codeLen)
+                newCode = ""
+                Dim isNumber As Boolean = False
+                Do
+                    newCode = newCode & IIf(isNumber, Mid(codeNumbers, Int(codeNumbers.Length * Rnd() + 1), 1), Mid(codeCharacters, Int(codeCharacters.Length * Rnd() + 1), 1))
+                    isNumber = Not isNumber
+                Loop Until newCode.Length = codeLen
             Loop While codeList.Contains(newCode)
             codeList.Add(newCode)
         Next

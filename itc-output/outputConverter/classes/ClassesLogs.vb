@@ -2,6 +2,7 @@
 
 
 Class LogEvent
+    Public timestamp As Long
     Public unit As String = ""
     Public key As String = ""
     Public parameter As String = ""
@@ -14,8 +15,7 @@ Class TimeOnPage
 End Class
 
 Class Activities
-    Inherits Dictionary(Of Long, List(Of LogEvent))
-
+    Inherits List(Of LogEvent)
 
     Public Function getUnitPeriods(starttime As Long) As String
         Dim myreturn As String = ""
@@ -44,6 +44,7 @@ Class TestPerson
     Public code As String
     Public booklet As String
     Public log As Activities
+    Public loadStart As Long = 0
 
     Public ReadOnly Property loadtime() As Long
         Get
@@ -100,54 +101,54 @@ Class TestPerson
         Return myreturn
     End Function
     Public Sub AddLogEvent(timestamp As Long, unit As String, event_key As String, event_parameter As String)
-        If Not log.ContainsKey(timestamp) Then log.Add(timestamp, New List(Of LogEvent))
-        log.Item(timestamp).Add(New LogEvent With {.unit = unit, .key = event_key, .parameter = event_parameter})
+        log.Add(New LogEvent With {.timestamp = timestamp, .unit = unit, .key = event_key, .parameter = event_parameter})
     End Sub
     Public Function GetTimeOnPageList(unitsOnly As List(Of String)) As List(Of TimeOnPage)
-        Dim unitPageList As New Dictionary(Of String, TimeOnPage)
-        Dim currentPage As String = ""
-        Dim pageStart As Long = 0
-        For Each logList As KeyValuePair(Of Long, List(Of LogEvent)) In From le As KeyValuePair(Of Long, List(Of LogEvent)) In Me.log Order By le.Key
-            For Each logEntry As LogEvent In logList.Value
-                If logEntry.key = "PAGENAVIGATIONCOMPLETE" AndAlso unitsOnly.Contains(logEntry.unit) Then
-                    currentPage = logEntry.unit + "##" + logEntry.parameter
-                    pageStart = logList.Key
-                ElseIf Not {"RESPONSESCOMPLETE", "PRESENTATIONCOMPLETE", "UNITTRYLEAVE"}.Contains(logEntry.key) Then
-                    If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 Then
-                        If Not unitPageList.ContainsKey(currentPage) Then
-                            unitPageList.Add(currentPage, New TimeOnPage With {.page = currentPage, .count = 1, .millisec = logList.Key - pageStart})
-                        Else
-                            Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
-                            myTimeOnPage.count += 1
-                            myTimeOnPage.millisec += logList.Key - pageStart
-                        End If
-                        currentPage = ""
-                        pageStart = 0
-                    End If
-                End If
-            Next
-        Next
-        If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 AndAlso unitPageList.ContainsKey(currentPage) Then
-            Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
-            myTimeOnPage.count += 1
-            myTimeOnPage.millisec = 0
-        End If
+        Return New List(Of TimeOnPage)
+        'Dim unitPageList As New Dictionary(Of String, TimeOnPage)
+        'Dim currentPage As String = ""
+        'Dim pageStart As Long = 0
+        'For Each logList As KeyValuePair(Of Long, List(Of LogEvent)) In From le As KeyValuePair(Of Long, List(Of LogEvent)) In Me.log Order By le.Key
+        '    For Each logEntry As LogEvent In logList.Value
+        '        If logEntry.key = "PAGENAVIGATIONCOMPLETE" AndAlso unitsOnly.Contains(logEntry.unit) Then
+        '            currentPage = logEntry.unit + "##" + logEntry.parameter
+        '            pageStart = logList.Key
+        '        ElseIf Not {"RESPONSESCOMPLETE", "PRESENTATIONCOMPLETE", "UNITTRYLEAVE"}.Contains(logEntry.key) Then
+        '            If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 Then
+        '                If Not unitPageList.ContainsKey(currentPage) Then
+        '                    unitPageList.Add(currentPage, New TimeOnPage With {.page = currentPage, .count = 1, .millisec = logList.Key - pageStart})
+        '                Else
+        '                    Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
+        '                    myTimeOnPage.count += 1
+        '                    myTimeOnPage.millisec += logList.Key - pageStart
+        '                End If
+        '                currentPage = ""
+        '                pageStart = 0
+        '            End If
+        '        End If
+        '    Next
+        'Next
+        'If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 AndAlso unitPageList.ContainsKey(currentPage) Then
+        '    Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
+        '    myTimeOnPage.count += 1
+        '    myTimeOnPage.millisec = 0
+        'End If
 
-        Return (From top As KeyValuePair(Of String, TimeOnPage) In unitPageList Select top.Value).ToList
+        'Return (From top As KeyValuePair(Of String, TimeOnPage) In unitPageList Select top.Value).ToList
     End Function
     Public Function GetResponsesCompleteAllUnitCount(unitsOnly As List(Of String)) As Integer
         Dim unitList As New List(Of String)
-        For Each logList As KeyValuePair(Of Long, List(Of LogEvent)) In Me.log
-            For Each logEntry As LogEvent In logList.Value
-                If logEntry.key = "RESPONSESCOMPLETE" AndAlso logEntry.parameter = "all" AndAlso unitsOnly.Contains(logEntry.unit) AndAlso Not unitList.Contains(logEntry.unit) Then
-                    unitList.Add(logEntry.unit)
-                End If
-            Next
-        Next
+        'For Each logList As KeyValuePair(Of Long, List(Of LogEvent)) In Me.log
+        '    For Each logEntry As LogEvent In logList.Value
+        '        If logEntry.key = "RESPONSESCOMPLETE" AndAlso logEntry.parameter = "all" AndAlso unitsOnly.Contains(logEntry.unit) AndAlso Not unitList.Contains(logEntry.unit) Then
+        '            unitList.Add(logEntry.unit)
+        '        End If
+        '    Next
+        'Next
 
         Return unitList.Count
     End Function
-    Public Sub SetSysdata(sysdata As Dictionary(Of String, String))
+    Public Sub SetSysdata(timestamp As Long, sysdata As Dictionary(Of String, String))
         _browser = "?"
         _os = "?"
         _screen = "?"
@@ -155,9 +156,29 @@ Class TestPerson
             If sysdata.ContainsKey("browserVersion") AndAlso sysdata.ContainsKey("browserName") Then _browser = sysdata.Item("browserName") + " " + sysdata.Item("browserVersion")
             If sysdata.ContainsKey("osName") Then _os = sysdata.Item("osName")
             If sysdata.ContainsKey("screenSizeWidth") AndAlso sysdata.ContainsKey("screenSizeHeight") Then _screen = sysdata.Item("screenSizeWidth") + " x " + sysdata.Item("screenSizeHeight")
-            If sysdata.ContainsKey("loadTime") Then _loadtime = Integer.Parse(sysdata.Item("loadTime"))
+            If sysdata.ContainsKey("loadTime") Then
+                _loadtime = Integer.Parse(sysdata.Item("loadTime"))
+                loadStart = timestamp - _loadtime
+            End If
         End If
     End Sub
+
+    Function getFirstPlayerRunning() As Long
+        Dim tsQuery As List(Of Long) = (From ev As LogEvent In Me.log Where ev.key = "PLAYER" AndAlso ev.parameter = "RUNNING" Select ev.timestamp).ToList()
+        If tsQuery IsNot Nothing AndAlso tsQuery.Count > 0 Then
+            Return tsQuery.Min() - loadStart
+        Else
+            Return 0
+        End If
+    End Function
+
+    Function getLastActivity() As Long
+        If Me.log.Count > 0 Then
+            Return (From ev As LogEvent In Me.log Select ev.timestamp).Max() - loadStart
+        Else
+            Return 0
+        End If
+    End Function
 
 End Class
 
@@ -167,9 +188,9 @@ Class TestPersonList
         If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
         Me.Item(g + l + c + b).firstUnitEnter = value
     End Sub
-    Public Sub SetSysdata(g As String, l As String, c As String, b As String, sysdata As Dictionary(Of String, String))
+    Public Sub SetSysdata(timestamp As Long, g As String, l As String, c As String, b As String, sysdata As Dictionary(Of String, String))
         If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).SetSysdata(sysdata)
+        Me.Item(g + l + c + b).SetSysdata(timestamp, sysdata)
     End Sub
     Public Sub AddLogEvent(g As String, l As String, c As String, b As String, timestamp As Long, unit As String, event_key As String, event_parameter As String)
         If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))

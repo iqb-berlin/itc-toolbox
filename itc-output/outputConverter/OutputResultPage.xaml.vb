@@ -127,38 +127,17 @@ Public Class OutputResultPage
                                         key = key.Substring(0, key.IndexOf(" = "))
                                     End If
 
-                                    Select Case key
-                                        Case "LOADCOMPLETE"
-                                            Dim sysdata As Dictionary(Of String, String) = Nothing
-                                            Try
-                                                sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
-                                            Catch ex As Exception
-                                                sysdata = Nothing
-                                                Debug.Print("sysdata json convert failed: " + ex.Message)
-                                            End Try
-                                            myTestPersonList.SetSysdata(group, login, code, booklet, sysdata)
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
-
-                                        Case "BOOKLETLOADSTART"
-                                            Dim parameterClean As String = parameter.Replace("""""", """")
-                                            parameterClean = parameterClean.Replace("\\", "\")
-                                            Dim sysdata As Dictionary(Of String, String) = Nothing
-                                            Try
-                                                sysdata = JsonConvert.DeserializeObject(parameterClean, GetType(Dictionary(Of String, String)))
-                                            Catch ex As Exception
-                                                sysdata = Nothing
-                                                Debug.Print("sysdata json convert failed: " + ex.Message)
-                                            End Try
-                                            myTestPersonList.SetSysdata(group, login, code, booklet, sysdata)
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
-                                        Case "RESPONSESCOMPLETE", "PRESENTATIONCOMPLETE"
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
-                                        Case "UNITENTER"
-                                            myTestPersonList.SetFirstUnitEnter(group, login, code, booklet, timestampInt)
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
-                                        Case Else
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
-                                    End Select
+                                    If key = "LOADCOMPLETE" Then
+                                        Dim sysdata As Dictionary(Of String, String) = Nothing
+                                        Try
+                                            sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
+                                        Catch ex As Exception
+                                            sysdata = Nothing
+                                            Debug.Print("sysdata json convert failed: " + ex.Message)
+                                        End Try
+                                        myTestPersonList.SetSysdata(timestampInt, group, login, code, booklet, sysdata)
+                                    End If
+                                    myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
                                 End If
                             End If
                         Next
@@ -371,7 +350,7 @@ Public Class OutputResultPage
                         xlsxFactory.SetColumnWidth("C", TableTechData, 20)
                         xlsxFactory.SetCellValueString("D", myRow, TableTechData, "loadspeed", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("D", TableTechData, 20)
-                        xlsxFactory.SetCellValueString("E", myRow, TableTechData, "firstUnitEnter after", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("E", myRow, TableTechData, "firstUnitRunning after", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("E", TableTechData, 20)
                         xlsxFactory.SetCellValueString("F", myRow, TableTechData, "os", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("F", TableTechData, 20)
@@ -400,10 +379,10 @@ Public Class OutputResultPage
                             myRow += 1
                             Dim myRowData As New List(Of RowData)
                             myRowData.Add(New RowData With {.Column = "A", .Value = tc.Key, .CellType = CellTypes.str})
-                            myRowData.Add(New RowData With {.Column = "B", .Value = 0, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "B", .Value = tc.Value.loadStart, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "C", .Value = tc.Value.loadtime, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "D", .Value = tc.Value.loadspeed(parentDlg.outputConfig.bookletSizes).ToString(), .CellType = CellTypes.dec})
-                            myRowData.Add(New RowData With {.Column = "E", .Value = 0, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "E", .Value = tc.Value.getFirstPlayerRunning, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "F", .Value = tc.Value.os, .CellType = CellTypes.str})
                             myRowData.Add(New RowData With {.Column = "G", .Value = tc.Value.browser, .CellType = CellTypes.str})
                             myRowData.Add(New RowData With {.Column = "H", .Value = tc.Value.screen, .CellType = CellTypes.str})
