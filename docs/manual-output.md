@@ -144,7 +144,7 @@ Ergebnisse interessieren üblicherweise nicht.
 Für jede Unit (Angabe der ID) werden neue Variablen definiert. Die darunter jeweils aufgeführten Bezeichner 
 entsprechen IDs von Daten, die in den Csv zu finden sind. Hier gibt es die Fälle
 * Umbenennen: Wenn nur eine einzige Csv-ID genannt ist, erhält die neue Variable deren Wert
-* Transformation von Radiobutton-Gruppen: Wenn mehrere Csv-IDs aufgeführt geht der Transformator davon aus, dass 
+* Transformation von Radiobutton-Gruppen: Wenn mehrere Csv-IDs aufgeführt sind geht der Transformator davon aus, dass 
 es sich um Radiobuttons handelt, bei denen nur ein Wert true (also ausgewählt) ist. Dann wird der neuen Variable 
 eine Zahl zugewiesen, die der Position der Csv-ID in der Liste entspricht. Eine 0 oder leer zeigt an, dass 
 keine Option ausgewählt wurde.
