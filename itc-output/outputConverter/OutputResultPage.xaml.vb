@@ -140,9 +140,6 @@ Public Class OutputResultPage
                                             myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
 
                                         Case "BOOKLETLOADSTART"
-                                            myTestPersonList.SetFirstBookletLoadStart(group, login, code, booklet, timestampInt)
-
-
                                             Dim parameterClean As String = parameter.Replace("""""", """")
                                             parameterClean = parameterClean.Replace("\\", "\")
                                             Dim sysdata As Dictionary(Of String, String) = Nothing
@@ -153,9 +150,6 @@ Public Class OutputResultPage
                                                 Debug.Print("sysdata json convert failed: " + ex.Message)
                                             End Try
                                             myTestPersonList.SetSysdata(group, login, code, booklet, sysdata)
-                                            myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
-                                        Case "BOOKLETLOADCOMPLETE"
-                                            myTestPersonList.SetFirstBookletLoadComplete(group, login, code, booklet, timestampInt)
                                             myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, "#BOOKLET#", key, parameter)
                                         Case "RESPONSESCOMPLETE", "PRESENTATIONCOMPLETE"
                                             myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
@@ -177,8 +171,8 @@ Public Class OutputResultPage
                                 isFirstLine = False
                             Else
                                 lineCount += 1
-                                For Each entry As ResponseEntry In ResponseEntry.getResponseEntriesFromLine(line, "file '" + fi.Name + "', line " + lineCount.ToString())
-                                    If entry.data.Count > 0 Then
+                                For Each entry As ResponseEntry In ResponseEntry.getResponseEntriesFromLine(line, "file '" + fi.Name + "', line " + lineCount.ToString(), parentDlg.outputConfig.variables)
+                                    If entry.data.Count > 0 AndAlso (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(entry.unit)) Then
                                         For Each d As KeyValuePair(Of String, String) In entry.data
                                             If Not AllUnitsWithResponses.Contains(entry.unit) Then AllUnitsWithResponses.Add(entry.unit)
                                             If Not AllVariables.Contains(entry.unit + "##" + d.Key) Then AllVariables.Add(entry.unit + "##" + d.Key)
@@ -199,6 +193,7 @@ Public Class OutputResultPage
             myworker.ReportProgress(0.0#, "Daten für " + AllData.Count.ToString("#,##0") + " Testpersonen und " + AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
             myworker.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
 
+
             If Not myworker.CancellationPending Then
 
                 Using MemStream As New IO.MemoryStream()
@@ -210,8 +205,6 @@ Public Class OutputResultPage
                         '########################################################
                         Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Responses")
                         myworker.ReportProgress(0.0#, "Schreibe Daten")
-
-                        '########################################################
 
                         Dim myRow As Integer = 1
                         xlsxFactory.SetCellValueString("A", myRow, TableResponses, "ID", CellFormatting.RowHeader2, myStyles)
@@ -238,7 +231,6 @@ Public Class OutputResultPage
                             xlsxFactory.SetCellValueString(myColumn, myRow, TableResponses, s, CellFormatting.RowHeader2, myStyles)
                             xlsxFactory.SetColumnWidth(myColumn, TableResponses, 10)
                             Columns.Add(s, myColumn)
-                            Debug.Print(myColumn)
                             myColumn = xlsxFactory.GetNextColumn(myColumn)
                         Next
 
@@ -408,10 +400,10 @@ Public Class OutputResultPage
                             myRow += 1
                             Dim myRowData As New List(Of RowData)
                             myRowData.Add(New RowData With {.Column = "A", .Value = tc.Key, .CellType = CellTypes.str})
-                            myRowData.Add(New RowData With {.Column = "B", .Value = tc.Value.firstBookletLoadStart, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "B", .Value = 0, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "C", .Value = tc.Value.loadtime, .CellType = CellTypes.int})
-                            myRowData.Add(New RowData With {.Column = "D", .Value = tc.Value.loadspeed(parentDlg.bookletSize).ToString(), .CellType = CellTypes.dec})
-                            myRowData.Add(New RowData With {.Column = "E", .Value = tc.Value.firstUnitEnter - tc.Value.firstBookletLoadStart, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "D", .Value = tc.Value.loadspeed(parentDlg.outputConfig.bookletSizes).ToString(), .CellType = CellTypes.dec})
+                            myRowData.Add(New RowData With {.Column = "E", .Value = 0, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "F", .Value = tc.Value.os, .CellType = CellTypes.str})
                             myRowData.Add(New RowData With {.Column = "G", .Value = tc.Value.browser, .CellType = CellTypes.str})
                             myRowData.Add(New RowData With {.Column = "H", .Value = tc.Value.screen, .CellType = CellTypes.str})

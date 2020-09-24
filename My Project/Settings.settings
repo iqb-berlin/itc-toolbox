@@ -23,5 +23,8 @@
     <Setting Name="lastfile_OutputTargetXlsx" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="lastfile_Yaml" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -13,8 +13,7 @@
     </Page.Resources>
     <DockPanel>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Margin="0 20 0 0">
-            <Button Name="BtnOKWith" Width="160" HorizontalAlignment="Center" TabIndex="4">Weiter mit Booklet-Datei</Button>
-            <Button Name="BtnOK" Width="160" HorizontalAlignment="Center" TabIndex="4">Weiter ohne Booklet-Datei</Button>
+            <Button Name="BtnOK" HorizontalAlignment="Center" TabIndex="4" IsDefault="True">Weiter</Button>
             <Button Name="BtnCancel" IsCancel="True" HorizontalAlignment="Center" TabIndex="4">Abbrechen</Button>
         </ItemsControl>
         <libco:MessageBoxUserControl Name="MBUC" Margin="10 10 10 0"/>

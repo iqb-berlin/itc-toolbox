@@ -3,6 +3,7 @@
         Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
         Dim LogFileCount As Integer = 0
         Dim ResponsesFileCount As Integer = 0
+        Dim parentDlg As OutputDialog = Me.Parent
         For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
             Try
                 Dim readFile As System.IO.TextReader = New IO.StreamReader(fi.FullName)
@@ -17,6 +18,45 @@
             Catch ex As Exception
                 Me.MBUC.AddMessage("e: Fehler beim Lesen der Datei " + fi.Name + "; noch geöffnet?")
             End Try
+        Next
+        For Each fi As IO.FileInfo In SearchDir.GetFiles("*.yaml", IO.SearchOption.AllDirectories)
+            Try
+                Dim fileString As String = IO.File.ReadAllText(fi.FullName)
+                Dim deserializer As New YamlDotNet.Serialization.Deserializer
+                Dim yamlData As OutputConfig = deserializer.Deserialize(fileString, GetType(OutputConfig))
+                If yamlData.bookletSizes IsNot Nothing Then
+                    If parentDlg.outputConfig.bookletSizes Is Nothing Then
+                        parentDlg.outputConfig.bookletSizes = yamlData.bookletSizes
+                    Else
+                        For Each booklet As KeyValuePair(Of String, Long) In yamlData.bookletSizes
+                            If Not parentDlg.outputConfig.bookletSizes.ContainsKey(booklet.Key) Then parentDlg.outputConfig.bookletSizes.Add(booklet.Key, booklet.Value)
+                        Next
+                    End If
+                End If
+                If yamlData.omitUnits IsNot Nothing Then
+                    If parentDlg.outputConfig.omitUnits Is Nothing Then
+                        parentDlg.outputConfig.omitUnits = yamlData.omitUnits
+                    Else
+                        For Each unitId As String In yamlData.omitUnits
+                            If Not parentDlg.outputConfig.omitUnits.Contains(unitId) Then parentDlg.outputConfig.omitUnits.Add(unitId)
+                        Next
+                    End If
+                End If
+                If yamlData.variables IsNot Nothing Then
+                    If parentDlg.outputConfig.variables Is Nothing Then
+                        parentDlg.outputConfig.variables = yamlData.variables
+                    Else
+                        For Each varDef As KeyValuePair(Of String, Dictionary(Of String, List(Of String))) In yamlData.variables
+                            If Not parentDlg.outputConfig.variables.ContainsKey(varDef.Key) Then parentDlg.outputConfig.variables.Add(varDef.Key, varDef.Value)
+                        Next
+                    End If
+                End If
+            Catch ex As Exception
+                Me.MBUC.AddMessage("w: Fehler beim Lesen der Datei " + fi.Name + "; Syntaxfehler?")
+            End Try
+            If parentDlg.outputConfig.omitUnits IsNot Nothing AndAlso parentDlg.outputConfig.omitUnits.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.omitUnits.Count.ToString + " Units definiert zum Ignorieren.")
+            If parentDlg.outputConfig.variables IsNot Nothing AndAlso parentDlg.outputConfig.variables.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.variables.Count.ToString + " Units mit Variablen-Umbenennungen definiert.")
+            If parentDlg.outputConfig.bookletSizes IsNot Nothing AndAlso parentDlg.outputConfig.bookletSizes.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.bookletSizes.Count.ToString + " Testheft-Größen definiert.")
         Next
         Me.MBUC.AddMessage(LogFileCount.ToString + " Log-Dateien und " + ResponsesFileCount.ToString + " Antwortdateien erkannt.")
     End Sub
@@ -35,46 +75,6 @@
             My.Settings.Save()
 
             Me.NavigationService.Navigate(New OutputResultPage)
-        End If
-    End Sub
-
-    Private Sub BtnOKWith_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles BtnOKWith.Click
-        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-        If Not String.IsNullOrEmpty(My.Settings.lastfile_BookletSizeTxt) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_BookletSizeTxt)
-        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = My.Settings.lastfile_BookletSizeTxt, .Filter = "Txt-Dateien|*.txt",
-                                                                          .InitialDirectory = defaultDir, .DefaultExt = "txt", .Title = "BookletTxt - Wähle Datei"}
-        If filepicker.ShowDialog AndAlso Not String.IsNullOrEmpty(filepicker.FileName) Then
-            My.Settings.lastfile_BookletSizeTxt = filepicker.FileName
-            My.Settings.Save()
-
-            Me.MBUC.AddMessage("Lese Bookletdatei")
-            Dim bookletline As String
-            Dim readFile As System.IO.TextReader = New IO.StreamReader(My.Settings.lastfile_BookletSizeTxt)
-            Try
-                bookletline = readFile.ReadLine()
-            Catch ex As Exception
-                bookletline = ""
-                Me.MBUC.AddMessage("e:Fehler beim Lesen der Bookletdatei: " + ex.Message)
-            End Try
-            If Not String.IsNullOrEmpty(bookletline) Then
-                Dim myParent As OutputDialog = Me.Parent
-                myParent.bookletSize.Clear()
-                Do While bookletline IsNot Nothing
-                    Dim lineSplits As String() = bookletline.Split({" "}, StringSplitOptions.RemoveEmptyEntries)
-                    If lineSplits.Count = 2 Then
-                        Dim tryInt As Integer = 0
-                        If Long.TryParse(lineSplits(1), tryInt) AndAlso Not myParent.bookletSize.ContainsKey(lineSplits(0).ToUpper()) Then
-                            myParent.bookletSize.Add(lineSplits(0).ToUpper(), tryInt)
-                        End If
-                    End If
-                    bookletline = readFile.ReadLine()
-                Loop
-                Me.MBUC.AddMessage(myParent.bookletSize.Count.ToString + " Einträge für Booklet-Größe gelesen")
-
-                inputTargetFileName()
-            Else
-                Me.MBUC.AddMessage("e:Bookletdatei ist leer")
-            End If
         End If
     End Sub
 End Class

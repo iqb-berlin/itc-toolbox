@@ -12,7 +12,7 @@
         End Get
     End Property
 
-    Public Shared Function getResponseEntriesFromLine(Line As String, Optional errorLocation As String = "") As List(Of ResponseEntry)
+    Public Shared Function getResponseEntriesFromLine(Line As String, errorLocation As String, renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String)))) As List(Of ResponseEntry)
         Dim myreturn As New List(Of ResponseEntry)
 
         Dim response As String = ""
@@ -28,7 +28,7 @@
         Dim position As Integer = 0
         Dim semicolonActive As Boolean = True
         Dim tmpStr As String = ""
-        For Each c As Char In line
+        For Each c As Char In Line
             If c = ";" Then
                 If semicolonActive Then
                     If Not String.IsNullOrEmpty(tmpStr) Then
@@ -84,12 +84,42 @@
                     Debug.Print(tmpResponse)
                 End Try
                 Dim stringedData As New Dictionary(Of String, String)
+                Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
+                If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(localunit) Then varRenameDef = renameVariables.Item(localunit)
+                Dim foundRadioButtonGroups As New Dictionary(Of String, Integer)
                 For Each s As KeyValuePair(Of String, Object) In localdata
-                    If TypeOf (s.Value) Is String Then
-                        stringedData.Add(s.Key, s.Value)
-                    Else
-                        stringedData.Add(s.Key, s.Value.ToString)
+                    Dim varName As String = s.Key
+                    Dim ignoreVar As Boolean = False
+                    If varRenameDef IsNot Nothing Then
+                        For Each varNameDef As KeyValuePair(Of String, List(Of String)) In varRenameDef
+                            If varNameDef.Value.Contains(varName) Then
+                                If varNameDef.Key = "__omit__" Then
+                                    ignoreVar = True
+                                Else
+                                    If varNameDef.Value.Count > 1 Then
+                                        If Not foundRadioButtonGroups.ContainsKey(varNameDef.Key) Then foundRadioButtonGroups.Add(varNameDef.Key, 0)
+                                        If s.Value = "true" Then
+                                            foundRadioButtonGroups.Item(varNameDef.Key) = varNameDef.Value.IndexOf(varName) + 1
+                                        End If
+                                        ignoreVar = True
+                                    Else
+                                        varName = varNameDef.Key
+                                    End If
+                                End If
+                                Exit For
+                            End If
+                        Next
                     End If
+                    If Not ignoreVar Then
+                        If TypeOf (s.Value) Is String Then
+                            stringedData.Add(varName, s.Value)
+                        Else
+                            stringedData.Add(varName, s.Value.ToString)
+                        End If
+                    End If
+                Next
+                For Each radioVariable As KeyValuePair(Of String, Integer) In foundRadioButtonGroups
+                    stringedData.Add(radioVariable.Key, radioVariable.Value.ToString)
                 Next
                 myreturn.Add(New ResponseEntry With {
                              .booklet = localbooklet,

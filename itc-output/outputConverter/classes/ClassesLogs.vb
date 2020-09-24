@@ -47,32 +47,10 @@ Class TestPerson
 
     Public ReadOnly Property loadtime() As Long
         Get
-            Return _firstBookletLoadComplete - _firstBookletLoadStart
+            Return _loadtime
         End Get
     End Property
-    Public ReadOnly Property firstunitentertime() As Long
-        Get
-            Return _firstUnitEnter - _firstBookletLoadStart
-        End Get
-    End Property
-    Private _firstBookletLoadStart As Long
-    Public Property firstBookletLoadStart() As Long
-        Get
-            Return _firstBookletLoadStart
-        End Get
-        Set(ByVal value As Long)
-            If value < _firstBookletLoadStart Then _firstBookletLoadStart = value
-        End Set
-    End Property
-    Private _firstBookletLoadComplete As Long
-    Public Property firstBookletLoadComplete() As Long
-        Get
-            Return _firstBookletLoadComplete
-        End Get
-        Set(ByVal value As Long)
-            If value < _firstBookletLoadComplete Then _firstBookletLoadComplete = value
-        End Set
-    End Property
+    Private _loadtime As Long
     Private _firstUnitEnter As Long
     Public Property firstUnitEnter() As Long
         Get
@@ -107,8 +85,7 @@ Class TestPerson
         login = l
         code = c
         booklet = b
-        _firstBookletLoadComplete = Long.MaxValue
-        _firstBookletLoadStart = Long.MaxValue
+        _loadtime = 0
         _firstUnitEnter = Long.MaxValue
         log = New Activities
         _browser = "?"
@@ -117,8 +94,8 @@ Class TestPerson
     End Sub
     Public Function loadspeed(bookletsizelist As Dictionary(Of String, Long)) As Double
         Dim myreturn As Double = 0.0
-        If bookletsizelist IsNot Nothing AndAlso bookletsizelist.ContainsKey(booklet) Then
-            myreturn = bookletsizelist.Item(booklet) / Me.loadtime
+        If _loadtime > 0 AndAlso bookletsizelist IsNot Nothing AndAlso bookletsizelist.ContainsKey(booklet) Then
+            myreturn = bookletsizelist.Item(booklet) / Me._loadtime
         End If
         Return myreturn
     End Function
@@ -178,6 +155,7 @@ Class TestPerson
             If sysdata.ContainsKey("browserVersion") AndAlso sysdata.ContainsKey("browserName") Then _browser = sysdata.Item("browserName") + " " + sysdata.Item("browserVersion")
             If sysdata.ContainsKey("osName") Then _os = sysdata.Item("osName")
             If sysdata.ContainsKey("screenSizeWidth") AndAlso sysdata.ContainsKey("screenSizeHeight") Then _screen = sysdata.Item("screenSizeWidth") + " x " + sysdata.Item("screenSizeHeight")
+            If sysdata.ContainsKey("loadTime") Then _loadtime = Integer.Parse(sysdata.Item("loadTime"))
         End If
     End Sub
 
@@ -185,14 +163,6 @@ End Class
 
 Class TestPersonList
     Inherits SortedDictionary(Of String, TestPerson)
-    Public Sub SetFirstBookletLoadStart(g As String, l As String, c As String, b As String, value As Long)
-        If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).firstBookletLoadStart = value
-    End Sub
-    Public Sub SetFirstBookletLoadComplete(g As String, l As String, c As String, b As String, value As Long)
-        If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).firstBookletLoadComplete = value
-    End Sub
     Public Sub SetFirstUnitEnter(g As String, l As String, c As String, b As String, value As Long)
         If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
         Me.Item(g + l + c + b).firstUnitEnter = value

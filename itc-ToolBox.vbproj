@@ -30,8 +30,8 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.html</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>4</ApplicationRevision>
-    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.2.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -147,6 +147,7 @@
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesResponses.vb" />
     <Compile Include="itc-output\outputConverter\OutputDialog.xaml.vb">
@@ -229,6 +230,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>12.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="YamlDotNet">
+      <Version>8.1.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
