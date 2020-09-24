@@ -54,10 +54,10 @@
             Catch ex As Exception
                 Me.MBUC.AddMessage("w: Fehler beim Lesen der Datei " + fi.Name + "; Syntaxfehler?")
             End Try
-            If parentDlg.outputConfig.omitUnits IsNot Nothing AndAlso parentDlg.outputConfig.omitUnits.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.omitUnits.Count.ToString + " Units definiert zum Ignorieren.")
-            If parentDlg.outputConfig.variables IsNot Nothing AndAlso parentDlg.outputConfig.variables.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.variables.Count.ToString + " Units mit Variablen-Umbenennungen definiert.")
-            If parentDlg.outputConfig.bookletSizes IsNot Nothing AndAlso parentDlg.outputConfig.bookletSizes.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.bookletSizes.Count.ToString + " Testheft-Größen definiert.")
         Next
+        If parentDlg.outputConfig.omitUnits IsNot Nothing AndAlso parentDlg.outputConfig.omitUnits.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.omitUnits.Count.ToString + " Units definiert zum Ignorieren.")
+        If parentDlg.outputConfig.variables IsNot Nothing AndAlso parentDlg.outputConfig.variables.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.variables.Count.ToString + " Units mit Variablen-Umbenennungen definiert.")
+        If parentDlg.outputConfig.bookletSizes IsNot Nothing AndAlso parentDlg.outputConfig.bookletSizes.Count > 0 Then Me.MBUC.AddMessage("yaml: " + parentDlg.outputConfig.bookletSizes.Count.ToString + " Testheft-Größen definiert.")
         Me.MBUC.AddMessage(LogFileCount.ToString + " Log-Dateien und " + ResponsesFileCount.ToString + " Antwortdateien erkannt.")
     End Sub
 
