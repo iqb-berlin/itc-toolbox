@@ -72,7 +72,7 @@
             </DockPanel>
             <DockPanel>
                 <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
-                <TextBlock DockPanel.Dock="Right" Width="100">
+                <TextBlock DockPanel.Dock="Right" Width="110">
                     <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins.md">
                         <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                     </Hyperlink>
