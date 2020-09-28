@@ -14,36 +14,23 @@ Class TimeOnPage
     Public count As Integer = 0
 End Class
 
-Class Activities
-    Inherits List(Of LogEvent)
-
-    Public Function getUnitPeriods(starttime As Long) As String
-        Dim myreturn As String = ""
-        'For Each u As KeyValuePair(Of String, List(Of LogEvent)) In Me
-        '    'find unit enter events
-        '    Dim ts_unittryleave As List(Of Long) = (From ue As LogEvent In u.Value Order By ue.timestamp Where ue.key = "UNITTRYLEAVE" Select ue.timestamp).ToList()
-        '    Dim lastenter As Long = Long.MaxValue
-        '    For Each ts As Long In (From ue As LogEvent In u.Value Order By ue.timestamp Descending Where ue.key = "UNITENTER" Select ue.timestamp)
-        '        Dim leave_ts As Long = (From ue As LogEvent In u.Value Order By ue.timestamp Where ue.key = "UNITTRYLEAVE" And ue.timestamp > ts And ue.timestamp < lastenter Select ue.timestamp).LastOrDefault
-        '        lastenter = ts
-        '        myreturn += "##" + u.Key + ":" + (ts - starttime).ToString + "/" + (leave_ts - ts).ToString
-        '    Next
-
-
-        '    'myreturn += String.Join(";", (From ue As UnitEvent In u.Value
-        '    '                              Let stringified As String = ue.timestamp.ToString + ";" + ue.key + ";" + ue.parameter
-        '    '                              Select stringified
-        '    '                          ).ToList())
-        'Next
-        Return myreturn
-    End Function
+Class TimeOnUnit
+    Public unit As String = ""
+    Public navigationStart As Long = 0
+    Public playerLoadTime As Long = 0
+    Public stayTime As Long = 0
+    Public wasPaused As Boolean = False
+    Public responseProgressTimeSome As Long = 0
+    Public responseProgressTimeComplete As Long = 0
+    Public lostFocus As Boolean = False
 End Class
+
 Class TestPerson
     Public group As String
     Public login As String
     Public code As String
     Public booklet As String
-    Public log As Activities
+    Public log As List(Of LogEvent)
     Public loadStart As Long = 0
 
     Public ReadOnly Property loadtime() As Long
@@ -88,7 +75,7 @@ Class TestPerson
         booklet = b
         _loadtime = 0
         _firstUnitEnter = Long.MaxValue
-        log = New Activities
+        log = New List(Of LogEvent)
         _browser = "?"
         _os = "?"
         _screen = "?"
@@ -103,38 +90,47 @@ Class TestPerson
     Public Sub AddLogEvent(timestamp As Long, unit As String, event_key As String, event_parameter As String)
         log.Add(New LogEvent With {.timestamp = timestamp, .unit = unit, .key = event_key, .parameter = event_parameter})
     End Sub
-    Public Function GetTimeOnPageList(unitsOnly As List(Of String)) As List(Of TimeOnPage)
-        Return New List(Of TimeOnPage)
-        'Dim unitPageList As New Dictionary(Of String, TimeOnPage)
-        'Dim currentPage As String = ""
-        'Dim pageStart As Long = 0
-        'For Each logList As KeyValuePair(Of Long, List(Of LogEvent)) In From le As KeyValuePair(Of Long, List(Of LogEvent)) In Me.log Order By le.Key
-        '    For Each logEntry As LogEvent In logList.Value
-        '        If logEntry.key = "PAGENAVIGATIONCOMPLETE" AndAlso unitsOnly.Contains(logEntry.unit) Then
-        '            currentPage = logEntry.unit + "##" + logEntry.parameter
-        '            pageStart = logList.Key
-        '        ElseIf Not {"RESPONSESCOMPLETE", "PRESENTATIONCOMPLETE", "UNITTRYLEAVE"}.Contains(logEntry.key) Then
-        '            If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 Then
-        '                If Not unitPageList.ContainsKey(currentPage) Then
-        '                    unitPageList.Add(currentPage, New TimeOnPage With {.page = currentPage, .count = 1, .millisec = logList.Key - pageStart})
-        '                Else
-        '                    Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
-        '                    myTimeOnPage.count += 1
-        '                    myTimeOnPage.millisec += logList.Key - pageStart
-        '                End If
-        '                currentPage = ""
-        '                pageStart = 0
-        '            End If
-        '        End If
-        '    Next
-        'Next
-        'If Not String.IsNullOrEmpty(currentPage) AndAlso pageStart > 0 AndAlso unitPageList.ContainsKey(currentPage) Then
-        '    Dim myTimeOnPage As TimeOnPage = unitPageList.Item(currentPage)
-        '    myTimeOnPage.count += 1
-        '    myTimeOnPage.millisec = 0
-        'End If
-
-        'Return (From top As KeyValuePair(Of String, TimeOnPage) In unitPageList Select top.Value).ToList
+    Public Function GetTimeOnUnitList() As List(Of TimeOnUnit)
+        Dim myReturn As New List(Of TimeOnUnit)
+        Dim currentTimeOnUnit As TimeOnUnit = Nothing
+        Dim pageStart As Long = 0
+        For Each logEntry As LogEvent In From le As LogEvent In Me.log Order By le.timestamp
+            Select Case logEntry.key
+                Case "CURRENT_UNIT_ID"
+                    If currentTimeOnUnit IsNot Nothing Then
+                        currentTimeOnUnit.stayTime = logEntry.timestamp - currentTimeOnUnit.navigationStart - currentTimeOnUnit.playerLoadTime
+                        myReturn.Add(currentTimeOnUnit)
+                    End If
+                    currentTimeOnUnit = New TimeOnUnit With {.unit = logEntry.parameter, .navigationStart = logEntry.timestamp}
+                Case "PLAYER"
+                    If currentTimeOnUnit IsNot Nothing AndAlso logEntry.parameter = "RUNNING" Then
+                        currentTimeOnUnit.playerLoadTime = logEntry.timestamp - currentTimeOnUnit.navigationStart
+                    End If
+                Case "FOCUS"
+                    If currentTimeOnUnit IsNot Nothing AndAlso logEntry.parameter = "HAS_NOT" Then
+                        currentTimeOnUnit.lostFocus = True
+                    End If
+                Case "CONTROLLER"
+                    If currentTimeOnUnit IsNot Nothing Then
+                        If logEntry.parameter = "PAUSED" Then
+                            currentTimeOnUnit.wasPaused = True
+                        ElseIf logEntry.parameter = "TERMINATED" Then
+                            currentTimeOnUnit.stayTime = logEntry.timestamp - currentTimeOnUnit.navigationStart - currentTimeOnUnit.playerLoadTime
+                            myReturn.Add(currentTimeOnUnit)
+                            currentTimeOnUnit = Nothing
+                        End If
+                    End If
+                Case "RESPONSE_PROGRESS"
+                    If currentTimeOnUnit IsNot Nothing Then
+                        If logEntry.parameter = "some" Then
+                            currentTimeOnUnit.responseProgressTimeSome = logEntry.timestamp - currentTimeOnUnit.navigationStart - currentTimeOnUnit.playerLoadTime
+                        ElseIf logEntry.parameter = "complete" Then
+                            currentTimeOnUnit.responseProgressTimeComplete = logEntry.timestamp - currentTimeOnUnit.navigationStart - currentTimeOnUnit.playerLoadTime
+                        End If
+                    End If
+            End Select
+        Next
+        Return myReturn
     End Function
     Public Function GetResponsesCompleteAllUnitCount(unitsOnly As List(Of String)) As Integer
         Dim unitList As New List(Of String)

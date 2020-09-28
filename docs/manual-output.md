@@ -1,4 +1,4 @@
-﻿firstUnitRunning# itc-ToolBox – Antworten
+﻿# itc-ToolBox – Antworten
 Über den Admin-Bereich des Testcenters lassen sich vor allem zwei Dateiarten 
 herunterladen: Responses und Logs. Diese Rohdaten sind schlecht auswertbar. 
 Die Funktion "Antworten und Logs csv -> xlsx" transformiert diese Daten. 
@@ -13,7 +13,11 @@ hinterlegt sein. Diese Dateien liefern zusätzliche Informationen für die Trans
 
 Als Ausgabe wird eine Xlsx-Datei erzeugt. Diese enthält in drei Tabellen die 
 gewünschten Daten. Nachfolgend wird die Bedeutung der Spalten jeder dieser 
-Tabellen beschrieben:
+Tabellen beschrieben. Wenn von **Zeitstempel** die Rede ist, dann handelt es sich um 
+eine in JavaScript über Date.now() ermittelte Anzahl der Millisekunden, die seit 
+dem 01.01.1970 00:00:00 UTC vergangen sind. Für Excel muss man den Wert 
+umrechnen: `=<ts>/(1000*60*60*24) + 25569` und dann als Datum+Zeit 
+formatieren: TT.MM.JJJJ h:mm:ss
 
 ## Tabelle Responses
 
@@ -27,7 +31,7 @@ Tabellen beschrieben:
 
 Die Zeilen dieser Tabelle sind nach ID sortiert. Sollte eine Testperson den Test nur gestartet, aber keine Antwortdaten abgeschickt haben, erscheint sie nicht in der Liste.
 
-## Tabelle TimeOnPage
+## Tabelle TimeOnUnit
 
 Für die weitere Beurteilung der Antworten schickt das IQB-Testcenter eine größere 
 Menge zeitpunktbezogener Daten, sog. Log-Daten. Hierbei wird stets ein Zeitstempel 
@@ -36,30 +40,24 @@ Ereignisses und ggf. weitere Informationen. Aus dieser Folge von Ereignissen lä
 sich die Navigation zwischen Units und Seiten und somit die Zeit ermitteln, die eine 
 Testperson während des Tests auf einer bestimmten Seite verbracht hat.
 
-Eine Unit besteht aus mindestens einer Seite, auf denen die visuellen Elemente 
-sowie die Antwort-Elemente platziert sind. Sollte es bei mehreren Seiten eine Seite 
-geben, die ständig angezeigt wird, wird diese nicht extra aufgeführt, sondern deren 
-Zeit müsste als Summe aller anderen Seitenzeiten ermittelt werden. Die Verteilung 
-der Antwort-Elemente (z. B. Items) auf die Seiten wird nicht erfasst.
+Die Tabelle TimeOnUnit listet alle Zeiten auf, die die Testpersonen auf einer Unit 
+verbracht hat. Dabei kann der Besuch einer Unit mehrfach auftreten. Folgende Spalten 
+enthalten Informationen hierzu:
 
-Die erste Spalte enthält die ID (s. Tabelle Responses), dann folgen für jede Seite 
-zwei Spalten:
-* `<Unit-ID>##<Seiten-ID>##topTotal`<br>
-Zeit, die die Seite angezeigt wurde. Diese Verweildauer ist eine Summe aller 
-Besuche in Millisekunden. Konnte für eine Seite kein Endzeitpunkt festgestellt 
-werden (z. B. wegen eines Neuladen des Tests), wird hier eine Null eingetragen.
-* `<Unit-ID>##<Seiten-ID>##topCount`<br>
-Anzahl aller Besuche dieser Seite.
-
-Die Unitseiten-Spalten sind alphabetisch sortiert. Es werden nur Units beachtet, 
-die in der Tabelle Responses aufgeführt sind, d. h. nur Units mit Antwortdaten.
-
-Die Verweilzeiten werden nach folgender Methode ermittelt: Startzeitpunkt 
-wird durch PAGENAVIGATIONCOMPLETE festgestellt. Dieses Ereignis wird durch 
-den Player ausgelöst, wenn alle Elemente der Seite vollständig dargestellt 
-sind und ggf. eine vorherige Beantwortung rekonstruiert wurde. Ein Ende der 
-Anzeige wird angenommen, wenn ein Ereignis auftritt, das nicht in der folgenden 
-Liste aufgeführt ist: RESPONSESCOMPLETE, PRESENTATIONCOMPLETE und UNITTRYLEAVE.
+* `Start At`: Zeitstempel des Starts der Navigation in die Unit
+* `Player Load Time`: Anzahl Millisekunden nach Start bis zu dem Zeitpunkt, an 
+dem der Player "RUNNING" meldet
+* `Stay Time`: Verweildauer bei dieser Unit in Milisekunden. Das Verweilen beginnt 
+erst nach Laden des Players und der Unit-Daten und wird 
+als beendet angesehen, wenn eine andere Unit angewählt wurde oder der Test terminiert. 
+Achtung: Sollte der Controller ein PAUSE-Commando geben, läuft die Zeit weiter.
+* `Was Paused`: (True/False) Der Controller hat ein zwischendurch PAUSE-Commando geben.
+* `Lost Focus`: (True/False) Die Test hat einen Fokusverlust festgestellt, d. h. 
+die Testperson hat im Browser das Test-Tab verlassen oder den Browser
+* `Responses Some Time`: Zeit in Millisekunden nach Laden des Players und der 
+Unitdaten bis der Player "Responses Progress: Some" meldet
+* `Responses Complete Time`: Zeit in Millisekunden nach Laden des Players und der 
+Unitdaten bis der Player "Responses Progress: Complete" meldet
 
 ## Tabelle TechData
 
@@ -69,15 +67,13 @@ aufgelistet:
 | Spaltenbezeichnung | Bedeutung |
 | :------------- | :---------- |
 |ID|ID der Testsitzung wie in den anderen Tabellen|
-|Start at|Beginn des ersten Ladens der Testinhalte nach Auswahl des Booklets durch die Testperson. Es handelt sich um eine in JavaScript über Date.now() ermittelte Anzahl der Millisekunden, die seit dem 01.01.1970 00:00:00 UTC vergangen sind. Für Excel muss man den Wert umrechnen: `=<ts>/(1000*60*60*24) + 25569` und dann als Datum+Zeit formatieren: TT.MM.JJJJ h:mm:ss|
+|Start at|Beginn des ersten Ladens der Testinhalte nach Auswahl des Booklets durch die Testperson (Zeitstempel).|
 |loadcomplete after|Dauer des Ladevorganges in Millisekunden|
 |loadspeed|Ladegeschwindigkeit als Quotient aus Bookletgröße (aus der zusätzlich zugewiesenen txt-Datei) und Ladedauer. Wenn die Bookletgröße in Bytes und die Dauer in Millisekunden angegeben werden (wie hier aktuell im Testcenter), dann ist die Einheit des Wertes kBytes/sec|
 |firstUnitRunning after|Zeit zwischen Start des Ladens der Testinhalte und Eintritt in die erste Unit. Achtung: In Abhängigkeit von Testhefteinstellungen kann die erste Unit angezeigt werden, bevor alle Testinhalte geladen wurden.|
 |os|Betriebssystem (operating system)|
 |browser|Name und Version|
 |screen|Breite x Höhe in Pixels|
-|pages visited ratio|Anteil der in dieser Testsitzung besuchten Seiten an der Gesamtzahl der für dieses Booklet bekannten Seiten. Bekannt sind Seiten durch den Besuch irgendeiner Testperson, d. h. zu einem frühen Zeitpunkt der Testung mögen nicht alle Seiten bekannt sein. Es werden nur Seiten entsprechend der Tabelle TimeOnPages berücksichtigt, d. h. Seiten von Units, zu denen Antworten gespeichert wurden.|
-|units fully responded ratio|Anteil der vollständig beantworteten Units an allen bekannten Units des Booklets. Es wird zur Ermittlung das Ereignis RESPONSESCOMPLETE: „all“ verwendet, das der Player schickt. Es werden nur Units berücksichtigt, zu denen Antworten gespeichert wurden. Es kann sein, dass nachträglich Antworten wieder entfernt wurden, was nicht berücksichtigt wird.|
 
 ## Konfiguration über YAML-Datei
 Eine YAML-Datei ist eine einfache Textdatei, in der über eine spezielle Syntax Informationen 
