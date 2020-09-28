@@ -51,7 +51,7 @@ dem der Player "RUNNING" meldet
 erst nach Laden des Players und der Unit-Daten und wird 
 als beendet angesehen, wenn eine andere Unit angewählt wurde oder der Test terminiert. 
 Achtung: Sollte der Controller ein PAUSE-Commando geben, läuft die Zeit weiter.
-* `Was Paused`: (True/False) Der Controller hat ein zwischendurch PAUSE-Commando geben.
+* `Was Paused`: (True/False) Der Controller hat zwischendurch ein PAUSE-Commando geben.
 * `Lost Focus`: (True/False) Die Test hat einen Fokusverlust festgestellt, d. h. 
 die Testperson hat im Browser das Test-Tab verlassen oder den Browser
 * `Responses Some Time`: Zeit in Millisekunden nach Laden des Players und der 
