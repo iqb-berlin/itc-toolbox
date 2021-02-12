@@ -15,7 +15,7 @@ Imports System.Windows
 <Assembly: AssemblyDescription("Diese Anwendung transformiert Daten des IQB-Testcenters.")>
 <Assembly: AssemblyCompany("IQB Berlin")>
 <Assembly: AssemblyProduct("itc-Toolbox")>
-<Assembly: AssemblyCopyright("IQB © 2018, 2020")>
+<Assembly: AssemblyCopyright("IQB © 2018, 2021")>
 <Assembly: AssemblyTrademark("")>
 <Assembly: ComVisible(false)>
 

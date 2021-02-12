@@ -222,7 +222,7 @@ Public Class BookletXlsxDialog
                         '-----------------------------------------------------------------------------
                         myworker.ReportProgress(20.0#, "h:Schreibe Booklets XML")
                         Dim bookletsIDRef As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "bookletsCol.ID")
-                        Dim bookletsSheetName As String = ""
+                        Dim bookletsSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(bookletsIDRef)
                         Dim bookletsColID As String = ""
                         Dim bookletsFirstRow As Integer = 0
                         Dim bookletsColTitle As String = ""
@@ -232,10 +232,9 @@ Public Class BookletXlsxDialog
                         Dim bookletHeaderRow As Integer = 0
                         Dim bookletId As String = ""
 
-                        If String.IsNullOrEmpty(bookletsIDRef) Then
+                        If String.IsNullOrEmpty(bookletsSheetName) Then
                             myworker.ReportProgress(20.0#, "e:bookletsCol.ID nicht gefunden - ignoriere")
                         Else
-                            bookletsSheetName = xlsxFactory.GetWorksheetNameFromRefStr(bookletsIDRef)
                             bookletsColID = xlsxFactory.GetColumnFromRefStr(bookletsIDRef)
                             bookletsFirstRow = xlsxFactory.GetRowFromRefStr(bookletsIDRef) + 1
                             bookletsColTitle = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "bookletsCol.Title"))
@@ -259,12 +258,16 @@ Public Class BookletXlsxDialog
                                         Else
                                             Dim bookletDescription As String = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, bookletsColTitle + Zeile.ToString)
 
-                                            Dim BookletXmlFile As XDocument = <?xml version="1.0" encoding="utf-8"?><Booklet></Booklet>
+                                            Dim BookletXmlFile As XDocument = <?xml version="1.0" encoding="utf-8"?>
+                                                                              <Booklet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                                                                  xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/iqb-berlin/testcenter-backend/9.1.1/definitions/vo_Booklet.xsd">
+
+                                                                              </Booklet>
                                             fatal_error = False
                                             BookletXmlFile.Root.Add(
                                                     <Metadata>
-                                                        <Label><%= bookletTitle %></Label>
                                                         <Id><%= bookletId %></Id>
+                                                        <Label><%= bookletTitle %></Label>
                                                         <Description><%= bookletDescription %></Description>
                                                     </Metadata>
                                             )
@@ -428,8 +431,8 @@ Public Class testletdata
         Dim myreturn As XElement = <Testlet id=<%= id %> label=<%= title %>/>
         If Not String.IsNullOrEmpty(codeToEnter) OrElse Not String.IsNullOrEmpty(timeMax) Then
             Dim XRestrictions As XElement = <Restrictions/>
-            If Not String.IsNullOrEmpty(codeToEnter) Then XRestrictions.Add(<CodeToEnter parameter=<%= codeToEnter %>><%= codeToEnterPrompt %></CodeToEnter>)
-            If Not String.IsNullOrEmpty(timeMax) Then XRestrictions.Add(<TimeMax parameter=<%= timeMax %>/>)
+            If Not String.IsNullOrEmpty(codeToEnter) Then XRestrictions.Add(<CodeToEnter code=<%= codeToEnter %>><%= codeToEnterPrompt %></CodeToEnter>)
+            If Not String.IsNullOrEmpty(timeMax) Then XRestrictions.Add(<TimeMax minutes=<%= timeMax %>/>)
             myreturn.Add(XRestrictions)
         End If
 
