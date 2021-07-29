@@ -13,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <IsWebBootstrapper>true</IsWebBootstrapper>
-    <PublishUrl>\\huiqb38c.user.hu-berlin.de\IQBInstitut\EDV\IQB-Apps\itc-ToolBox\</PublishUrl>
+    <PublishUrl>\\huiqb38c.user.hu-berlin.de\IQBInstitut\EDV\IQB-Apps\itc-Toolbox\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -23,14 +23,14 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>http://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox/</InstallUrl>
+    <InstallUrl>https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox/</InstallUrl>
     <TargetCulture>de</TargetCulture>
     <ProductName>itc-ToolBox</ProductName>
     <PublisherName>IQB Berlin</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.html</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>1.3.1.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -79,14 +79,13 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>4C45A423A90B299D26D0DED47BAECAD198565011</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>DAC47B19C73D8E8FEB065A6AB9A38AF0023CDE0D</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>
-    </ManifestKeyFile>
+    <ManifestKeyFile>GRP_-_Code-Signing_IQB.p12</ManifestKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Core" />
@@ -214,7 +213,6 @@
     <None Include="docs\manual-booklet.md" />
     <None Include="docs\manual-logins.md" />
     <None Include="docs\manual-output.md" />
-    <None Include="iqb.ks" />
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>

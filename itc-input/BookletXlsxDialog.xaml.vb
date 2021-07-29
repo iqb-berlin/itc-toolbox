@@ -314,24 +314,24 @@ Public Class BookletXlsxDialog
                                                                 Dim CodePrompt As String = ""
                                                                 Dim MaxTime As String = ""
                                                                 Dim TempCol As String = xlsxFactory.GetNextColumn(CurrentCol)
-                                                                HeaderContent = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + bookletHeaderRow.ToString)
-                                                                If HeaderContent = "Code" Then
+                                                                Dim TempHeaderContent As String = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + bookletHeaderRow.ToString)
+                                                                If TempHeaderContent = "Code" Then
                                                                     Code = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + Zeile.ToString)
                                                                     CodeCount += 1
                                                                     CodePrompt = CodePromptPrefix + CodeCount.ToString + CodePromptSuffix
                                                                     CurrentCol = TempCol
-                                                                ElseIf HeaderContent = "max Time" Then
+                                                                ElseIf TempHeaderContent = "max Time" Then
                                                                     MaxTime = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + Zeile.ToString)
                                                                     CurrentCol = TempCol
                                                                 End If
                                                                 TempCol = xlsxFactory.GetNextColumn(TempCol)
-                                                                HeaderContent = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + bookletHeaderRow.ToString)
-                                                                If HeaderContent = "Code" Then
+                                                                TempHeaderContent = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + bookletHeaderRow.ToString)
+                                                                If TempHeaderContent = "Code" Then
                                                                     Code = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + Zeile.ToString)
                                                                     CodeCount += 1
                                                                     CodePrompt = CodePromptPrefix + CodeCount.ToString + CodePromptSuffix
                                                                     CurrentCol = TempCol
-                                                                ElseIf HeaderContent = "max Time" Then
+                                                                ElseIf TempHeaderContent = "max Time" Then
                                                                     MaxTime = xlsxFactory.GetCellValue(sourceXLS, bookletsSheetName, TempCol + Zeile.ToString)
                                                                     CurrentCol = TempCol
                                                                 End If
