@@ -76,7 +76,7 @@
     <ApplicationIcon>Resources\IQB-Testcenter.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>DAC47B19C73D8E8FEB065A6AB9A38AF0023CDE0D</ManifestCertificateThumbprint>

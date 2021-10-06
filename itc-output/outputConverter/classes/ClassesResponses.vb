@@ -195,6 +195,66 @@
                     End If
                 End If
 
+            ElseIf responseType = "unknown" Then
+                Dim tmpResponse As String = response.Replace("""""", """")
+                tmpResponse = tmpResponse.Replace("\\", "\")
+                Dim allResponses As Dictionary(Of String, String) = Nothing
+                Dim localdata As New Dictionary(Of String, String)
+                Try
+                    allResponses = Newtonsoft.Json.JsonConvert.DeserializeObject(tmpResponse, GetType(Dictionary(Of String, String)))
+                Catch ex As Exception
+                    localdata.Add("ConverterError", "parsing " + responseType + "failed: " + ex.Message)
+                    If Not String.IsNullOrEmpty(errorLocation) Then localdata.Add("ErrorLocation", errorLocation)
+                    Debug.Print("parseError " + ex.Message + " @ " + errorLocation)
+                    Debug.Print(tmpResponse)
+                End Try
+                If allResponses Is Nothing Then
+                    myreturn.Add(New ResponseEntry With {
+                             .booklet = localbooklet,
+                             .code = localcode,
+                             .data = localdata,
+                             .group = localgroup,
+                             .login = locallogin,
+                             .responseTimestamp = localresponseTimestamp,
+                             .unit = localunit})
+                Else
+                    Dim testeeData As New Dictionary(Of Integer, Dictionary(Of String, String))
+                    For Each singleResponse As KeyValuePair(Of String, String) In allResponses
+                        'find out person
+                        Dim pIndex As Integer = 0
+                        Dim pPos As Integer = singleResponse.Key.LastIndexOf("_")
+                        If pPos > 1 AndAlso Integer.TryParse(singleResponse.Key.Substring(pPos + 1), pIndex) Then
+                            If pIndex > 0 Then
+                                If Not testeeData.ContainsKey(pIndex) Then testeeData.Add(pIndex, New Dictionary(Of String, String))
+                                Dim varname As String = singleResponse.Key.Substring(0, pPos)
+                                If Not testeeData.Item(pIndex).ContainsKey(varname) Then testeeData.Item(pIndex).Add(varname, singleResponse.Value)
+                            End If
+                        End If
+                        If pIndex <= 0 Then localdata.Add(singleResponse.Key, singleResponse.Value)
+                    Next
+                    If testeeData.Count > 0 Then
+                        For Each td As KeyValuePair(Of Integer, Dictionary(Of String, String)) In testeeData
+                            myreturn.Add(New ResponseEntry With {
+                             .booklet = localbooklet,
+                             .code = IIf(String.IsNullOrEmpty(localcode), td.Key.ToString, localcode + "_" + td.Key.ToString),
+                             .data = td.Value,
+                             .group = localgroup,
+                             .login = locallogin,
+                             .responseTimestamp = localresponseTimestamp,
+                             .unit = localunit})
+                        Next
+                    End If
+                    If localdata.Count > 0 Then
+                        myreturn.Add(New ResponseEntry With {
+                                     .booklet = localbooklet,
+                                     .code = localcode,
+                                     .data = localdata,
+                                     .group = localgroup,
+                                     .login = locallogin,
+                                     .responseTimestamp = localresponseTimestamp,
+                                     .unit = localunit})
+                    End If
+                End If
             Else
                 '##################
                 Debug.Print("buggy responseType for " + response)
