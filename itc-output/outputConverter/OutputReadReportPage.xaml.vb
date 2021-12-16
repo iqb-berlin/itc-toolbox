@@ -10,7 +10,7 @@
                 Dim line As String = readFile.ReadLine()
                 If line = OutputDialog.LogFileFirstLine Then
                     LogFileCount += 1
-                ElseIf line = OutputDialog.ResponsesFileFirstLine Then
+                ElseIf line = OutputDialog.ResponsesFileFirstLine OrElse line = OutputDialog.ResponsesFileFirstLineLegacy Then
                     ResponsesFileCount += 1
                 Else
                     Me.MBUC.AddMessage("w: Datei nicht erkannt: " + fi.Name)

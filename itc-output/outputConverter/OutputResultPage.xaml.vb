@@ -67,7 +67,7 @@ Public Class OutputResultPage
         If myTemplate IsNot Nothing Then
             Dim myTestPersonList As New TestPersonList
             Dim Events As New List(Of String)
-            Dim AllData As New SortedDictionary(Of String, Dictionary(Of String, List(Of ResponseEntry))) 'id -> booklet -> entries
+            Dim AllPeople As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
             Dim AllVariables As New List(Of String)
             Dim AllUnitsWithResponses As New List(Of String)
             Dim LogEntryCount As Long = 0
@@ -141,35 +141,37 @@ Public Class OutputResultPage
                                 End If
                             End If
                         Next
-                    ElseIf allLines.First = OutputDialog.ResponsesFileFirstLine Then
+                    ElseIf allLines.First = OutputDialog.ResponsesFileFirstLine OrElse allLines.First = OutputDialog.ResponsesFileFirstLineLegacy Then
                         '#########################
                         Dim lineCount As Integer = 1
                         Dim isFirstLine As Boolean = True
+                        Dim legacyMode As Boolean = False
                         For Each line As String In allLines
                             If isFirstLine Then
+                                legacyMode = line.IndexOf("restorePoint") > 0
                                 isFirstLine = False
                             Else
                                 lineCount += 1
-                                For Each entry As ResponseEntry In ResponseEntry.getResponseEntriesFromLine(line, "file '" + fi.Name + "', line " + lineCount.ToString(), parentDlg.outputConfig.variables)
-                                    If entry.data.Count > 0 AndAlso (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(entry.unit)) Then
-                                        For Each d As KeyValuePair(Of String, String) In entry.data
-                                            If Not AllUnitsWithResponses.Contains(entry.unit) Then AllUnitsWithResponses.Add(entry.unit)
-                                            If Not AllVariables.Contains(entry.unit + "##" + d.Key) Then AllVariables.Add(entry.unit + "##" + d.Key)
+                                Dim unitData As New UnitLineData(line, legacyMode, parentDlg.outputConfig.variables)
+                                If parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname) Then
+                                    If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
+                                    For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
+                                        For Each respData As ResponseData In entry.Value
+                                            If Not AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then AllVariables.Add(unitData.unitname + "##" + respData.variableId)
                                         Next
-
-                                        If Not AllData.ContainsKey(entry.Key) Then AllData.Add(entry.Key, New Dictionary(Of String, List(Of ResponseEntry)))
-                                        Dim myPerson As Dictionary(Of String, List(Of ResponseEntry)) = AllData.Item(entry.Key)
-                                        If Not myPerson.ContainsKey(entry.booklet) Then myPerson.Add(entry.booklet, New List(Of ResponseEntry))
-                                        myPerson.Item(entry.booklet).Add(entry)
-                                    End If
-                                Next
+                                    Next
+                                    If Not AllPeople.ContainsKey(unitData.personKey) Then AllPeople.Add(unitData.personKey, New Dictionary(Of String, List(Of UnitLineData)))
+                                    Dim myPerson As Dictionary(Of String, List(Of UnitLineData)) = AllPeople.Item(unitData.personKey)
+                                    If Not myPerson.ContainsKey(unitData.bookletname) Then myPerson.Add(unitData.bookletname, New List(Of UnitLineData))
+                                    myPerson.Item(unitData.bookletname).Add(unitData)
+                                End If
                             End If
                         Next
                     End If
                 End If
             Next
 
-            myworker.ReportProgress(0.0#, "Daten für " + AllData.Count.ToString("#,##0") + " Testpersonen und " + AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
+            myworker.ReportProgress(0.0#, "Daten für " + AllPeople.Count.ToString("#,##0") + " Testpersonen und " + AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
             myworker.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
 
 
@@ -215,10 +217,11 @@ Public Class OutputResultPage
 
                         Dim BookletUnits As New Dictionary(Of String, List(Of String)) 'für unten TechTable
 
-                        progressMax = AllData.Count
+                        progressMax = AllPeople.Count
                         progressCount = 1
                         stepCount += 1
-                        For Each persondata As KeyValuePair(Of String, Dictionary(Of String, List(Of ResponseEntry))) In AllData
+                        For Each persondata As Dictionary(Of String, List(Of UnitLineData)) In
+                            From kvp As KeyValuePair(Of String, Dictionary(Of String, List(Of UnitLineData))) In AllPeople Order By kvp.Key Select kvp.Value
                             If myworker.CancellationPending Then
                                 e.Cancel = True
                                 Exit For
@@ -226,24 +229,38 @@ Public Class OutputResultPage
                             progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
                             myworker.ReportProgress(progressValue, "")
                             progressCount += 1
-                            For Each bookletdata As KeyValuePair(Of String, List(Of ResponseEntry)) In persondata.Value
-                                Dim resp As ResponseEntry = bookletdata.Value.FirstOrDefault
-                                If resp IsNot Nothing Then
-                                    myRow += 1
+                            For Each bookletData As KeyValuePair(Of String, List(Of UnitLineData)) In
+                                From kvp2 As KeyValuePair(Of String, List(Of UnitLineData)) In persondata Order By kvp2.Key
+
+                                Dim bookletPeople As List(Of String) = (From ud As UnitLineData In bookletData.Value
+                                                                        From s As KeyValuePair(Of String, List(Of ResponseData)) In ud.responses
+                                                                        Select s.Key).Distinct.ToList()
+                                bookletPeople.Sort()
+                                For Each subPerson As String In bookletPeople
                                     Dim myRowData As New List(Of RowData)
-                                    myRowData.Add(New RowData With {.Column = "A", .Value = persondata.Key + bookletdata.Key, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "B", .Value = resp.group, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "C", .Value = resp.login + resp.code, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "D", .Value = bookletdata.Key, .CellType = CellTypes.str})
-                                    For Each u As ResponseEntry In bookletdata.Value
-                                        If Not BookletUnits.ContainsKey(bookletdata.Key) Then BookletUnits.Add(bookletdata.Key, New List(Of String))
-                                        If Not BookletUnits.Item(bookletdata.Key).Contains(u.unit) Then BookletUnits.Item(bookletdata.Key).Add(u.unit)
-                                        For Each d As KeyValuePair(Of String, String) In u.data
-                                            myRowData.Add(New RowData With {.Column = Columns.Item(u.unit + "##" + d.Key), .Value = d.Value, .CellType = CellTypes.str})
-                                        Next
+                                    For Each unitData As UnitLineData In bookletData.Value
+                                        If Not BookletUnits.ContainsKey(unitData.bookletname) Then BookletUnits.Add(unitData.bookletname, New List(Of String))
+                                        If Not BookletUnits.Item(unitData.bookletname).Contains(unitData.unitname) Then BookletUnits.Item(unitData.bookletname).Add(unitData.unitname)
+                                        If unitData.responses.ContainsKey(subPerson) Then
+                                            Dim respData As List(Of ResponseData) = unitData.responses.Item(subPerson)
+                                            If respData.Count > 0 Then
+                                                If myRowData.Count = 0 Then
+                                                    myRowData.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                                    myRowData.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
+                                                    myRowData.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
+                                                    myRowData.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
+                                                End If
+                                                For Each rd As ResponseData In respData
+                                                    myRowData.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
+                                                Next
+                                            End If
+                                        End If
                                     Next
-                                    xlsxFactory.AppendRow(myRow, myRowData, TableResponses)
-                                End If
+                                    If myRowData.Count > 0 Then
+                                        myRow += 1
+                                        xlsxFactory.AppendRow(myRow, myRowData, TableResponses)
+                                    End If
+                                Next
                             Next
                         Next
 
