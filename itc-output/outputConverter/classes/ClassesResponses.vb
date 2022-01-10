@@ -17,15 +17,26 @@ Class ResponseData
     End Sub
 End Class
 
+Class ResponseChunk
+    Public id As String
+    Public content As String
+    Public responseType As String
+    Public responseTimestamp As String
+End Class
+
+Class ResponseChunkDAO
+    Public id As String
+    Public content As String
+    Public ts As Long
+    Public responseType As String
+End Class
+
 Class UnitLineData
     Public groupname As String
     Public loginname As String
     Public code As String
     Public bookletname As String
     Public unitname As String
-    Private responseChunks As Dictionary(Of String, String)
-    Public responseType As String
-    Public responseTimestamp As String
     Public laststate As Dictionary(Of String, String)
     Public responses As Dictionary(Of String, List(Of ResponseData))
     Public ReadOnly Property personKey As String
@@ -34,17 +45,19 @@ Class UnitLineData
         End Get
     End Property
 
-    Public Sub New(line As String, legacyMode As Boolean, renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))))
-        responseChunks = New Dictionary(Of String, String)
+    Public Sub New(line As String, legacyMode As Boolean, renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))), csvSeparator As String)
+        Dim responseChunks As New List(Of ResponseChunk)
         laststate = New Dictionary(Of String, String)
         Dim position As Integer = 0
-        Dim semicolonActive As Boolean = True
+        Dim separatorActive As Boolean = True
         Dim tmpStr As String = ""
         Dim tmpResponses As String = ""
+        Dim tmpResponseType As String = ""
+        Dim tmpResponseTimestamp As String = ""
         Dim tmpLastState As String = ""
         For Each c As Char In line
-            If c = ";" Then
-                If semicolonActive Then
+            If c = csvSeparator Then
+                If separatorActive Then
                     If Not String.IsNullOrEmpty(tmpStr) Then
                         If tmpStr.Substring(0, 1) = """" Then
                             If tmpStr.Substring(tmpStr.Length - 1, 1) = """" Then
@@ -68,20 +81,12 @@ Class UnitLineData
                                 If legacyMode Then
                                     tmpResponses = tmpStr
                                 Else
-                                    responseType = tmpStr
-                                End If
-                            Case 7
-                                If legacyMode Then
-                                    responseType = tmpStr
-                                Else
-                                    responseTimestamp = tmpStr
-                                End If
-                            Case 8
-                                If legacyMode Then
-                                    responseTimestamp = tmpStr
-                                Else
                                     tmpLastState = tmpStr
                                 End If
+                            Case 7
+                                If legacyMode Then tmpResponseType = tmpStr
+                            Case 8
+                                If legacyMode Then tmpResponseTimestamp = tmpStr
                             Case 10
                                 If legacyMode Then tmpLastState = tmpStr
                         End Select
@@ -93,24 +98,35 @@ Class UnitLineData
                 End If
             Else
                 tmpStr += c
-                If c = """" Then semicolonActive = Not semicolonActive
+                If c = """" Then separatorActive = Not separatorActive
             End If
         Next
         If Not String.IsNullOrEmpty(tmpResponses) Then
             tmpResponses = tmpResponses.Replace("""""", """")
             If legacyMode Then
-                responseChunks.Add("all", tmpResponses)
+                responseChunks.Add(New ResponseChunk With {
+                    .id = "all",
+                    .content = tmpResponses,
+                    .responseType = tmpResponseType,
+                    .responseTimestamp = tmpResponseTimestamp
+                })
             Else
                 Try
-                    tmpResponses = tmpResponses.Replace("\\", "\\\\")
-                    tmpResponses = tmpResponses.Replace("\b", "\\b")
-                    tmpResponses = tmpResponses.Replace("\f", "\\f")
-                    tmpResponses = tmpResponses.Replace("\r", "\\r")
-                    tmpResponses = tmpResponses.Replace("\n", "\\n")
-                    tmpResponses = tmpResponses.Replace("\t", "\\t")
-                    responseChunks = JsonConvert.DeserializeObject(tmpResponses, GetType(Dictionary(Of String, String)))
+                    For Each rCh As ResponseChunkDAO In JsonConvert.DeserializeObject(tmpResponses, GetType(List(Of ResponseChunkDAO)))
+                        responseChunks.Add(New ResponseChunk With {
+                            .id = rCh.id,
+                            .content = rCh.content,
+                            .responseType = rCh.responseType,
+                            .responseTimestamp = rCh.ts.ToString
+                        })
+                    Next
                 Catch ex As Exception
-                    responseChunks.Add("all", tmpResponses)
+                    responseChunks.Add(New ResponseChunk With {
+                        .id = "all-error",
+                        .content = tmpResponses,
+                        .responseType = tmpResponseType,
+                        .responseTimestamp = tmpResponseTimestamp
+                    })
                 End Try
             End If
         End If
@@ -127,19 +143,19 @@ Class UnitLineData
         If responseChunks.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
             If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(unitname) Then varRenameDef = renameVariables.Item(unitname)
-            For Each responseChunk As KeyValuePair(Of String, String) In responseChunks
+            For Each responseChunk As ResponseChunk In responseChunks
                 Dim dataToAdd As Dictionary(Of String, List(Of ResponseData)) = Nothing
-                Select Case responseType
+                Select Case responseChunk.responseType
                     Case "IQBVisualUnitPlayerV2.1.0"
-                        dataToAdd = setResponsesDan(responseChunk.Value, varRenameDef)
+                        dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
                     Case "unknown"
-                        dataToAdd = setResponsesAbi(responseChunk.Value)
+                        dataToAdd = setResponsesAbi(responseChunk.content)
                     Case "iqb-simple-player@1.0.0"
-                        dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.Value, varRenameDef)
-                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.Value)
+                        dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
+                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0"
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content)
                     Case Else
-                        dataToAdd = setResponsesKeyValue(responseChunk.Value, varRenameDef)
+                        dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
                 If dataToAdd IsNot Nothing Then
                     For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
@@ -314,10 +330,11 @@ Class UnitLineData
         If localdata.Count > 0 Then
             For Each entry As Dictionary(Of String, Linq.JToken) In localdata
                 If entry.ContainsKey("id") AndAlso entry.ContainsKey("value") Then
+                    Dim newValue As String = entry.Item("value").ToString.Replace(vbNewLine, "")
                     If entry.ContainsKey("status") Then
-                        myreturn.Add(New ResponseData(entry.Item("id").ToString, entry.Item("value").ToString, entry.Item("status").ToString))
+                        myreturn.Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
                     Else
-                        myreturn.Add(New ResponseData(entry.Item("id").ToString, entry.Item("value").ToString, ResponseData.STATUS_UNSET))
+                        myreturn.Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseData.STATUS_UNSET))
                     End If
                 End If
             Next

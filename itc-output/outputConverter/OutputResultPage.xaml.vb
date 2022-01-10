@@ -141,10 +141,11 @@ Public Class OutputResultPage
                                 End If
                             End If
                         Next
-                    ElseIf allLines.First = OutputDialog.ResponsesFileFirstLine OrElse allLines.First = OutputDialog.ResponsesFileFirstLineLegacy Then
+                    Else
                         '#########################
                         Dim lineCount As Integer = 1
                         Dim isFirstLine As Boolean = True
+                        Dim csvSeparator As String = ";"
                         Dim legacyMode As Boolean = False
                         For Each line As String In allLines
                             If isFirstLine Then
@@ -152,7 +153,7 @@ Public Class OutputResultPage
                                 isFirstLine = False
                             Else
                                 lineCount += 1
-                                Dim unitData As New UnitLineData(line, legacyMode, parentDlg.outputConfig.variables)
+                                Dim unitData As New UnitLineData(line, legacyMode, parentDlg.outputConfig.variables, csvSeparator)
                                 If parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname) Then
                                     If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                                     For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
