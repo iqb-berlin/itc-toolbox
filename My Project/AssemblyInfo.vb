@@ -15,7 +15,7 @@ Imports System.Windows
 <Assembly: AssemblyDescription("Diese Anwendung transformiert Daten des IQB-Testcenters.")>
 <Assembly: AssemblyCompany("IQB Berlin")>
 <Assembly: AssemblyProduct("itc-Toolbox")>
-<Assembly: AssemblyCopyright("IQB © 2018, 2021")>
+<Assembly: AssemblyCopyright("IQB © 2018, 2022")>
 <Assembly: AssemblyTrademark("")>
 <Assembly: ComVisible(false)>
 
@@ -55,5 +55,5 @@ Imports System.Windows
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("1.4.0.0")>
-<Assembly: AssemblyFileVersion("1.4.0.0")>
+<Assembly: AssemblyVersion("1.5.0.0")>
+<Assembly: AssemblyFileVersion("1.5.0.0")>

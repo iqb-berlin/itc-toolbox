@@ -330,7 +330,9 @@ Class UnitLineData
         If localdata.Count > 0 Then
             For Each entry As Dictionary(Of String, Linq.JToken) In localdata
                 If entry.ContainsKey("id") AndAlso entry.ContainsKey("value") Then
-                    Dim newValue As String = entry.Item("value").ToString.Replace(vbNewLine, "")
+                    Dim myJToken As Linq.JToken = entry.Item("value")
+                    Dim newValue As String = "#null#"
+                    If myJToken.Type <> Linq.JTokenType.Null Then newValue = entry.Item("value").ToString.Replace(vbNewLine, "")
                     If entry.ContainsKey("status") Then
                         myreturn.Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
                     Else
