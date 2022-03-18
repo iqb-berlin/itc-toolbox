@@ -164,7 +164,9 @@ Public Class OutputResultPage
                                     If Not AllPeople.ContainsKey(unitData.personKey) Then AllPeople.Add(unitData.personKey, New Dictionary(Of String, List(Of UnitLineData)))
                                     Dim myPerson As Dictionary(Of String, List(Of UnitLineData)) = AllPeople.Item(unitData.personKey)
                                     If Not myPerson.ContainsKey(unitData.bookletname) Then myPerson.Add(unitData.bookletname, New List(Of UnitLineData))
-                                    myPerson.Item(unitData.bookletname).Add(unitData)
+                                    Dim myBooklet As List(Of UnitLineData) = myPerson.Item(unitData.bookletname)
+                                    Dim myUnit As UnitLineData = (From u As UnitLineData In myBooklet Where u.unitname = unitData.unitname).FirstOrDefault
+                                    If myUnit Is Nothing Then myBooklet.Add(unitData)
                                 End If
                             End If
                         Next
