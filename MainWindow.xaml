@@ -81,6 +81,25 @@
                         Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
                 </TextBlock>
             </DockPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnLoginXlsxTemplate_Click">Logins aus Vorlage</Button>
+                <StackPanel DockPanel.Dock="Right" Width="110">
+                    <TextBlock>
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins-template.md">
+                            <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
+                        </Hyperlink>
+                    </TextBlock>
+                    <TextBlock>
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Login-Template.xlsx">
+                            <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <TextBlock TextWrapping="Wrap">
+                        Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von Logins und dann der Testtaker-XML.
+                </TextBlock>
+            </DockPanel>
+
             <!--<DockPanel>
                 <StackPanel DockPanel.Dock="Left">
                     <Button Click="BtnBookletXmlNew_Click">Booklet-Xml neu</Button>
