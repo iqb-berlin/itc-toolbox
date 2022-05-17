@@ -350,13 +350,14 @@ Public Class LoginsTemplateXlsxDialog
                     Dim groupIdSuffix As String = ":" + LoginsXlsxDialog.GetNewCode(4)
                     Dim Zeile As Integer = groupsFirstRow
                     Dim groupName1 As String = ""
+                    Dim groupName2 As String = ""
                     Dim fatal_error As Boolean = False
                     Dim loginSum As Integer = 0
                     Do
                         If myworker.CancellationPending() Then Exit Do
                         groupName1 = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName1Col + Zeile.ToString)
                         If Not String.IsNullOrEmpty(groupName1) Then
-                            Dim groupName2 As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName2Col + Zeile.ToString)
+                            groupName2 = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName2Col + Zeile.ToString)
                             Dim numberTest As Integer = 0
                             Dim numberTestStr As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberTestCol + Zeile.ToString)
                             If Not String.IsNullOrEmpty(numberTestStr) Then Integer.TryParse(numberTestStr, numberTest)
@@ -518,6 +519,99 @@ Public Class LoginsTemplateXlsxDialog
                             End If
                             Zeile += 1
                         Loop Until String.IsNullOrEmpty(groupID) AndAlso String.IsNullOrEmpty(login)
+                        loginsSheet.Worksheet.Save()
+                    End If
+                    '#####################
+                    If generateXml Then
+                        Dim customTexts As New Dictionary(Of String, String)
+                        Dim customTextsKeyRef As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "customText.Key")
+                        Dim customTextsSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(customTextsKeyRef)
+                        Dim customTextsKeyCol As String = xlsxFactory.GetColumnFromRefStr(customTextsKeyRef)
+                        Dim customTextsFirstRow As Integer = xlsxFactory.GetRowFromRefStr(customTextsKeyRef) + 1
+                        Dim customTextsValueCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "customText.Value"))
+                        Zeile = customTextsFirstRow
+                        Dim customTextKey As String = ""
+                        Do
+                            If myworker.CancellationPending() Then Exit Do
+                            Try
+                                customTextKey = xlsxFactory.GetCellValue(sourceXLS, customTextsSheetName, customTextsKeyCol + Zeile.ToString)
+                            Catch ex As Exception
+                                customTextKey = ""
+                            End Try
+                            If Not String.IsNullOrEmpty(customTextKey) Then
+                                Dim customTextValue = xlsxFactory.GetCellValue(sourceXLS, customTextsSheetName, customTextsValueCol + Zeile.ToString)
+                                If Not String.IsNullOrEmpty(customTextValue) AndAlso Not customTexts.ContainsKey(customTextKey) Then
+                                    customTexts.Add(customTextKey, customTextValue)
+                                End If
+                            End If
+                            Zeile += 1
+                        Loop Until String.IsNullOrEmpty(customTextKey)
+                        Dim LoginXmlFile As XDocument = <?xml version="1.0" encoding="utf-8"?>
+                                                        <Testtakers>
+                                                            <Metadata>
+                                                            </Metadata>
+                                                        </Testtakers>
+                        If customTexts.Count > 0 Then
+                            Dim customTextsElement As XElement = <CustomTexts></CustomTexts>
+                            For Each customText As KeyValuePair(Of String, String) In customTexts
+                                customTextsElement.Add(<CustomText key=<%= customText.Key %>><%= customText.Value %></CustomText>)
+                            Next
+                            LoginXmlFile.Root.Add(customTextsElement)
+                        End If
+
+                        Zeile = loginsFirstRow
+                        Dim groupID As String = ""
+                        Dim login As String = ""
+                        Dim password As String = ""
+                        Dim loginMode As String = ""
+
+                        loginCount = 0
+                        fatal_error = False
+                        Do
+                            If myworker.CancellationPending() Then Exit Do
+                            Try
+                                groupID = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
+                                login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                            Catch ex As Exception
+                                groupID = ""
+                                login = ""
+                            End Try
+                            If Not String.IsNullOrEmpty(groupID) AndAlso Not String.IsNullOrEmpty(login) Then
+                                If Not Testgroups.ContainsKey(groupID) Then
+                                    Try
+                                        groupName1 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
+                                        groupName2 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                                    Catch ex As Exception
+                                        groupName1 = ""
+                                        groupName2 = ""
+                                    End Try
+                                    Testgroups.Add(groupID, New groupdata With {.id = groupID, .name1 = groupName1, .name2 = groupName2})
+                                End If
+                                Dim myGroup As groupdata = Testgroups.Item(groupID)
+                                Try
+                                    password = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsPasswordCol + Zeile.ToString)
+                                    loginMode = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsModeCol + Zeile.ToString)
+                                Catch ex As Exception
+                                    password = ""
+                                    loginMode = ""
+                                End Try
+                                myGroup.logins.Add(New logindata With {.login = login, .password = password, .mode = loginMode})
+                            End If
+                            Zeile += 1
+                        Loop Until String.IsNullOrEmpty(groupID) OrElse String.IsNullOrEmpty(login)
+                        For Each testGroup As KeyValuePair(Of String, groupdata) In Testgroups
+                            LoginXmlFile.Root.Add(testGroup.Value.toXml())
+                        Next
+                        Dim targetFilePath As String = IO.Path.GetDirectoryName(sourceFileName) + IO.Path.DirectorySeparatorChar
+                        Dim targetFileName As String = IO.Path.GetFileNameWithoutExtension(sourceFileName) + ".xml"
+                        Try
+                            LoginXmlFile.Save(targetFilePath + targetFileName)
+                            myworker.ReportProgress(0.0#, "Habe Datei '" + targetFileName + "' gespeichert")
+                        Catch ex As Exception
+                            Dim msg As String = ex.Message
+                            If ex.InnerException IsNot Nothing Then msg += vbNewLine + ex.InnerException.Message
+                            myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetFileName + "' nicht schreiben (" + msg + ")")
+                        End Try
                     End If
                 End Using
                 Try
@@ -555,12 +649,13 @@ Public Class groupdata
     Public numberLogins As Integer = 0
     Public numberLoginsPlus As Integer = 0
     Public numberReviews As Integer = 0
-    Public Function toXml(titlePrefix As String, labelShort As String) As XElement
-        If String.IsNullOrEmpty(labelShort) Then
-            Return <Unit id=<%= id %> label=<%= titlePrefix + name1 %>/>
-        Else
-            Return <Unit id=<%= id %> label=<%= titlePrefix + name1 %> labelshort=<%= labelShort %>/>
-        End If
+    Public logins As New List(Of logindata)
+    Public Function toXml() As XElement
+        Dim myreturn As XElement = <Group id=<%= id %> label=<%= name1 + " - " + name2 %>></Group>
+        For Each login As logindata In logins
+            myreturn.Add(login.toXml)
+        Next
+        Return myreturn
     End Function
 End Class
 
@@ -570,9 +665,11 @@ Public Class logindata
     Public password As String = ""
     Public mode As String = "run-hot-return"
 
-    Public Function toXml(codeToEnter As String, codeToEnterPrompt As String, timeMax As String) As XElement
-        Dim myreturn As XElement = <Testlet id=<%= login %> label=<%= password %>/>
-
+    Public Function toXml(Optional bookletName As String = "DummyBooklet") As XElement
+        Dim myreturn As XElement = <Login mode=<%= mode %> name=<%= login %>>
+                                       <Booklet><%= bookletName %></Booklet>
+                                   </Login>
+        If Not String.IsNullOrEmpty(password) Then myreturn.SetAttributeValue("pw", password)
         Return myreturn
     End Function
 
