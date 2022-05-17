@@ -1,4 +1,4 @@
-﻿<Window x:Class="LoginsTemplateXlsxDialog"
+﻿<Window x:Class="LoginsXlsxToDocxDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lib="clr-namespace:iqb.lib.components;assembly=iqblib-components"
@@ -20,23 +20,17 @@
         </ItemsControl>
         <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
         <DockPanel DockPanel.Dock="Bottom" Background="#eee" Name="DPParameters">
-            <CheckBox x:Name="ChBnew" DockPanel.Dock="Top" Margin="5 5 5 0">Logins neu erzeugen</CheckBox>
-            <DockPanel Margin="20 0 5 5" IsEnabled="{Binding ElementName=ChBnew, Path=IsChecked}" DockPanel.Dock="Top">
-                <DockPanel DockPanel.Dock="Top">
-                    <Label Width="200">Anzahl Zeichen Benutzername</Label>
-                    <TextBox x:Name="TBCharNumberLogin"></TextBox>
-                </DockPanel>
-                <DockPanel DockPanel.Dock="Top">
-                    <Label Width="200">Anzahl Zeichen Kennwort</Label>
-                    <TextBox x:Name="TBCharNumberPassword"></TextBox>
-                </DockPanel>
-                <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top">zusätzlich Account für Testleitung erzeugen in der Form "TL__"</CheckBox>
-                <CheckBox x:Name="ChBprefixT" DockPanel.Dock="Top">Präfix vor Test-Benutzername erzeugen in der Form "T01__"</CheckBox>
-                <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top">Präfix vor Reserve-Benutzername erzeugen in der Form "RS__"</CheckBox>
-                <CheckBox x:Name="ChBprefixRv" DockPanel.Dock="Top">Präfix vor Review-Benutzername erzeugen in der Form "RV__"</CheckBox>
+            <DockPanel DockPanel.Dock="Top">
+                <Label Width="150">Adresse des Testservers</Label>
+                <Label Width="50">https://</Label>
+                <TextBox x:Name="TBServerUrl"></TextBox>
             </DockPanel>
-            <CheckBox x:Name="ChBxml" DockPanel.Dock="Top" Margin="5">Login-XML-Datei erzeugen</CheckBox>
+            <DockPanel DockPanel.Dock="Top">
+                <Label Width="200">Vorlage</Label>
+                <TextBox x:Name="TBTemplate" IsReadOnly="True"></TextBox>
+            </DockPanel>
         </DockPanel>
         <lib:MessageBoxUserControl Name="MBUC" />
+
     </DockPanel>
 </Window>

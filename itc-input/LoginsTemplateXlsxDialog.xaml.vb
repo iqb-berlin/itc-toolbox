@@ -18,6 +18,8 @@ Public Class LoginsTemplateXlsxDialog
     Private Shared addPrefixTestee As Boolean = False
     Private Shared addPrefixReview As Boolean = False
     Private Shared addPrefixPlus As Boolean = False
+    Private sourceFileName As String = ""
+    Private targetXmlFileName As String = ""
 
 #Region "Vorspann"
     Public Sub New()
@@ -33,6 +35,9 @@ Public Class LoginsTemplateXlsxDialog
         ErrorMessages = New Dictionary(Of String, List(Of String))
         Warnings = New Dictionary(Of String, List(Of String))
         Testgroups = New Dictionary(Of String, groupdata)
+        sourceFileName = My.Settings.lastfile_LoginXlsx
+        targetXmlFileName = IO.Path.GetFileNameWithoutExtension(sourceFileName) + ".xml"
+        ChBxml.Content = "Login-XML-Datei '" + targetXmlFileName + "' erzeugen"
 
         Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
         Process1_bw.RunWorkerAsync()
@@ -200,10 +205,7 @@ Public Class LoginsTemplateXlsxDialog
     '######################################################################################
     Private Sub Process1_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process1_bw.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
-
         myworker.ReportProgress(20.0#, "Öffne Datei")
-        Dim sourceFileName = My.Settings.lastfile_LoginXlsx
-
         Dim sourceFile As Byte()
         Try
             sourceFile = IO.File.ReadAllBytes(sourceFileName)
@@ -603,14 +605,13 @@ Public Class LoginsTemplateXlsxDialog
                             LoginXmlFile.Root.Add(testGroup.Value.toXml())
                         Next
                         Dim targetFilePath As String = IO.Path.GetDirectoryName(sourceFileName) + IO.Path.DirectorySeparatorChar
-                        Dim targetFileName As String = IO.Path.GetFileNameWithoutExtension(sourceFileName) + ".xml"
                         Try
-                            LoginXmlFile.Save(targetFilePath + targetFileName)
-                            myworker.ReportProgress(0.0#, "Habe Datei '" + targetFileName + "' gespeichert")
+                            LoginXmlFile.Save(targetFilePath + targetXmlFileName)
+                            myworker.ReportProgress(0.0#, "Habe Datei '" + targetXmlFileName + "' gespeichert")
                         Catch ex As Exception
                             Dim msg As String = ex.Message
                             If ex.InnerException IsNot Nothing Then msg += vbNewLine + ex.InnerException.Message
-                            myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetFileName + "' nicht schreiben (" + msg + ")")
+                            myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetXmlFileName + "' nicht schreiben (" + msg + ")")
                         End Try
                     End If
                 End Using

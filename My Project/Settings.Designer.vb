@@ -160,6 +160,18 @@ Partial Friend NotInheritable Class MySettings
             Me("lastfile_LoginXlsx") = value
         End Set
     End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastServerUrl() As String
+        Get
+            Return CType(Me("lastServerUrl"),String)
+        End Get
+        Set
+            Me("lastServerUrl") = value
+        End Set
+    End Property
 End Class
 
 Namespace My

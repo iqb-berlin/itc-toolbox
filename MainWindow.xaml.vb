@@ -176,12 +176,26 @@ Class MainWindow
         Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
         If Not String.IsNullOrEmpty(My.Settings.lastfile_LoginXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_LoginXlsx)
         Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = My.Settings.lastfile_LoginXlsx, .Filter = "Excel-Dateien|*.xlsx",
-            .InitialDirectory = defaultDir, .DefaultExt = "Xlsx", .Title = "LoginXlsx - Wähle Datei"}
+            .InitialDirectory = defaultDir, .DefaultExt = "Xlsx", .Title = "Logins Xlsx/Xml erzeugen - Wähle Datei"}
         If filepicker.ShowDialog Then
             My.Settings.lastfile_LoginXlsx = filepicker.FileName
             My.Settings.Save()
 
-            Dim ActionDlg As New LoginsTemplateXlsxDialog() With {.Owner = Me, .Title = "LoginTemplateXlsx"}
+            Dim ActionDlg As New LoginsTemplateXlsxDialog() With {.Owner = Me, .Title = "Logins Xlsx/Xml erzeugen"}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub BtnLoginXlsxToDocx_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_LoginXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_LoginXlsx)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = My.Settings.lastfile_LoginXlsx, .Filter = "Excel-Dateien|*.xlsx",
+            .InitialDirectory = defaultDir, .DefaultExt = "Xlsx", .Title = "Logins Docx erzeugen - Wähle Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_LoginXlsx = filepicker.FileName
+            My.Settings.Save()
+
+            Dim ActionDlg As New LoginsXlsxToDocxDialog() With {.Owner = Me, .Title = "Logins Docx erzeugen"}
             ActionDlg.ShowDialog()
         End If
     End Sub
