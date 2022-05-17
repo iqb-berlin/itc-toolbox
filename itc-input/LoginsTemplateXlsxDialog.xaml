@@ -18,11 +18,10 @@
             <Button Name="BtnContinue">Weiter</Button>
             <Button Name="BtnEditor" ToolTip="Die Meldungen in einen Texteditor übertragen.">Texteditor</Button>
         </ItemsControl>
-        <DockPanel DockPanel.Dock="Top" Margin="10">
             <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
-            <DockPanel DockPanel.Dock="Bottom" Margin="10" Name="DPParameters">
-                <CheckBox x:Name="ChBnew" DockPanel.Dock="Top">Logins neu erzeugen</CheckBox>
-                <DockPanel Margin="20 0 4 4" IsEnabled="{Binding ElementName=ChBnew, Path=IsChecked}" DockPanel.Dock="Top">
+            <DockPanel DockPanel.Dock="Bottom" Background="#eee" Name="DPParameters">
+                <CheckBox x:Name="ChBnew" DockPanel.Dock="Top" Margin="5 5 5 0">Logins neu erzeugen</CheckBox>
+                <DockPanel Margin="20 0 5 5" IsEnabled="{Binding ElementName=ChBnew, Path=IsChecked}" DockPanel.Dock="Top">
                     <DockPanel DockPanel.Dock="Top">
                         <Label Width="200">Anzahl Zeichen Benutzername</Label>
                         <TextBox x:Name="TBCharNumberLogin"></TextBox>
@@ -31,15 +30,14 @@
                         <Label Width="200">Anzahl Zeichen Kennwort</Label>
                         <TextBox x:Name="TBCharNumberPassword"></TextBox>
                     </DockPanel>
-                    <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top">zusätzlich Account für Testleitung erzeugen in der Form ":TL:"</CheckBox>
-                    <CheckBox x:Name="ChBprefixT" DockPanel.Dock="Top">Präfix vor Test-Benutzername erzeugen in der Form ":01:"</CheckBox>
-                    <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top">Präfix vor Reserve-Benutzername erzeugen in der Form ":RS:"</CheckBox>
-                    <CheckBox x:Name="ChBprefixRv" DockPanel.Dock="Top">Präfix vor Review-Benutzername erzeugen in der Form ":RV:"</CheckBox>
+                    <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top">zusätzlich Account für Testleitung erzeugen in der Form "TL__"</CheckBox>
+                    <CheckBox x:Name="ChBprefixT" DockPanel.Dock="Top">Präfix vor Test-Benutzername erzeugen in der Form "T01__"</CheckBox>
+                    <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top">Präfix vor Reserve-Benutzername erzeugen in der Form "RS__"</CheckBox>
+                    <CheckBox x:Name="ChBprefixRv" DockPanel.Dock="Top">Präfix vor Review-Benutzername erzeugen in der Form "RV__"</CheckBox>
                 </DockPanel>
-                <CheckBox x:Name="ChBxml" DockPanel.Dock="Top">Login-XML-Datei erzeugen</CheckBox>
+                <CheckBox x:Name="ChBxml" DockPanel.Dock="Top" Margin="5">Login-XML-Datei erzeugen</CheckBox>
             </DockPanel>
-            <lib:MessageBoxUserControl Name="MBUC"/>
-        </DockPanel>
+            <lib:MessageBoxUserControl Name="MBUC" />
 
     </DockPanel>
 </Window>

@@ -347,7 +347,7 @@ Public Class LoginsTemplateXlsxDialog
                     '-----------------------------------------------------------------------------
                     myworker.ReportProgress(10.0#, "h:Lese Gruppen")
 
-                    Dim groupIdSuffix As String = ":" + LoginsXlsxDialog.GetNewCode(4)
+                    Dim groupIdSuffix As String = "_" + LoginsXlsxDialog.GetNewCode(4)
                     Dim Zeile As Integer = groupsFirstRow
                     Dim groupName1 As String = ""
                     Dim groupName2 As String = ""
@@ -430,7 +430,7 @@ Public Class LoginsTemplateXlsxDialog
                                 xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
                                 xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
                                 xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
-                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixTestee, ":" + index.ToString("00") + ":", "") + allLogins(loginIndex))
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixTestee, "T" + index.ToString("00") + "_", "") + allLogins(loginIndex))
                                 loginIndex += 1
                                 If passwordLength > 0 Then
                                     xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
@@ -449,7 +449,7 @@ Public Class LoginsTemplateXlsxDialog
                                 xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
                                 xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
                                 xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
-                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixPlus, ":RS:", "") + allLogins(loginIndex))
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixPlus, "RS_", "") + allLogins(loginIndex))
                                 loginIndex += 1
                                 If passwordLength > 0 Then
                                     xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
@@ -468,7 +468,7 @@ Public Class LoginsTemplateXlsxDialog
                                 xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
                                 xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
                                 xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
-                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixReview, ":RV:", "") + allLogins(loginIndex))
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixReview, "RV_", "") + allLogins(loginIndex))
                                 loginIndex += 1
                                 If passwordLength > 0 Then
                                     xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
@@ -487,7 +487,7 @@ Public Class LoginsTemplateXlsxDialog
                                 xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
                                 xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
                                 xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
-                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, ":TL:" + allLogins(loginIndex))
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, "TL_" + allLogins(loginIndex))
                                 loginIndex += 1
                                 If passwordLength > 0 Then
                                     xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
@@ -665,7 +665,7 @@ Public Class logindata
     Public password As String = ""
     Public mode As String = "run-hot-return"
 
-    Public Function toXml(Optional bookletName As String = "DummyBooklet") As XElement
+    Public Function toXml(Optional bookletName As String = "Booklet1") As XElement
         Dim myreturn As XElement = <Login mode=<%= mode %> name=<%= login %>>
                                        <Booklet><%= bookletName %></Booklet>
                                    </Login>
