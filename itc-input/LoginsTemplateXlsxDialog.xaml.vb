@@ -148,6 +148,7 @@ Public Class LoginsTemplateXlsxDialog
             If renewLogins And loginLength < 5 Then
                 DialogFactory.MsgError(Me, "Erzeugen Logins", "Die Länge des Benutzernamens muss mindestens 5 sein.")
             Else
+                Testgroups.Clear()
                 ErrorMessages.Clear()
                 Warnings.Clear()
                 BtnContinue.Visibility = Windows.Visibility.Collapsed
@@ -260,7 +261,7 @@ Public Class LoginsTemplateXlsxDialog
                             If Not String.IsNullOrEmpty(numberReviewStr) Then Integer.TryParse(numberReviewStr, numberReview)
                             Dim givenGroupID As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberIDCol + Zeile.ToString)
                             If String.IsNullOrEmpty(givenGroupID) OrElse Testgroups.ContainsKey(givenGroupID) Then
-                                Testgroups.Add(GetGroupId(groupName1), New groupdata With {
+                                Testgroups.Add(GetGroupId(groupName1, ""), New groupdata With {
                                     .id = givenGroupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
                                     .numberLoginsPlus = numberTestPlus, .numberReviews = numberReview
                                 })
@@ -282,8 +283,13 @@ Public Class LoginsTemplateXlsxDialog
                     fatal_error = False
                     Do
                         If myworker.CancellationPending() Then Exit Do
-                        groupID = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
-                        login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                        Try
+                            groupID = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
+                            login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                        Catch ex As Exception
+                            groupID = ""
+                            login = ""
+                        End Try
                         If Not String.IsNullOrEmpty(groupID) AndAlso Not String.IsNullOrEmpty(login) Then
                             loginCount += 1
                         End If
@@ -314,7 +320,7 @@ Public Class LoginsTemplateXlsxDialog
             Using MemStream As New IO.MemoryStream()
                 MemStream.Write(sourceFile, 0, sourceFile.Length)
                 Using sourceXLS As SpreadsheetDocument = SpreadsheetDocument.Open(MemStream, True)
-                    myworker.ReportProgress(20.0#, "Lese Datei " + sourceFileName)
+                    myworker.ReportProgress(5.0#, "Lese Datei " + sourceFileName)
 
                     Dim groupName1Ref As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.Name1")
                     Dim groupSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(groupName1Ref)
@@ -339,13 +345,13 @@ Public Class LoginsTemplateXlsxDialog
                     Dim xlsxChanged As Boolean = False
                     '-----------------------------------------------------------------------------
                     '-----------------------------------------------------------------------------
-                    myworker.ReportProgress(20.0#, "h:Lese Gruppen")
+                    myworker.ReportProgress(10.0#, "h:Lese Gruppen")
 
+                    Dim groupIdSuffix As String = ":" + LoginsXlsxDialog.GetNewCode(4)
                     Dim Zeile As Integer = groupsFirstRow
                     Dim groupName1 As String = ""
                     Dim fatal_error As Boolean = False
                     Dim loginSum As Integer = 0
-                    Testgroups.Clear()
                     Do
                         If myworker.CancellationPending() Then Exit Do
                         groupName1 = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName1Col + Zeile.ToString)
@@ -362,7 +368,7 @@ Public Class LoginsTemplateXlsxDialog
                             If Not String.IsNullOrEmpty(numberReviewStr) Then Integer.TryParse(numberReviewStr, numberReview)
                             Dim givenGroupID As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberIDCol + Zeile.ToString)
                             If String.IsNullOrEmpty(givenGroupID) OrElse Testgroups.ContainsKey(givenGroupID) Then
-                                Dim newGroupId As String = GetGroupId(groupName1)
+                                Dim newGroupId As String = GetGroupId(groupName1, groupIdSuffix)
                                 xlsxFactory.SetCellValueString(groupNumberIDCol, Zeile, groupSheet, newGroupId)
                                 xlsxChanged = True
                                 Testgroups.Add(newGroupId, New groupdata With {
@@ -381,10 +387,10 @@ Public Class LoginsTemplateXlsxDialog
                         End If
                         Zeile += 1
                     Loop Until String.IsNullOrEmpty(groupName1)
-                    myworker.ReportProgress(20.0#, Testgroups.Count.ToString + " Gruppen gefunden")
                     If xlsxChanged Then groupSheet.Worksheet.Save()
 
                     If renewLogins Then
+                        myworker.ReportProgress(10.0#, "Generiere Logins")
                         If addProctor Then loginSum += Testgroups.Count
                         Dim allLogins As List(Of String) = LoginsXlsxDialog.GetNewCodeList(loginLength, loginSum)
                         Dim loginIndex As Integer = 0
@@ -413,8 +419,12 @@ Public Class LoginsTemplateXlsxDialog
 
                         Zeile = loginsFirstRow
                         Dim loginsSheet As WorksheetPart = xlsxFactory.GetWorksheetPart(sourceXLS, loginsSheetName)
+                        Dim progressMax As Integer = Testgroups.Count
+                        Dim progressCurrent As Integer = 0
                         For Each group As KeyValuePair(Of String, groupdata) In Testgroups
                             If myworker.CancellationPending() Then Exit For
+                            myworker.ReportProgress(10.0# + 90 * progressCurrent / progressMax)
+                            progressCurrent += 1
                             For index = 1 To group.Value.numberLogins
                                 xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
                                 xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
@@ -492,7 +502,6 @@ Public Class LoginsTemplateXlsxDialog
                                 Zeile += 1
                             End If
                         Next
-                        Zeile += 1
                         Dim groupID As String = ""
                         Dim login As String = ""
                         Do
@@ -501,16 +510,15 @@ Public Class LoginsTemplateXlsxDialog
                             login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
                             If Not String.IsNullOrEmpty(groupID) OrElse Not String.IsNullOrEmpty(login) Then
                                 For Each c As String In otherColumns
-                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "") 'maybe this produces invalid cell content???
                                 Next
                                 For Each c As String In usedColumns
-                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "") 'maybe this produces invalid cell content???
                                 Next
                             End If
                             Zeile += 1
                         Loop Until String.IsNullOrEmpty(groupID) AndAlso String.IsNullOrEmpty(login)
                     End If
-                    myworker.ReportProgress(20.0#, loginCount.ToString + " Logins gefunden")
                 End Using
                 Try
                     Using fs As New IO.FileStream(My.Settings.lastfile_LoginXlsx, IO.FileMode.Create)
@@ -523,7 +531,7 @@ Public Class LoginsTemplateXlsxDialog
         End If
     End Sub
 
-    Private Function GetGroupId(name1 As String) As String
+    Private Function GetGroupId(name1 As String, suffix As String) As String
         Dim rx As New System.Text.RegularExpressions.Regex("[A-Z]")
         Dim UpperCases As String = ""
         For Each rxMatch As System.Text.RegularExpressions.Match In rx.Matches(name1)
@@ -531,11 +539,11 @@ Public Class LoginsTemplateXlsxDialog
         Next
         Dim index As Integer = 1
         Dim checkString As String = UpperCases
-        Do While Testgroups.ContainsKey(checkString)
+        Do While Testgroups.ContainsKey(checkString + suffix)
             index += 1
             checkString = UpperCases + index.ToString
         Loop
-        Return checkString
+        Return checkString + suffix
     End Function
 End Class
 
