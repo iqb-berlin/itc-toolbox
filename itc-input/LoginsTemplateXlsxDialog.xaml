@@ -31,6 +31,10 @@
                         <Label Width="200">Anzahl Zeichen Kennwort</Label>
                         <TextBox x:Name="TBCharNumberPassword"></TextBox>
                     </DockPanel>
+                    <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top">zusätzlich Account für Testleitung erzeugen in der Form ":TL:"</CheckBox>
+                    <CheckBox x:Name="ChBprefixT" DockPanel.Dock="Top">Präfix vor Test-Benutzername erzeugen in der Form ":01:"</CheckBox>
+                    <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top">Präfix vor Reserve-Benutzername erzeugen in der Form ":RS:"</CheckBox>
+                    <CheckBox x:Name="ChBprefixRv" DockPanel.Dock="Top">Präfix vor Review-Benutzername erzeugen in der Form ":RV:"</CheckBox>
                 </DockPanel>
                 <CheckBox x:Name="ChBxml" DockPanel.Dock="Top">Login-XML-Datei erzeugen</CheckBox>
             </DockPanel>

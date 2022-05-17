@@ -2,12 +2,22 @@
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
 Imports iqb.lib.openxml
+Imports iqb.lib.components
 
 Public Class LoginsTemplateXlsxDialog
     Private ErrorMessages As Dictionary(Of String, List(Of String))
     Private Warnings As Dictionary(Of String, List(Of String))
 
     Private Testgroups As Dictionary(Of String, groupdata)
+    Private loginCount As Integer
+    Private renewLogins As Boolean = False
+    Private generateXml As Boolean = False
+    Private Shared loginLength As Integer = 5
+    Private Shared passwordLength As Integer = 0
+    Private Shared addProctor As Boolean = False
+    Private Shared addPrefixTestee As Boolean = False
+    Private Shared addPrefixReview As Boolean = False
+    Private Shared addPrefixPlus As Boolean = False
 
 #Region "Vorspann"
     Public Sub New()
@@ -115,17 +125,40 @@ Public Class LoginsTemplateXlsxDialog
         If Me.Testgroups.Count > 0 Then
             BtnContinue.Visibility = Windows.Visibility.Visible
             DPParameters.Visibility = Windows.Visibility.Visible
+            ChBprefixRs.IsChecked = addPrefixPlus
+            ChBprefixRv.IsChecked = addPrefixReview
+            ChBproctor.IsChecked = addProctor
+            ChBprefixT.IsChecked = addPrefixTestee
+            TBCharNumberLogin.Text = loginLength.ToString
+            TBCharNumberPassword.Text = passwordLength.ToString
+            If loginCount = 0 Then ChBnew.IsChecked = True
         End If
     End Sub
 
     Private Sub BtnContinue_Click() Handles BtnContinue.Click
-        ErrorMessages.Clear()
-        Warnings.Clear()
-        BtnContinue.Visibility = Windows.Visibility.Collapsed
-        BtnCancel.Visibility = Windows.Visibility.Visible
-        DPParameters.IsEnabled = False
-        Process2_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
-        Process2_bw.RunWorkerAsync()
+        If ChBnew.IsChecked OrElse ChBxml.IsChecked Then
+            addPrefixPlus = ChBprefixRs.IsChecked
+            addPrefixReview = ChBprefixRv.IsChecked
+            addProctor = ChBproctor.IsChecked
+            addPrefixTestee = ChBprefixT.IsChecked
+            Integer.TryParse(TBCharNumberLogin.Text, loginLength)
+            Integer.TryParse(TBCharNumberPassword.Text, passwordLength)
+            renewLogins = ChBnew.IsChecked
+            generateXml = ChBxml.IsChecked
+            If renewLogins And loginLength < 5 Then
+                DialogFactory.MsgError(Me, "Erzeugen Logins", "Die Länge des Benutzernamens muss mindestens 5 sein.")
+            Else
+                ErrorMessages.Clear()
+                Warnings.Clear()
+                BtnContinue.Visibility = Windows.Visibility.Collapsed
+                BtnCancel.Visibility = Windows.Visibility.Visible
+                DPParameters.IsEnabled = False
+                Process2_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
+                Process2_bw.RunWorkerAsync()
+            End If
+        Else
+            DialogResult = False
+        End If
     End Sub
 
     Private Sub Process2_bw_RunWorkerCompleted(ByVal sender As Object, ByVal e As ComponentModel.RunWorkerCompletedEventArgs) Handles Process2_bw.RunWorkerCompleted
@@ -225,15 +258,15 @@ Public Class LoginsTemplateXlsxDialog
                             Dim numberReview As Integer = 0
                             Dim numberReviewStr As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberReviewCol + Zeile.ToString)
                             If Not String.IsNullOrEmpty(numberReviewStr) Then Integer.TryParse(numberReviewStr, numberReview)
-                            Dim groupID As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberIDCol + Zeile.ToString)
-                            If String.IsNullOrEmpty(groupID) OrElse Testgroups.ContainsKey(groupID) Then
+                            Dim givenGroupID As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberIDCol + Zeile.ToString)
+                            If String.IsNullOrEmpty(givenGroupID) OrElse Testgroups.ContainsKey(givenGroupID) Then
                                 Testgroups.Add(GetGroupId(groupName1), New groupdata With {
-                                    .id = groupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
+                                    .id = givenGroupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
                                     .numberLoginsPlus = numberTestPlus, .numberReviews = numberReview
                                 })
                             Else
-                                Testgroups.Add(groupID, New groupdata With {
-                                    .id = groupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
+                                Testgroups.Add(givenGroupID, New groupdata With {
+                                    .id = givenGroupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
                                     .numberLoginsPlus = numberTestPlus, .numberReviews = numberReview
                                 })
                             End If
@@ -241,6 +274,22 @@ Public Class LoginsTemplateXlsxDialog
                         Zeile += 1
                     Loop Until String.IsNullOrEmpty(groupName1)
                     myworker.ReportProgress(20.0#, Testgroups.Count.ToString + " Gruppen gefunden")
+
+                    Zeile = loginsFirstRow
+                    Dim groupID As String = ""
+                    Dim login As String = ""
+                    loginCount = 0
+                    fatal_error = False
+                    Do
+                        If myworker.CancellationPending() Then Exit Do
+                        groupID = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
+                        login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                        If Not String.IsNullOrEmpty(groupID) AndAlso Not String.IsNullOrEmpty(login) Then
+                            loginCount += 1
+                        End If
+                        Zeile += 1
+                    Loop Until String.IsNullOrEmpty(groupID) OrElse String.IsNullOrEmpty(login)
+                    myworker.ReportProgress(20.0#, loginCount.ToString + " Logins gefunden")
                 End Using
             End Using
         End If
@@ -250,7 +299,228 @@ Public Class LoginsTemplateXlsxDialog
     '######################################################################################
     Private Sub Process2_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process2_bw.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
+        myworker.ReportProgress(20.0#, "Öffne Datei")
+        Dim sourceFileName = My.Settings.lastfile_LoginXlsx
 
+        Dim sourceFile As Byte()
+        Try
+            sourceFile = IO.File.ReadAllBytes(sourceFileName)
+        Catch ex As Exception
+            myworker.ReportProgress(20.0#, "e:Konnte Datei " + sourceFileName + " nicht lesen (noch geöffnet?)")
+            sourceFile = Nothing
+        End Try
+
+        If sourceFile IsNot Nothing Then
+            Using MemStream As New IO.MemoryStream()
+                MemStream.Write(sourceFile, 0, sourceFile.Length)
+                Using sourceXLS As SpreadsheetDocument = SpreadsheetDocument.Open(MemStream, True)
+                    myworker.ReportProgress(20.0#, "Lese Datei " + sourceFileName)
+
+                    Dim groupName1Ref As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.Name1")
+                    Dim groupSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(groupName1Ref)
+                    Dim groupSheet As WorksheetPart = xlsxFactory.GetWorksheetPart(sourceXLS, groupSheetName)
+                    Dim groupName1Col As String = xlsxFactory.GetColumnFromRefStr(groupName1Ref)
+                    Dim groupsFirstRow As Integer = xlsxFactory.GetRowFromRefStr(groupName1Ref) + 1
+                    Dim groupName2Col As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.Name2"))
+                    Dim groupNumberTestCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.NumberTest"))
+                    Dim groupNumberPlusCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.NumberPlus"))
+                    Dim groupNumberReviewCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.NumberReview"))
+                    Dim groupNumberIDCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "groupsCol.ID"))
+
+                    Dim loginsName1Ref As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName1")
+                    Dim loginsSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(loginsName1Ref)
+                    Dim loginsName1Col As String = xlsxFactory.GetColumnFromRefStr(loginsName1Ref)
+                    Dim loginsFirstRow As Integer = xlsxFactory.GetRowFromRefStr(loginsName1Ref) + 1
+                    Dim loginsName2Col As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName2"))
+                    Dim loginsGroupIdCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupID"))
+                    Dim loginsLoginCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.Name"))
+                    Dim loginsPasswordCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.Password"))
+                    Dim loginsModeCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.Mode"))
+                    Dim xlsxChanged As Boolean = False
+                    '-----------------------------------------------------------------------------
+                    '-----------------------------------------------------------------------------
+                    myworker.ReportProgress(20.0#, "h:Lese Gruppen")
+
+                    Dim Zeile As Integer = groupsFirstRow
+                    Dim groupName1 As String = ""
+                    Dim fatal_error As Boolean = False
+                    Dim loginSum As Integer = 0
+                    Testgroups.Clear()
+                    Do
+                        If myworker.CancellationPending() Then Exit Do
+                        groupName1 = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName1Col + Zeile.ToString)
+                        If Not String.IsNullOrEmpty(groupName1) Then
+                            Dim groupName2 As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupName2Col + Zeile.ToString)
+                            Dim numberTest As Integer = 0
+                            Dim numberTestStr As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberTestCol + Zeile.ToString)
+                            If Not String.IsNullOrEmpty(numberTestStr) Then Integer.TryParse(numberTestStr, numberTest)
+                            Dim numberTestPlus As Integer = 0
+                            Dim numberTestPlusStr As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberPlusCol + Zeile.ToString)
+                            If Not String.IsNullOrEmpty(numberTestPlusStr) Then Integer.TryParse(numberTestPlusStr, numberTestPlus)
+                            Dim numberReview As Integer = 0
+                            Dim numberReviewStr As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberReviewCol + Zeile.ToString)
+                            If Not String.IsNullOrEmpty(numberReviewStr) Then Integer.TryParse(numberReviewStr, numberReview)
+                            Dim givenGroupID As String = xlsxFactory.GetCellValue(sourceXLS, groupSheetName, groupNumberIDCol + Zeile.ToString)
+                            If String.IsNullOrEmpty(givenGroupID) OrElse Testgroups.ContainsKey(givenGroupID) Then
+                                Dim newGroupId As String = GetGroupId(groupName1)
+                                xlsxFactory.SetCellValueString(groupNumberIDCol, Zeile, groupSheet, newGroupId)
+                                xlsxChanged = True
+                                Testgroups.Add(newGroupId, New groupdata With {
+                                    .id = newGroupId, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
+                                    .numberLoginsPlus = numberTestPlus, .numberReviews = numberReview
+                                })
+                            Else
+                                Testgroups.Add(givenGroupID, New groupdata With {
+                                    .id = givenGroupID, .name1 = groupName1, .name2 = groupName2, .numberLogins = numberTest,
+                                    .numberLoginsPlus = numberTestPlus, .numberReviews = numberReview
+                                })
+                            End If
+                            loginSum += numberTest
+                            loginSum += numberReview
+                            loginSum += numberTestPlus
+                        End If
+                        Zeile += 1
+                    Loop Until String.IsNullOrEmpty(groupName1)
+                    myworker.ReportProgress(20.0#, Testgroups.Count.ToString + " Gruppen gefunden")
+                    If xlsxChanged Then groupSheet.Worksheet.Save()
+
+                    If renewLogins Then
+                        If addProctor Then loginSum += Testgroups.Count
+                        Dim allLogins As List(Of String) = LoginsXlsxDialog.GetNewCodeList(loginLength, loginSum)
+                        Dim loginIndex As Integer = 0
+                        Dim allPasswords As New List(Of String)
+                        Dim passwordIndex As Integer = 0
+                        If passwordLength > 0 Then
+                            Dim pwMax As Integer = 150
+                            If passwordLength > 2 Then pwMax = 1500
+                            If passwordLength > 3 Then pwMax = loginSum
+                            allPasswords = LoginsXlsxDialog.GetNewCodeList(passwordLength, pwMax)
+                        End If
+
+                        Dim usedColumns As New List(Of String)
+                        usedColumns.Add(loginsName1Col)
+                        usedColumns.Add(loginsName2Col)
+                        usedColumns.Add(loginsGroupIdCol)
+                        usedColumns.Add(loginsLoginCol)
+                        usedColumns.Add(loginsPasswordCol)
+                        usedColumns.Add(loginsModeCol)
+                        Dim otherColumns As New List(Of String)
+                        Dim columnToAdd As String = "A"
+                        Do While columnToAdd <> "M"
+                            If Not usedColumns.Contains(columnToAdd) Then otherColumns.Add(columnToAdd)
+                            columnToAdd = xlsxFactory.GetNextColumn(columnToAdd)
+                        Loop
+
+                        Zeile = loginsFirstRow
+                        Dim loginsSheet As WorksheetPart = xlsxFactory.GetWorksheetPart(sourceXLS, loginsSheetName)
+                        For Each group As KeyValuePair(Of String, groupdata) In Testgroups
+                            If myworker.CancellationPending() Then Exit For
+                            For index = 1 To group.Value.numberLogins
+                                xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
+                                xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
+                                xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixTestee, ":" + index.ToString("00") + ":", "") + allLogins(loginIndex))
+                                loginIndex += 1
+                                If passwordLength > 0 Then
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
+                                    passwordIndex += 1
+                                    If passwordIndex >= allPasswords.Count Then passwordIndex = 0
+                                Else
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, "")
+                                End If
+                                xlsxFactory.SetCellValueString(loginsModeCol, Zeile, loginsSheet, "run-hot-return")
+                                For Each c As String In otherColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                                Zeile += 1
+                            Next
+                            For index = 1 To group.Value.numberLoginsPlus
+                                xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
+                                xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
+                                xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixPlus, ":RS:", "") + allLogins(loginIndex))
+                                loginIndex += 1
+                                If passwordLength > 0 Then
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
+                                    passwordIndex += 1
+                                    If passwordIndex >= allPasswords.Count Then passwordIndex = 0
+                                Else
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, "")
+                                End If
+                                xlsxFactory.SetCellValueString(loginsModeCol, Zeile, loginsSheet, "run-hot-return")
+                                For Each c As String In otherColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                                Zeile += 1
+                            Next
+                            For index = 1 To group.Value.numberReviews
+                                xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
+                                xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
+                                xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, IIf(addPrefixReview, ":RV:", "") + allLogins(loginIndex))
+                                loginIndex += 1
+                                If passwordLength > 0 Then
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
+                                    passwordIndex += 1
+                                    If passwordIndex >= allPasswords.Count Then passwordIndex = 0
+                                Else
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, "")
+                                End If
+                                xlsxFactory.SetCellValueString(loginsModeCol, Zeile, loginsSheet, "run-review")
+                                For Each c As String In otherColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                                Zeile += 1
+                            Next
+                            If addProctor Then
+                                xlsxFactory.SetCellValueString(loginsName1Col, Zeile, loginsSheet, group.Value.name1)
+                                xlsxFactory.SetCellValueString(loginsName2Col, Zeile, loginsSheet, group.Value.name2)
+                                xlsxFactory.SetCellValueString(loginsGroupIdCol, Zeile, loginsSheet, group.Value.id)
+                                xlsxFactory.SetCellValueString(loginsLoginCol, Zeile, loginsSheet, ":TL:" + allLogins(loginIndex))
+                                loginIndex += 1
+                                If passwordLength > 0 Then
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, allPasswords(passwordIndex))
+                                    passwordIndex += 1
+                                    If passwordIndex >= allPasswords.Count Then passwordIndex = 0
+                                Else
+                                    xlsxFactory.SetCellValueString(loginsPasswordCol, Zeile, loginsSheet, "")
+                                End If
+                                xlsxFactory.SetCellValueString(loginsModeCol, Zeile, loginsSheet, "monitor-group")
+                                For Each c As String In otherColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                                Zeile += 1
+                            End If
+                        Next
+                        Zeile += 1
+                        Dim groupID As String = ""
+                        Dim login As String = ""
+                        Do
+                            If myworker.CancellationPending() Then Exit Do
+                            groupID = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
+                            login = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                            If Not String.IsNullOrEmpty(groupID) OrElse Not String.IsNullOrEmpty(login) Then
+                                For Each c As String In otherColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                                For Each c As String In usedColumns
+                                    xlsxFactory.SetCellValueString(c, Zeile, loginsSheet, "")
+                                Next
+                            End If
+                            Zeile += 1
+                        Loop Until String.IsNullOrEmpty(groupID) AndAlso String.IsNullOrEmpty(login)
+                    End If
+                    myworker.ReportProgress(20.0#, loginCount.ToString + " Logins gefunden")
+                End Using
+                Try
+                    Using fs As New IO.FileStream(My.Settings.lastfile_LoginXlsx, IO.FileMode.Create)
+                        MemStream.WriteTo(fs)
+                    End Using
+                Catch ex As Exception
+                    myworker.ReportProgress(0.0#, "e: Konnte Datei nicht schreiben: " + ex.Message)
+                End Try
+            End Using
+        End If
     End Sub
 
     Private Function GetGroupId(name1 As String) As String

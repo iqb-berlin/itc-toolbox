@@ -113,7 +113,7 @@ Public Class LoginsXlsxDialog
 #End Region
 
 
-    Private Shared Function GetNewCodeList(codeLen As Integer, codeCount As Integer) As List(Of String)
+    Public Shared Function GetNewCodeList(codeLen As Integer, codeCount As Integer) As List(Of String)
         Dim codeList As New List(Of String)
         Randomize()
         For i As Integer = 1 To codeCount
