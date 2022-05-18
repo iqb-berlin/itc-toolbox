@@ -27,6 +27,7 @@
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">
                 <Label Width="200">Vorlage</Label>
+                <Button Click="SelectTemplateFile_Click" Padding="10 0 10 0" DockPanel.Dock="Right">wählen...</Button>
                 <TextBox x:Name="TBTemplate" IsReadOnly="True"></TextBox>
             </DockPanel>
         </DockPanel>

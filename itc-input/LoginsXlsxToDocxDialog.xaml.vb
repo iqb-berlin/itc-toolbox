@@ -1,13 +1,16 @@
 ﻿Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
+Imports DocumentFormat.OpenXml.Wordprocessing
 Imports iqb.lib.openxml
 Imports iqb.lib.components
+Imports WordRun = DocumentFormat.OpenXml.Wordprocessing.Run
+Imports WordText = DocumentFormat.OpenXml.Wordprocessing.Text
 
 Public Class LoginsXlsxToDocxDialog
     Private ErrorMessages As Dictionary(Of String, List(Of String))
     Private Warnings As Dictionary(Of String, List(Of String))
-
+    Private loginCount As Integer = 0
     Private Testgroups As Dictionary(Of String, groupdata)
 
 #Region "Vorspann"
@@ -25,6 +28,10 @@ Public Class LoginsXlsxToDocxDialog
         Warnings = New Dictionary(Of String, List(Of String))
         Testgroups = New Dictionary(Of String, groupdata)
         TBServerUrl.Text = My.Settings.lastServerUrl
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_LoginDocxTemplate) Then
+            TBTemplate.ToolTip = My.Settings.lastfile_LoginDocxTemplate
+            TBTemplate.Text = IO.Path.GetFileName(My.Settings.lastfile_LoginDocxTemplate)
+        End If
 
         Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
         Process1_bw.RunWorkerAsync()
@@ -124,16 +131,22 @@ Public Class LoginsXlsxToDocxDialog
         If TBServerUrl.Text.Length < 5 Then
             DialogFactory.MsgError(Me, Me.Title, "Bitte eine Server-Url angeben.")
         Else
-            Testgroups.Clear()
-            ErrorMessages.Clear()
-            Warnings.Clear()
-            My.Settings.lastServerUrl = TBServerUrl.Text
-            My.Settings.Save()
-            BtnContinue.Visibility = Windows.Visibility.Collapsed
-            BtnCancel.Visibility = Windows.Visibility.Visible
-            DPParameters.IsEnabled = False
-            Process2_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
-            Process2_bw.RunWorkerAsync()
+            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_LoginDocxTarget) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_LoginDocxTarget)
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_LoginDocxTarget), .Filter = "Word-Dateien|*.Docx",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "Docx", .Title = Me.Title + " - Zieldatei wählen"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_LoginDocxTarget = filepicker.FileName
+                My.Settings.lastServerUrl = TBServerUrl.Text
+                My.Settings.Save()
+                ErrorMessages.Clear()
+                Warnings.Clear()
+                BtnContinue.Visibility = Windows.Visibility.Collapsed
+                BtnCancel.Visibility = Windows.Visibility.Visible
+                DPParameters.IsEnabled = False
+                Process2_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
+                Process2_bw.RunWorkerAsync()
+            End If
         End If
     End Sub
 
@@ -168,6 +181,19 @@ Public Class LoginsXlsxToDocxDialog
 
         BtnClose.Visibility = Windows.Visibility.Visible
         BtnEditor.Visibility = Windows.Visibility.Visible
+    End Sub
+
+    Private Sub SelectTemplateFile_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(TBTemplate.ToolTip) Then defaultDir = IO.Path.GetDirectoryName(TBTemplate.ToolTip)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(TBTemplate.ToolTip), .Filter = "Word-Dateien|*.docx",
+            .InitialDirectory = defaultDir, .DefaultExt = "Docx", .Title = Me.Title + " - Wähle Vorlage"}
+        If filepicker.ShowDialog Then
+            TBTemplate.ToolTip = filepicker.FileName
+            TBTemplate.Text = IO.Path.GetFileName(filepicker.FileName)
+            My.Settings.lastfile_LoginDocxTemplate = TBTemplate.ToolTip
+            My.Settings.Save()
+        End If
     End Sub
 #End Region
 
@@ -212,8 +238,6 @@ Public Class LoginsXlsxToDocxDialog
                     Dim login As String = ""
                     Dim password As String = ""
                     Dim loginMode As String = ""
-
-                    Dim loginCount As Integer = 0
                     Dim fatal_error As Boolean = False
                     Do
                         If myworker.CancellationPending() Then Exit Do
@@ -259,5 +283,61 @@ Public Class LoginsXlsxToDocxDialog
     Private Sub Process2_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process2_bw.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
         myworker.ReportProgress(0.0#, "Öffne Vorlage")
+
+        Dim templateFile As Byte()
+        Try
+            templateFile = IO.File.ReadAllBytes(My.Settings.lastfile_LoginDocxTemplate)
+        Catch ex As Exception
+            myworker.ReportProgress(20.0#, "e:Konnte Datei " + My.Settings.lastfile_LoginDocxTemplate + " nicht lesen (noch geöffnet?)")
+            templateFile = Nothing
+        End Try
+
+        If templateFile IsNot Nothing Then
+            Dim targetFileName As String = My.Settings.lastfile_LoginDocxTarget
+            Dim msgText As String = ""
+
+            Try
+                IO.File.WriteAllBytes(targetFileName, templateFile)
+            Catch ex As Exception
+                msgText = ex.ToString
+            End Try
+            If msgText.Length > 0 Then
+                myworker.ReportProgress(0.0#, "e: " + msgText)
+            Else
+                Using memorystream As IO.MemoryStream = New IO.MemoryStream
+                    memorystream.Write(templateFile, 0, CInt(templateFile.Length))
+                    Using NewDoc As WordprocessingDocument = WordprocessingDocument.Open(memorystream, True)
+                        Dim docPart = NewDoc.MainDocumentPart
+                        Dim doc = docPart.Document
+                        Dim pcQ = From p As Paragraph In doc.Body.Descendants(Of Paragraph)()
+                        Dim templateContent As List(Of Paragraph) = Nothing
+                        If pcQ.Count > 0 Then
+                            templateContent = pcQ.ToList
+                            For Each p As Paragraph In pcQ.ToList
+                                p.Remove()
+                            Next
+                            Dim progressStepSize As Double = 100 / loginCount
+                            Dim progressStep As Integer = 0
+                            For Each testgroup As KeyValuePair(Of String, groupdata) In Testgroups
+                                For Each login As logindata In testgroup.Value.logins
+                                    myworker.ReportProgress(progressStep * progressStepSize)
+                                    progressStep += 1
+                                    For Each p As Paragraph In templateContent
+                                        Dim paragraphToInsert As Paragraph = p.Clone
+                                        doc.Body.Append(paragraphToInsert)
+                                    Next
+                                    doc.Body.Append(New Paragraph(New WordRun(New WordText(login.login))))
+                                Next
+                            Next
+                        End If
+                    End Using
+
+                    Using fileStream As IO.FileStream = New IO.FileStream(targetFileName, IO.FileMode.Create)
+                        memorystream.WriteTo(fileStream)
+                    End Using
+                End Using
+            End If
+        End If
     End Sub
+
 End Class

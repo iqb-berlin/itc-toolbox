@@ -172,6 +172,30 @@ Partial Friend NotInheritable Class MySettings
             Me("lastServerUrl") = value
         End Set
     End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastfile_LoginDocxTemplate() As String
+        Get
+            Return CType(Me("lastfile_LoginDocxTemplate"),String)
+        End Get
+        Set
+            Me("lastfile_LoginDocxTemplate") = value
+        End Set
+    End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastfile_LoginDocxTarget() As String
+        Get
+            Return CType(Me("lastfile_LoginDocxTarget"),String)
+        End Get
+        Set
+            Me("lastfile_LoginDocxTarget") = value
+        End Set
+    End Property
 End Class
 
 Namespace My
