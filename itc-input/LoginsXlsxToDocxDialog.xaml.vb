@@ -6,6 +6,7 @@ Imports iqb.lib.openxml
 Imports iqb.lib.components
 Imports WordRun = DocumentFormat.OpenXml.Wordprocessing.Run
 Imports WordText = DocumentFormat.OpenXml.Wordprocessing.Text
+Imports QRCoder
 
 Public Class LoginsXlsxToDocxDialog
     Private ErrorMessages As Dictionary(Of String, List(Of String))
@@ -324,7 +325,7 @@ Public Class LoginsXlsxToDocxDialog
                                     progressStep += 1
                                     For Each p As Paragraph In templateContent
                                         Dim paragraphToInsert As Paragraph = p.Clone
-                                        replaceText(paragraphToInsert, testgroup.Value, login, My.Settings.lastServerUrl)
+                                        replaceText(paragraphToInsert, testgroup.Value, login, My.Settings.lastServerUrl, NewDoc)
                                         doc.Body.Append(paragraphToInsert)
                                     Next
                                 Next
@@ -340,7 +341,7 @@ Public Class LoginsXlsxToDocxDialog
         End If
     End Sub
 
-    Private Sub replaceText(p As Paragraph, group As groupdata, login As logindata, serverUrl As String)
+    Private Sub replaceText(p As Paragraph, group As groupdata, login As logindata, serverUrl As String, parent As WordprocessingDocument)
         For Each wt As SdtRun In From t As SdtRun In p.Descendants(Of SdtRun)().ToList
             Dim props As SdtProperties = wt.SdtProperties
             If props IsNot Nothing Then
@@ -362,14 +363,21 @@ Public Class LoginsXlsxToDocxDialog
                             p.ReplaceChild(New WordRun(New WordText(group.id)), wt)
                         Case "mode"
                             p.ReplaceChild(New WordRun(New WordText(login.mode)), wt)
+                        Case "link-qr"
+                            Dim qrGenerator As New QRCodeGenerator
+                            Dim QRCodeData As QRCodeData = qrGenerator.CreateQrCode("https://" + serverUrl + "/#/" + login.login, QRCodeGenerator.ECCLevel.Q)
+                            Dim QRCode As New QRCode(QRCodeData)
+                            Dim qrCodeImage As System.Drawing.Bitmap = QRCode.GetGraphic(20)
+                            Dim qrCodeImageBytes As Byte()
+                            Using bitmapstream As IO.MemoryStream = New IO.MemoryStream()
+                                qrCodeImage.Save(bitmapstream, System.Drawing.Imaging.ImageFormat.Bmp)
+                                qrCodeImageBytes = bitmapstream.ToArray()
+                            End Using
+                            Dim newImagePart As WordRun = docxFactory.AddImagePart(parent, qrCodeImageBytes, ImagePartType.Bmp, 5)
+                            p.ReplaceChild(newImagePart, wt)
                     End Select
                 End If
             End If
-            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*server-url\s*}}", serverUrl)
-            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*group-name\s*}}", group.name1 + " - " + group.name2)
-            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*login\s*}}", login.login)
-            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*password\s*}}", login.password)
-            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*mode\s*}}", login.mode)
         Next
     End Sub
 End Class
