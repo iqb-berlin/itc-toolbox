@@ -218,11 +218,11 @@ Public Class LoginsXlsxToDocxDialog
                 MemStream.Write(sourceFile, 0, sourceFile.Length)
                 Using sourceXLS As SpreadsheetDocument = SpreadsheetDocument.Open(MemStream, False)
                     myworker.ReportProgress(20.0#, "Lese Datei " + sourceFileName)
-                    Dim loginsName1Ref As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName1")
-                    Dim loginsSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(loginsName1Ref)
-                    Dim loginsName1Col As String = xlsxFactory.GetColumnFromRefStr(loginsName1Ref)
-                    Dim loginsFirstRow As Integer = xlsxFactory.GetRowFromRefStr(loginsName1Ref) + 1
-                    Dim loginsName2Col As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName2"))
+                    Dim loginsGroupName1Ref As String = xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName1")
+                    Dim loginsSheetName As String = xlsxFactory.GetWorksheetNameFromRefStr(loginsGroupName1Ref)
+                    Dim loginsGroupName1Col As String = xlsxFactory.GetColumnFromRefStr(loginsGroupName1Ref)
+                    Dim loginsFirstRow As Integer = xlsxFactory.GetRowFromRefStr(loginsGroupName1Ref) + 1
+                    Dim loginsGroupName2Col As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupName2"))
                     Dim loginsGroupIdCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.GroupID"))
                     Dim loginsLoginCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.Name"))
                     Dim loginsPasswordCol As String = xlsxFactory.GetColumnFromRefStr(xlsxFactory.GetDefinedNameValue(sourceXLS, "loginsCol.Password"))
@@ -251,8 +251,8 @@ Public Class LoginsXlsxToDocxDialog
                         If Not String.IsNullOrEmpty(groupID) AndAlso Not String.IsNullOrEmpty(login) Then
                             If Not Testgroups.ContainsKey(groupID) Then
                                 Try
-                                    groupName1 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupIdCol + Zeile.ToString)
-                                    groupName2 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsLoginCol + Zeile.ToString)
+                                    groupName1 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupName1Col + Zeile.ToString)
+                                    groupName2 = xlsxFactory.GetCellValue(sourceXLS, loginsSheetName, loginsGroupName2Col + Zeile.ToString)
                                 Catch ex As Exception
                                     groupName1 = ""
                                     groupName2 = ""
@@ -324,9 +324,9 @@ Public Class LoginsXlsxToDocxDialog
                                     progressStep += 1
                                     For Each p As Paragraph In templateContent
                                         Dim paragraphToInsert As Paragraph = p.Clone
+                                        replaceText(paragraphToInsert, testgroup.Value, login, My.Settings.lastServerUrl)
                                         doc.Body.Append(paragraphToInsert)
                                     Next
-                                    doc.Body.Append(New Paragraph(New WordRun(New WordText(login.login))))
                                 Next
                             Next
                         End If
@@ -340,4 +340,36 @@ Public Class LoginsXlsxToDocxDialog
         End If
     End Sub
 
+    Private Sub replaceText(p As Paragraph, group As groupdata, login As logindata, serverUrl As String)
+        For Each wt As SdtRun In From t As SdtRun In p.Descendants(Of SdtRun)().ToList
+            Dim props As SdtProperties = wt.SdtProperties
+            If props IsNot Nothing Then
+                Dim tagProperty As Tag = props.Descendants(Of Tag)().FirstOrDefault
+                If tagProperty IsNot Nothing Then
+                    Dim tagValue As String = tagProperty.Val
+                    Select Case tagValue
+                        Case "server-url"
+                            p.ReplaceChild(New WordRun(New WordText(serverUrl)), wt)
+                        Case "login"
+                            p.ReplaceChild(New WordRun(New WordText(login.login)), wt)
+                        Case "password"
+                            p.ReplaceChild(New WordRun(New WordText(login.password)), wt)
+                        Case "link"
+                            p.ReplaceChild(New WordRun(New WordText("https://" + serverUrl + "/#/" + login.login)), wt)
+                        Case "testgroup-name"
+                            p.ReplaceChild(New WordRun(New WordText(group.name1 + " - " + group.name2)), wt)
+                        Case "testgroup-id"
+                            p.ReplaceChild(New WordRun(New WordText(group.id)), wt)
+                        Case "mode"
+                            p.ReplaceChild(New WordRun(New WordText(login.mode)), wt)
+                    End Select
+                End If
+            End If
+            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*server-url\s*}}", serverUrl)
+            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*group-name\s*}}", group.name1 + " - " + group.name2)
+            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*login\s*}}", login.login)
+            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*password\s*}}", login.password)
+            'wt.Text = System.Text.RegularExpressions.Regex.Replace(wt.Text, "{{\s*mode\s*}}", login.mode)
+        Next
+    End Sub
 End Class
