@@ -167,7 +167,7 @@ Class MainWindow
             My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
             My.Settings.Save()
 
-            Dim myDlg As New LoginsXlsxDialog With {.Owner = Me, .Title = "Logins/Codes erzeugen"}
+            Dim myDlg As New CodesXlsxDialog With {.Owner = Me, .Title = "Logins/Codes erzeugen"}
             myDlg.ShowDialog()
         End If
     End Sub

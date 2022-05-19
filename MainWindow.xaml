@@ -71,9 +71,9 @@
                 </TextBlock>
             </DockPanel>
             <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Logins-Xlsx</Button>
+                <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Codes-Xlsx</Button>
                 <TextBlock DockPanel.Dock="Right" Width="110">
-                    <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins.md">
+                    <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-codes.md">
                         <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                     </Hyperlink>
                 </TextBlock>
@@ -90,7 +90,7 @@
                         </Hyperlink>
                     </TextBlock>
                     <TextBlock>
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Login-Template.xlsx">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage.xlsx">
                             <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
@@ -103,13 +103,18 @@
                 <Button DockPanel.Dock="Left" Click="BtnLoginXlsxToDocx_Click">Logins in Docx</Button>
                 <StackPanel DockPanel.Dock="Right" Width="110">
                     <TextBlock>
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins-template.md">
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins-docx.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
                     <TextBlock>
-                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Login-Template.xlsx">
-                            <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage1.docx">
+                            <Run Text="Vorlage 1" ToolTip="Link zu GitHub"/>
+                        </Hyperlink>
+                    </TextBlock>
+                    <TextBlock>
+                        <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage2.docx">
+                            <Run Text="Vorlage 2" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
                     </TextBlock>
                 </StackPanel>
@@ -117,16 +122,6 @@
                         Einlesen einer speziell vorbereiteten Excel-Tabelle und Erzeugen von Docx-Dateien zum Ausdruck für Testpersonen.
                 </TextBlock>
             </DockPanel>
-
-            <!--<DockPanel>
-                <StackPanel DockPanel.Dock="Left">
-                    <Button Click="BtnBookletXmlNew_Click">Booklet-Xml neu</Button>
-                    <Button Click="BtnBookletXmlOpen_Click">Booklet-Xml öffnen</Button>
-                </StackPanel>
-                <TextBlock>
-                        Neu oder Öffnen einer Booklet-Xml - Editieren - Speichern.
-                </TextBlock>
-            </DockPanel>-->
             <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 10 0 10">
                 <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
             <DockPanel>

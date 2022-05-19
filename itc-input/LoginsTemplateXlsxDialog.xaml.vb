@@ -349,7 +349,7 @@ Public Class LoginsTemplateXlsxDialog
                     '-----------------------------------------------------------------------------
                     myworker.ReportProgress(10.0#, "h:Lese Gruppen")
 
-                    Dim groupIdSuffix As String = "_" + LoginsXlsxDialog.GetNewCode(4)
+                    Dim groupIdSuffix As String = "_" + CodeFactory.GetNewCode(4)
                     Dim Zeile As Integer = groupsFirstRow
                     Dim groupName1 As String = ""
                     Dim groupName2 As String = ""
@@ -395,7 +395,7 @@ Public Class LoginsTemplateXlsxDialog
                     If renewLogins Then
                         myworker.ReportProgress(10.0#, "Generiere Logins")
                         If addProctor Then loginSum += Testgroups.Count
-                        Dim allLogins As List(Of String) = LoginsXlsxDialog.GetNewCodeList(loginLength, loginSum)
+                        Dim allLogins As List(Of String) = CodeFactory.GetNewCodeList(loginLength, loginSum)
                         Dim loginIndex As Integer = 0
                         Dim allPasswords As New List(Of String)
                         Dim passwordIndex As Integer = 0
@@ -403,7 +403,7 @@ Public Class LoginsTemplateXlsxDialog
                             Dim pwMax As Integer = 150
                             If passwordLength > 2 Then pwMax = 1500
                             If passwordLength > 3 Then pwMax = loginSum
-                            allPasswords = LoginsXlsxDialog.GetNewCodeList(passwordLength, pwMax)
+                            allPasswords = CodeFactory.GetNewCodeList(passwordLength, pwMax)
                         End If
 
                         Dim usedColumns As New List(Of String)
@@ -668,8 +668,8 @@ Public Class logindata
 
     Public Function toXml(Optional bookletName As String = "Booklet1") As XElement
         Dim myreturn As XElement = <Login mode=<%= mode %> name=<%= login %>>
-                                       <Booklet><%= bookletName %></Booklet>
                                    </Login>
+        If mode <> "monitor-group" Then myreturn.Add(<Booklet><%= bookletName %></Booklet>)
         If Not String.IsNullOrEmpty(password) Then myreturn.SetAttributeValue("pw", password)
         Return myreturn
     End Function

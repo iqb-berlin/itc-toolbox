@@ -118,7 +118,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-input\LoginsXlsxDialog.xaml">
+    <Page Include="itc-input\CodesXlsxDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -146,14 +146,15 @@
       <DependentUpon>Application.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="itc-input\CodeFactory.vb" />
     <Compile Include="itc-input\LoginsXlsxToDocxDialog.xaml.vb">
       <DependentUpon>LoginsXlsxToDocxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-input\LoginsTemplateXlsxDialog.xaml.vb">
       <DependentUpon>LoginsTemplateXlsxDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-input\LoginsXlsxDialog.xaml.vb">
-      <DependentUpon>LoginsXlsxDialog.xaml</DependentUpon>
+    <Compile Include="itc-input\CodesXlsxDialog.xaml.vb">
+      <DependentUpon>CodesXlsxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
@@ -218,9 +219,10 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
     </EmbeddedResource>
+    <None Include="docs\manual-codes.md" />
     <None Include="docs\manual-logins-template.md" />
     <None Include="docs\manual-booklet.md" />
-    <None Include="docs\manual-logins.md" />
+    <None Include="docs\manual-logins-docx.md" />
     <None Include="docs\manual-output.md" />
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

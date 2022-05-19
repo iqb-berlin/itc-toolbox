@@ -367,13 +367,13 @@ Public Class LoginsXlsxToDocxDialog
                             Dim qrGenerator As New QRCodeGenerator
                             Dim QRCodeData As QRCodeData = qrGenerator.CreateQrCode("https://" + serverUrl + "/#/" + login.login, QRCodeGenerator.ECCLevel.Q)
                             Dim QRCode As New QRCode(QRCodeData)
-                            Dim qrCodeImage As System.Drawing.Bitmap = QRCode.GetGraphic(20)
+                            Dim qrCodeImage As System.Drawing.Bitmap = QRCode.GetGraphic(4)
                             Dim qrCodeImageBytes As Byte()
                             Using bitmapstream As IO.MemoryStream = New IO.MemoryStream()
                                 qrCodeImage.Save(bitmapstream, System.Drawing.Imaging.ImageFormat.Bmp)
                                 qrCodeImageBytes = bitmapstream.ToArray()
                             End Using
-                            Dim newImagePart As WordRun = docxFactory.AddImagePart(parent, qrCodeImageBytes, ImagePartType.Bmp, 5)
+                            Dim newImagePart As WordRun = docxFactory.AddImagePart(parent, qrCodeImageBytes, ImagePartType.Bmp, 4)
                             p.ReplaceChild(newImagePart, wt)
                     End Select
                 End If

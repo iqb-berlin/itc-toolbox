@@ -3,9 +3,7 @@ Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
 Imports iqb.lib.openxml
 
-Public Class LoginsXlsxDialog
-    Private Const codeCharacters = "abcdefghprqstuvxyz"
-    Private Const codeNumbers = "2345679"
+Public Class CodesXlsxDialog
 
 #Region "Vorspann"
     Public Sub New()
@@ -74,7 +72,7 @@ Public Class LoginsXlsxDialog
                 MemStream.Write(sourceFile, 0, sourceFile.Length)
                 Using sourceXLS As SpreadsheetDocument = SpreadsheetDocument.Open(MemStream, True)
                     Dim myStyles As ExcelStyleDefs = xlsxFactory.AddIQBStandardStyles(sourceXLS.WorkbookPart)
-                    Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(sourceXLS.WorkbookPart, "Logins")
+                    Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(sourceXLS.WorkbookPart, "Codes")
                     xlsxFactory.SetCellValueString("A", 1, TableResponses, "2 Stellen", CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth("A", TableResponses, 10)
                     xlsxFactory.SetCellValueString("B", 1, TableResponses, "3 Stellen", CellFormatting.RowHeader2, myStyles)
@@ -84,10 +82,10 @@ Public Class LoginsXlsxDialog
                     xlsxFactory.SetCellValueString("D", 1, TableResponses, "5 Stellen", CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth("D", TableResponses, 10)
 
-                    Dim codes2 As List(Of String) = GetNewCodeList(2, 100)
-                    Dim codes3 As List(Of String) = GetNewCodeList(3, 200)
-                    Dim codes4 As List(Of String) = GetNewCodeList(4, 500)
-                    Dim codes5 As List(Of String) = GetNewCodeList(5, 2000)
+                    Dim codes2 As List(Of String) = CodeFactory.GetNewCodeList(2, 100)
+                    Dim codes3 As List(Of String) = CodeFactory.GetNewCodeList(3, 200)
+                    Dim codes4 As List(Of String) = CodeFactory.GetNewCodeList(4, 500)
+                    Dim codes5 As List(Of String) = CodeFactory.GetNewCodeList(5, 2000)
 
 
                     For zeile As Integer = 1 To 2000
@@ -112,34 +110,5 @@ Public Class LoginsXlsxDialog
 
 #End Region
 
-
-    Public Shared Function GetNewCode(codeLen As Integer) As String
-        Dim newCode As String = ""
-        Dim isNumber As Boolean = False
-        Randomize()
-        Do
-            newCode = newCode & IIf(isNumber, Mid(codeNumbers, Int(codeNumbers.Length * Rnd() + 1), 1), Mid(codeCharacters, Int(codeCharacters.Length * Rnd() + 1), 1))
-            isNumber = Not isNumber
-        Loop Until newCode.Length = codeLen
-        Return newCode
-    End Function
-
-    Public Shared Function GetNewCodeList(codeLen As Integer, codeCount As Integer) As List(Of String)
-        Dim codeList As New List(Of String)
-        Randomize()
-        For i As Integer = 1 To codeCount
-            Dim newCode As String
-            Do
-                newCode = ""
-                Dim isNumber As Boolean = False
-                Do
-                    newCode = newCode & IIf(isNumber, Mid(codeNumbers, Int(codeNumbers.Length * Rnd() + 1), 1), Mid(codeCharacters, Int(codeCharacters.Length * Rnd() + 1), 1))
-                    isNumber = Not isNumber
-                Loop Until newCode.Length = codeLen
-            Loop While codeList.Contains(newCode)
-            codeList.Add(newCode)
-        Next
-        Return codeList
-    End Function
 End Class
 
