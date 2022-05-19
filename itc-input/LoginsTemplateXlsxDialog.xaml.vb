@@ -18,8 +18,9 @@ Public Class LoginsTemplateXlsxDialog
     Private Shared addPrefixTestee As Boolean = False
     Private Shared addPrefixReview As Boolean = False
     Private Shared addPrefixPlus As Boolean = False
+    Private Shared bookletName As String = "Booklet1"
+    Private Shared separateXmlFiles As Boolean = True
     Private sourceFileName As String = ""
-    Private targetXmlFileName As String = ""
 
 #Region "Vorspann"
     Public Sub New()
@@ -36,8 +37,13 @@ Public Class LoginsTemplateXlsxDialog
         Warnings = New Dictionary(Of String, List(Of String))
         Testgroups = New Dictionary(Of String, groupdata)
         sourceFileName = My.Settings.lastfile_LoginXlsx
-        targetXmlFileName = IO.Path.GetFileNameWithoutExtension(sourceFileName) + ".xml"
-        ChBxml.Content = "Login-XML-Datei '" + targetXmlFileName + "' erzeugen"
+        ChBxml.Content = "Login-XML-Datei(en)"
+        TBBookletName.Text = bookletName
+        If separateXmlFiles Then
+            RBseparate.IsChecked = True
+        Else
+            RBjoin.IsChecked = True
+        End If
 
         Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
         Process1_bw.RunWorkerAsync()
@@ -150,6 +156,8 @@ Public Class LoginsTemplateXlsxDialog
             Integer.TryParse(TBCharNumberPassword.Text, passwordLength)
             renewLogins = ChBnew.IsChecked
             generateXml = ChBxml.IsChecked
+            separateXmlFiles = RBseparate.IsChecked
+            bookletName = TBBookletName.Text
             If renewLogins And loginLength < 5 Then
                 DialogFactory.MsgError(Me, "Erzeugen Logins", "Die Länge des Benutzernamens muss mindestens 5 sein.")
             Else
@@ -601,27 +609,47 @@ Public Class LoginsTemplateXlsxDialog
                             End If
                             Zeile += 1
                         Loop Until String.IsNullOrEmpty(groupID) OrElse String.IsNullOrEmpty(login)
-                        For Each testGroup As KeyValuePair(Of String, groupdata) In Testgroups
-                            LoginXmlFile.Root.Add(testGroup.Value.toXml())
-                        Next
+
                         Dim targetFilePath As String = IO.Path.GetDirectoryName(sourceFileName) + IO.Path.DirectorySeparatorChar
-                        Try
-                            LoginXmlFile.Save(targetFilePath + targetXmlFileName)
-                            myworker.ReportProgress(0.0#, "Habe Datei '" + targetXmlFileName + "' gespeichert")
-                        Catch ex As Exception
-                            Dim msg As String = ex.Message
-                            If ex.InnerException IsNot Nothing Then msg += vbNewLine + ex.InnerException.Message
-                            myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetXmlFileName + "' nicht schreiben (" + msg + ")")
-                        End Try
+                        If separateXmlFiles Then
+                            For Each testGroup As KeyValuePair(Of String, groupdata) In Testgroups
+                                Dim LoginGroupXmlFile As New XDocument(LoginXmlFile)
+                                LoginGroupXmlFile.Root.Add(testGroup.Value.toXml(bookletName))
+                                Dim targetXmlFileName As String = testGroup.Value.id + ".xml"
+                                Try
+                                    LoginGroupXmlFile.Save(targetFilePath + targetXmlFileName)
+                                    myworker.ReportProgress(0.0#, "Habe Datei '" + targetXmlFileName + "' gespeichert")
+                                Catch ex As Exception
+                                    Dim msg As String = ex.Message
+                                    If ex.InnerException IsNot Nothing Then msg += vbNewLine + ex.InnerException.Message
+                                    myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetXmlFileName + "' nicht schreiben (" + msg + ")")
+                                End Try
+                            Next
+                        Else
+                            For Each testGroup As KeyValuePair(Of String, groupdata) In Testgroups
+                                LoginXmlFile.Root.Add(testGroup.Value.toXml(bookletName))
+                            Next
+                            Dim targetXmlFileName As String = IO.Path.GetFileNameWithoutExtension(sourceFileName) + ".xml"
+                            Try
+                                LoginXmlFile.Save(targetFilePath + targetXmlFileName)
+                                myworker.ReportProgress(0.0#, "Habe Datei '" + targetXmlFileName + "' gespeichert")
+                            Catch ex As Exception
+                                Dim msg As String = ex.Message
+                                If ex.InnerException IsNot Nothing Then msg += vbNewLine + ex.InnerException.Message
+                                myworker.ReportProgress(0.0#, "e: Konnte Datei '" + targetXmlFileName + "' nicht schreiben (" + msg + ")")
+                            End Try
+                        End If
                     End If
                 End Using
-                Try
-                    Using fs As New IO.FileStream(My.Settings.lastfile_LoginXlsx, IO.FileMode.Create)
-                        MemStream.WriteTo(fs)
-                    End Using
-                Catch ex As Exception
-                    myworker.ReportProgress(0.0#, "e: Konnte Datei nicht schreiben: " + ex.Message)
-                End Try
+                If renewLogins Then
+                    Try
+                        Using fs As New IO.FileStream(My.Settings.lastfile_LoginXlsx, IO.FileMode.Create)
+                            MemStream.WriteTo(fs)
+                        End Using
+                    Catch ex As Exception
+                        myworker.ReportProgress(0.0#, "e: Konnte Datei nicht schreiben: " + ex.Message)
+                    End Try
+                End If
             End Using
         End If
     End Sub
@@ -640,38 +668,4 @@ Public Class LoginsTemplateXlsxDialog
         Loop
         Return checkString + suffix
     End Function
-End Class
-
-'#############################################################################
-Public Class groupdata
-    Public id As String = ""
-    Public name1 As String = ""
-    Public name2 As String = ""
-    Public numberLogins As Integer = 0
-    Public numberLoginsPlus As Integer = 0
-    Public numberReviews As Integer = 0
-    Public logins As New List(Of logindata)
-    Public Function toXml() As XElement
-        Dim myreturn As XElement = <Group id=<%= id %> label=<%= name1 + " - " + name2 %>></Group>
-        For Each login As logindata In logins
-            myreturn.Add(login.toXml)
-        Next
-        Return myreturn
-    End Function
-End Class
-
-'#############################################################################
-Public Class logindata
-    Public login As String
-    Public password As String = ""
-    Public mode As String = "run-hot-return"
-
-    Public Function toXml(Optional bookletName As String = "Booklet1") As XElement
-        Dim myreturn As XElement = <Login mode=<%= mode %> name=<%= login %>>
-                                   </Login>
-        If mode <> "monitor-group" Then myreturn.Add(<Booklet><%= bookletName %></Booklet>)
-        If Not String.IsNullOrEmpty(password) Then myreturn.SetAttributeValue("pw", password)
-        Return myreturn
-    End Function
-
 End Class

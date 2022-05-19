@@ -30,3 +30,36 @@
         Return codeList
     End Function
 End Class
+
+Public Class groupdata
+    Public id As String = ""
+    Public name1 As String = ""
+    Public name2 As String = ""
+    Public numberLogins As Integer = 0
+    Public numberLoginsPlus As Integer = 0
+    Public numberReviews As Integer = 0
+    Public logins As New List(Of logindata)
+    Public Function toXml(Optional bookletName As String = "Booklet1") As XElement
+        Dim myreturn As XElement = <Group id=<%= id %> label=<%= name1 + " - " + name2 %>></Group>
+        For Each login As logindata In logins
+            myreturn.Add(login.toXml(bookletName))
+        Next
+        Return myreturn
+    End Function
+End Class
+
+'#############################################################################
+Public Class logindata
+    Public login As String
+    Public password As String = ""
+    Public mode As String = "run-hot-return"
+
+    Public Function toXml(Optional bookletName As String = "Booklet1") As XElement
+        Dim myreturn As XElement = <Login mode=<%= mode %> name=<%= login %>>
+                                   </Login>
+        If mode <> "monitor-group" Then myreturn.Add(<Booklet><%= bookletName %></Booklet>)
+        If Not String.IsNullOrEmpty(password) Then myreturn.SetAttributeValue("pw", password)
+        Return myreturn
+    End Function
+
+End Class

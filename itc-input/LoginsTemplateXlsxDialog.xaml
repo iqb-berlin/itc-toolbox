@@ -7,7 +7,7 @@
         ShowInTaskbar="False"
         Icon="pack://application:,,,/iqblib-components;component/Resources/iqbGrau.ico"
         lib:HelpProvider.HelpTopicId="1027"
-        Title="Title" Height="524" Width="506">
+        Title="Title" Height="700" Width="506">
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
     </Window.Resources>
@@ -30,12 +30,20 @@
                     <Label Width="200">Anzahl Zeichen Kennwort</Label>
                     <TextBox x:Name="TBCharNumberPassword"></TextBox>
                 </DockPanel>
-                <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top">zusätzlich Account für Testleitung erzeugen in der Form "TL__"</CheckBox>
+                <CheckBox x:Name="ChBproctor" DockPanel.Dock="Top" Margin="0 4 0 4">zusätzlich Account für Testleitung erzeugen in der Form "TL__"</CheckBox>
                 <CheckBox x:Name="ChBprefixT" DockPanel.Dock="Top">Präfix vor Test-Benutzername erzeugen in der Form "T01__"</CheckBox>
-                <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top">Präfix vor Reserve-Benutzername erzeugen in der Form "RS__"</CheckBox>
+                <CheckBox x:Name="ChBprefixRs" DockPanel.Dock="Top" Margin="0 4 0 4">Präfix vor Reserve-Benutzername erzeugen in der Form "RS__"</CheckBox>
                 <CheckBox x:Name="ChBprefixRv" DockPanel.Dock="Top">Präfix vor Review-Benutzername erzeugen in der Form "RV__"</CheckBox>
             </DockPanel>
             <CheckBox x:Name="ChBxml" DockPanel.Dock="Top" Margin="5">Login-XML-Datei erzeugen</CheckBox>
+            <DockPanel Margin="20 0 5 5" IsEnabled="{Binding ElementName=ChBxml, Path=IsChecked}">
+                <DockPanel DockPanel.Dock="Top">
+                    <Label Width="200">ID des Testheftes/Booklets</Label>
+                    <TextBox x:Name="TBBookletName"></TextBox>
+                </DockPanel>
+                <RadioButton x:Name="RBseparate" DockPanel.Dock="Top" GroupName="separate" Margin="0 4 0 4">Für jede Gruppe separate Xml erzeugen</RadioButton>
+                <RadioButton x:Name="RBjoin" DockPanel.Dock="Top" GroupName="separate">Logins aller Gruppen in einer einzigen Xml speichern</RadioButton>
+            </DockPanel>
         </DockPanel>
         <lib:MessageBoxUserControl Name="MBUC" />
     </DockPanel>
