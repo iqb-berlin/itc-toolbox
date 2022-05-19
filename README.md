@@ -14,7 +14,24 @@ besser auswertbare Xlsx-Datei.
 
 Dokumentationen:
 * [Erzeugen von Testheft-Xlm](docs/manual-booklet.md)
-* [Erzeugen von Codes für Logins](docs/manual-logins.md)
+* [Erzeugen von Codes für Logins](docs/manual-codes.md)
+* [Erzeugen von Logins und von Testtaker.Xml](docs/manual-logins-template.md)
+* [Erzeugen von Handzetteln mit Logindaten (Docx)](docs/manual-logins-docx.md)
 * [Aufbereitung von Antworten und Logs](docs/manual-output.md).
 
-Die Windows-Anwendung können Sie über [diese Internetseite](https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox) installieren.
+## Installieren
+
+Es handelt sich um eine Windows-Anwendung, die ohne Administrationsrechte installiert und genutzt werden kann. Zum Installieren gehen Sie bitte auf folgende Internet-Seite:
+
+[www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox](https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox)
+
+Achtung: Die Anwendung ist mit einem gültigen Zertifikat des IQB signiert. Trotzdem meldet Windows, die Anwendung sei unsicher und rät von einer Nutzung ab.
+
+## Entwickeln
+Nach dem Download des Codes sind über den Paketmanager nuget einige Pakete zu installieren. Die Entwicklung erfolgte mit dem Visual Studio 2019 von Microsoft.
+
+## Credits
+* DocumentFormat.OpenXml by Microsoft
+* Newtonsoft.Json by James Newton-King
+* QRCoder by Raffael Herrmann
+* YamlDotNet by Antoine Aubry
