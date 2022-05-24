@@ -17,6 +17,7 @@ Dokumentationen:
 * [Erzeugen von Codes für Logins](docs/manual-codes.md)
 * [Erzeugen von Logins und von Testtaker.Xml](docs/manual-logins-template.md)
 * [Erzeugen von Handzetteln mit Logindaten (Docx)](docs/manual-logins-docx.md)
+* [Aufbereitung von SystemCheck Daten](docs/manual-output_SysCheck.md).
 * [Aufbereitung von Antworten und Logs](docs/manual-output.md).
 
 ## Installieren
