@@ -74,7 +74,7 @@ Public Class OutputResultPage
 
             'Dim LogData As New Dictionary(Of String, Dictionary(Of String, Long))
             Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
-            Dim multiplePersonAndUnitWarning As Integer = 0
+            Dim multiplePersonAndUnitLineNumbers As New List(Of Integer)
             For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
                 If myworker.CancellationPending Then
                     e.Cancel = True
@@ -155,7 +155,8 @@ Public Class OutputResultPage
                             Else
                                 lineCount += 1
                                 Dim unitData As New UnitLineData(line, legacyMode, parentDlg.outputConfig.variables, csvSeparator)
-                                If parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname) Then
+                                If unitData.hasResponses AndAlso
+                                    (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                     If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                                     For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
                                         For Each respData As ResponseData In entry.Value
@@ -170,7 +171,7 @@ Public Class OutputResultPage
                                     If myUnit Is Nothing Then
                                         myBooklet.Add(unitData)
                                     Else
-                                        multiplePersonAndUnitWarning += 1
+                                        multiplePersonAndUnitLineNumbers.Add(lineCount)
                                     End If
                                 End If
                             End If
@@ -178,9 +179,18 @@ Public Class OutputResultPage
                     End If
                 End If
             Next
-            If multiplePersonAndUnitWarning > 0 Then myworker.ReportProgress(0.0#, "w: Achtung: In " + multiplePersonAndUnitWarning.ToString + " Fällen wurden mehrere Einträge pro Person und Unit gefunden. Nur der jeweils erste Eintrag wurde übernommen.")
+            If multiplePersonAndUnitLineNumbers.Count > 0 Then
+                Dim warningMessage As String = "w: Achtung: In " + multiplePersonAndUnitLineNumbers.Count.ToString +
+                        " Fällen wurden mehrere Einträge pro Person und Unit gefunden. Nur der jeweils erste Eintrag wurde übernommen (ignoriere Zeilen "
+                If multiplePersonAndUnitLineNumbers.Count > 20 Then
+                    warningMessage += String.Join(", ", multiplePersonAndUnitLineNumbers.GetRange(0, 19)) + ", ... )."
+                Else
+                    warningMessage += String.Join(", ", multiplePersonAndUnitLineNumbers) + ")."
+                End If
+                myworker.ReportProgress(0.0#, warningMessage)
+            End If
             myworker.ReportProgress(0.0#, "Daten für " + AllPeople.Count.ToString("#,##0") + " Testpersonen und " + AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
-                myworker.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
+            myworker.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
 
 
                 If Not myworker.CancellationPending Then

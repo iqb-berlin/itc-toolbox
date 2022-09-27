@@ -44,6 +44,11 @@ Class UnitLineData
             Return groupname + loginname + code
         End Get
     End Property
+    Public ReadOnly Property hasResponses As Boolean
+        Get
+            Return responses IsNot Nothing AndAlso responses.Count > 0 AndAlso responses.First.Value.Count > 0
+        End Get
+    End Property
 
     Public Sub New(line As String, legacyMode As Boolean, renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))), csvSeparator As String)
         Dim responseChunks As New List(Of ResponseChunk)
