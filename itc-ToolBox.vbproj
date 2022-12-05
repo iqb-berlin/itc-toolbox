@@ -127,6 +127,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-online\RegisterWebCredentialsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\RegisterWebDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\RegisterWebResultPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\outputConverter\OutputDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -159,6 +171,16 @@
     </Compile>
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\itc-connection.vb" />
+    <Compile Include="itc-online\RegisterWebCredentialsPage.xaml.vb">
+      <DependentUpon>RegisterWebCredentialsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\RegisterWebDialog.xaml.vb">
+      <DependentUpon>RegisterWebDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\RegisterWebResultPage.xaml.vb">
+      <DependentUpon>RegisterWebResultPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />

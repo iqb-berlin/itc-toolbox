@@ -53,12 +53,18 @@ Class MainWindow
             Me.Close()
         End If
 
-        CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
+        'CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
+        CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpXXExecuted))
     End Sub
 
     Private Sub HandleHelpExecuted(sender As Object, e As ExecutedRoutedEventArgs)
         Dim myDlg As New iqb.lib.components.AppAboutDialog With {.Owner = Me}
         myDlg.ShowDialog()
+    End Sub
+
+    Private Sub HandleHelpXXExecuted(sender As Object, e As ExecutedRoutedEventArgs)
+        Dim ActionDlg As New RegisterWebDialog() With {.Owner = Me}
+        ActionDlg.ShowDialog()
     End Sub
 
     '############################################

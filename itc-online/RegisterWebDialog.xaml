@@ -1,0 +1,9 @@
+﻿<NavigationWindow x:Class="RegisterWebDialog"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  Title="Antwortdaten aus Testcenter laden" Height="300" Width="400"
+                 
+                  WindowStartupLocation="CenterOwner"
+                  ShowInTaskbar="False"
+                  Source="RegisterWebCredentialsPage.xaml"
+                  Icon="pack://application:,,,/iqblib-components;component/Resources/iqbGrau.ico"/>
