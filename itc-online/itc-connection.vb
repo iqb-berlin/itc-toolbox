@@ -1,6 +1,12 @@
 ﻿Imports Newtonsoft.Json
 Public Class ITCConnection
+    Public selectedWorkspace As Integer = 0
     Private _url As String
+    Public ReadOnly Property url() As String
+        Get
+            Return _url
+        End Get
+    End Property
     Private _lastErrorMsgText As String
     Private tokenStr As String
     Public accessTo As New Dictionary(Of Integer, String)
@@ -15,16 +21,17 @@ Public Class ITCConnection
             Return _response_string
         End Get
     End Property
-    Public Sub New(url As String, credents As Net.NetworkCredential)
+    Public Sub New(url As String, credentials As Net.NetworkCredential, worker As ComponentModel.BackgroundWorker)
         Me._url = url
         Dim resp As Net.WebResponse = Nothing
+        If worker IsNot Nothing Then worker.ReportProgress(10.0#)
         Try
             Dim uri As New Uri(url + "/session/admin")
             Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
             requ.Method = "PUT"
             requ.ContentType = "application/json"
             Dim enc As New Text.UTF8Encoding
-            Dim dataBin As Byte() = enc.GetBytes("{""name"":""" + credents.UserName + """,""password"": """ + credents.Password + """}")
+            Dim dataBin As Byte() = enc.GetBytes("{""name"":""" + credentials.UserName + """,""password"": """ + credentials.Password + """}")
             requ.ContentLength = dataBin.Length
             Dim s As IO.Stream = requ.GetRequestStream()
             s.Write(dataBin, 0, dataBin.Length)
@@ -37,6 +44,7 @@ Public Class ITCConnection
             If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
         End Try
         If resp IsNot Nothing Then
+            If worker IsNot Nothing Then worker.ReportProgress(20.0#)
             Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
                 Try
                     _response_string = WebReader.ReadToEnd()
@@ -50,11 +58,20 @@ Public Class ITCConnection
                     If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
                 End Try
             End Using
+            Dim maxProgressValue As Integer = accessTo.Count
+            Dim progressValue As Integer = 0
+            Dim wsIdList As New List(Of Integer)(accessTo.Keys)
+            For Each workspaceId As Integer In wsIdList
+                progressValue += 1
+                If worker IsNot Nothing Then worker.ReportProgress(progressValue * 80 / maxProgressValue + 20.0#)
+                Me.accessTo.Item(workspaceId) = GetWorkspaceName(workspaceId)
+            Next
         End If
     End Sub
 
-    Public Sub GetWorkspaceName(wsId As Integer)
-        Dim resp As Net.WebResponse = Nothing
+    Private Function GetWorkspaceName(wsId As Integer) As String
+        Dim myReturn As String = wsId.ToString
+        Dim resp As Net.WebResponse
         Try
             Dim uri As New Uri(Me._url + "/workspace/" + wsId.ToString)
             Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
@@ -72,7 +89,7 @@ Public Class ITCConnection
                 Try
                     _response_string = WebReader.ReadToEnd()
                     Dim localdata As Dictionary(Of String, String) = JsonConvert.DeserializeObject(_response_string, GetType(Dictionary(Of String, String)))
-                    Me.accessTo.Item(wsId) = localdata.Item("name")
+                    myReturn = localdata.Item("name")
                     Me._lastErrorMsgText = ""
                 Catch ex As Exception
                     _lastErrorMsgText = ex.Message
@@ -80,5 +97,6 @@ Public Class ITCConnection
                 End Try
             End Using
         End If
-    End Sub
+        Return myReturn
+    End Function
 End Class

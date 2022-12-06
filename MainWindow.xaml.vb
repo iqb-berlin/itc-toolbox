@@ -1,5 +1,7 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
+    Private itcConnection As ITCConnection = Nothing
+
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
 
@@ -53,18 +55,12 @@ Class MainWindow
             Me.Close()
         End If
 
-        'CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
-        CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpXXExecuted))
+        CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
     End Sub
 
     Private Sub HandleHelpExecuted(sender As Object, e As ExecutedRoutedEventArgs)
         Dim myDlg As New iqb.lib.components.AppAboutDialog With {.Owner = Me}
         myDlg.ShowDialog()
-    End Sub
-
-    Private Sub HandleHelpXXExecuted(sender As Object, e As ExecutedRoutedEventArgs)
-        Dim ActionDlg As New RegisterWebDialog() With {.Owner = Me}
-        ActionDlg.ShowDialog()
     End Sub
 
     '############################################
@@ -204,5 +200,11 @@ Class MainWindow
             Dim ActionDlg As New LoginsXlsxToDocxDialog() With {.Owner = Me, .Title = "Logins Docx erzeugen"}
             ActionDlg.ShowDialog()
         End If
+    End Sub
+
+    Private Sub BtnGetTestcenterData_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection) With {.Owner = Me}
+        ActionDlg.ShowDialog()
+        itcConnection = ActionDlg.itcConnection
     End Sub
 End Class

@@ -127,15 +127,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\RegisterWebCredentialsPage.xaml">
+    <Page Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\RegisterWebDialog.xaml">
+    <Page Include="itc-online\LoadDataFromTestcenterDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\RegisterWebResultPage.xaml">
+    <Page Include="itc-online\LoadDataFromTestcenterPage3Results.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -173,14 +177,17 @@
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-online\itc-connection.vb" />
-    <Compile Include="itc-online\RegisterWebCredentialsPage.xaml.vb">
-      <DependentUpon>RegisterWebCredentialsPage.xaml</DependentUpon>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage1Credentials.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\RegisterWebDialog.xaml.vb">
-      <DependentUpon>RegisterWebDialog.xaml</DependentUpon>
+    <Compile Include="itc-online\LoadDataFromTestcenterDialog.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\RegisterWebResultPage.xaml.vb">
-      <DependentUpon>RegisterWebResultPage.xaml</DependentUpon>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage3Results.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage3Results.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
