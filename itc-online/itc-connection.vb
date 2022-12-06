@@ -99,4 +99,97 @@ Public Class ITCConnection
         End If
         Return myReturn
     End Function
+
+    Public Function getDataGroups() As List(Of GroupDataDTO)
+        Dim myReturn As New List(Of GroupDataDTO)
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/results")
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of GroupDataDTO)))
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
+
+    Public Function getLogs(dataGroupId As String) As List(Of LogEntryDTO)
+        Dim myReturn As New List(Of LogEntryDTO)
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/log?dataIds=" + dataGroupId)
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of LogEntryDTO)))
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
+
+    Public Function getResponses(dataGroupId As String) As List(Of ResponseDTO)
+        Dim myReturn As New List(Of ResponseDTO)
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/response?dataIds=" + dataGroupId)
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of ResponseDTO)))
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
 End Class

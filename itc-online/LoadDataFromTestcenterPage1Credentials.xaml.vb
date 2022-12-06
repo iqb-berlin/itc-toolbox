@@ -12,6 +12,7 @@ Public Class LoadDataFromTestcenterPage1Credentials
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         If ParentDlg.itcConnection Is Nothing Then
             DPOldLogin.Visibility = Visibility.Collapsed
+            TBUrl.Focus()
         Else
             LbLoginTip.Visibility = Visibility.Collapsed
             TBUrl.IsEnabled = False
@@ -39,7 +40,8 @@ Public Class LoadDataFromTestcenterPage1Credentials
                 BtnContinue.IsEnabled = False
                 Me.url = TBUrl.Text
                 If Not Me.url.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) Then Me.url = "https://" + Me.url
-                If Not Me.url.EndsWith("/api/", StringComparison.CurrentCultureIgnoreCase) Then Me.url = Me.url + "/api/"
+                If Me.url.EndsWith("/") Then Me.url = Me.url.Substring(0, Me.url.Length - 1)
+                If Not Me.url.EndsWith("/api", StringComparison.CurrentCultureIgnoreCase) Then Me.url = Me.url + "/api"
                 Me.credentials = CrUC.UserCredentials
                 myBackgroundWorker = New BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
                 myBackgroundWorker.RunWorkerAsync()

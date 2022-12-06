@@ -50,9 +50,12 @@ Class UnitLineData
         End Get
     End Property
 
-    Public Sub New(line As String, legacyMode As Boolean, renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))), csvSeparator As String)
+    Public Shared Function fromCsvLine(line As String, legacyMode As Boolean,
+                                       renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
+                                       csvSeparator As String) As UnitLineData
+        Dim returnUnitData As New UnitLineData
         Dim responseChunks As New List(Of ResponseChunk)
-        laststate = New Dictionary(Of String, String)
+        returnUnitData.laststate = New Dictionary(Of String, String)
         Dim position As Integer = 0
         Dim separatorActive As Boolean = True
         Dim tmpStr As String = ""
@@ -71,15 +74,15 @@ Class UnitLineData
                         End If
                         Select Case position
                             Case 0
-                                groupname = tmpStr
+                                returnUnitData.groupname = tmpStr
                             Case 1
-                                loginname = tmpStr
+                                returnUnitData.loginname = tmpStr
                             Case 2
-                                code = tmpStr
+                                returnUnitData.code = tmpStr
                             Case 3
-                                bookletname = tmpStr
+                                returnUnitData.bookletname = tmpStr
                             Case 4
-                                unitname = tmpStr
+                                returnUnitData.unitname = tmpStr
                             Case 5
                                 If Not legacyMode Then tmpResponses = tmpStr
                             Case 6
@@ -138,16 +141,16 @@ Class UnitLineData
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
-                laststate = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+                returnUnitData.laststate = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
             Catch ex As Exception
-                laststate.Add("state", tmpLastState)
+                returnUnitData.laststate.Add("state", tmpLastState)
             End Try
         End If
 
-        responses = New Dictionary(Of String, List(Of ResponseData))
+        returnUnitData.responses = New Dictionary(Of String, List(Of ResponseData))
         If responseChunks.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
-            If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(unitname) Then varRenameDef = renameVariables.Item(unitname)
+            If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
             For Each responseChunk As ResponseChunk In responseChunks
                 Dim dataToAdd As Dictionary(Of String, List(Of ResponseData)) = Nothing
                 Select Case responseChunk.responseType
@@ -164,16 +167,61 @@ Class UnitLineData
                 End Select
                 If dataToAdd IsNot Nothing Then
                     For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
-                        If Not responses.ContainsKey(kvp.Key) Then responses.Add(kvp.Key, New List(Of ResponseData))
-                        Dim respList As List(Of ResponseData) = responses.Item(kvp.Key)
+                        If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
+                        Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
                         respList.AddRange(kvp.Value)
                     Next
                 End If
             Next
         End If
-    End Sub
+        Return returnUnitData
+    End Function
 
-    Private Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
+    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO) As UnitLineData
+        Dim returnUnitData As New UnitLineData With {
+            .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
+            .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New Dictionary(Of String, String),
+            .responses = New Dictionary(Of String, List(Of ResponseData))
+            }
+        Dim tmpLastState As String = responseData.laststate
+        If Not String.IsNullOrEmpty(tmpLastState) Then
+            tmpLastState = tmpLastState.Replace("""""", """")
+            Try
+                returnUnitData.laststate = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+            Catch ex As Exception
+                returnUnitData.laststate.Add("state", tmpLastState)
+            End Try
+        End If
+
+        If responseData.responses.Count > 0 Then
+            Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
+            For Each responseChunk As ResponseDataDTO In responseData.responses
+                Dim dataToAdd As Dictionary(Of String, List(Of ResponseData)) = Nothing
+                Select Case responseChunk.responseType
+                    Case "IQBVisualUnitPlayerV2.1.0"
+                        dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
+                    Case "unknown"
+                        dataToAdd = setResponsesAbi(responseChunk.content)
+                    Case "iqb-simple-player@1.0.0"
+                        dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
+                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0"
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content)
+                    Case Else
+                        dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
+                End Select
+                If dataToAdd IsNot Nothing Then
+                    For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
+                        If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
+                        Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
+                        respList.AddRange(kvp.Value)
+                    Next
+                End If
+            Next
+        End If
+        Return returnUnitData
+    End Function
+
+    Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
         Dim myreturn As New List(Of ResponseData)
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
@@ -226,7 +274,7 @@ Class UnitLineData
         Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
     End Function
 
-    Private Function setResponsesAbi(responseString As String) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesAbi(responseString As String) As Dictionary(Of String, List(Of ResponseData))
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New Dictionary(Of String, String)
         Try
@@ -264,7 +312,7 @@ Class UnitLineData
         Return myreturn
     End Function
 
-    Private Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
         Dim myreturn As New List(Of ResponseData)
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
@@ -309,7 +357,7 @@ Class UnitLineData
         Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
     End Function
 
-    Private Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
         Dim myreturn As New List(Of ResponseData)
         Dim localdata As New Dictionary(Of String, Linq.JObject)
         Try
@@ -324,7 +372,7 @@ Class UnitLineData
         End If
     End Function
 
-    Private Function setResponsesIqbStandard(responseString As String) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesIqbStandard(responseString As String) As Dictionary(Of String, List(Of ResponseData))
         Dim myreturn As New List(Of ResponseData)
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Try

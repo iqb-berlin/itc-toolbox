@@ -16,7 +16,7 @@ Public Class LoadDataFromTestcenterPage2SelectWorkspace
         If LBIDList.SelectedItems.Count > 0 Then
             Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
             ParentDlg.itcConnection.selectedWorkspace = LBIDList.SelectedValue
-            Me.NavigationService.Navigate(New LoadDataFromTestcenterPage3Results)
+            Me.NavigationService.Navigate(New LoadDataFromTestcenterPage3SelectGroups)
         End If
     End Sub
 End Class

@@ -135,7 +135,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterPage3Results.xaml">
+    <Page Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage4Results.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -183,12 +187,16 @@
     <Compile Include="itc-online\LoadDataFromTestcenterDialog.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\LoadDataFromTestcenterPage3Results.xaml.vb">
-      <DependentUpon>LoadDataFromTestcenterPage3Results.xaml</DependentUpon>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage3SelectGroups.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage4Results.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage4Results.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-output\outputConverter\classes\ClassesDTO.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesResponses.vb" />
@@ -201,6 +209,7 @@
     <Compile Include="itc-output\outputConverter\OutputResultPage.xaml.vb">
       <DependentUpon>OutputResultPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-output\outputConverter\WriteOutputToXlsx.vb" />
     <Compile Include="itc-output\transformCsv2Xlsx.vb" />
     <Compile Include="MainWindow.xaml.vb">
       <DependentUpon>MainWindow.xaml</DependentUpon>
