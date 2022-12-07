@@ -158,7 +158,7 @@
                 <TextBlock DockPanel.Dock="Right" Width="100">
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">
-                        Verbinden mit einem Testcenter und abrufen aller Antworten und Logdaten, Speichern als Xlsx
+                        Verbinden mit einem Testcenter und Abrufen aller Antworten und Logdaten, Speichern als Xlsx (keine Umbenennung der Variablen möglich)
                 </TextBlock>
             </DockPanel>
         </StackPanel>

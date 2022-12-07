@@ -34,3 +34,19 @@ Public Class ResponseDTO
     Public laststate As String
     Public responses As List(Of ResponseDataDTO)
 End Class
+
+Public class BookletInfoDTO
+    Public description As String
+    Public label As String
+    Public totalSize As long
+End Class
+
+Public Class BookletDTO
+    Public name As String
+    Public size As Integer
+    Public modificationTime As Long
+    Public type As String
+    Public id As String
+    'Public report
+    Public info As BookletInfoDTO
+End Class

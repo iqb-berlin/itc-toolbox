@@ -27,7 +27,7 @@ Es handelt sich um eine Windows-Anwendung, die ohne Administrationsrechte instal
 [www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox](https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox)
 
 ## Entwickeln
-Nach dem Download des Codes sind über den Paketmanager nuget einige Pakete zu installieren. Die Entwicklung erfolgte mit dem Visual Studio 2019 von Microsoft.
+Nach dem Download des Codes sind über den Paketmanager nuget einige Pakete zu installieren. Die Entwicklung erfolgte mit dem Visual Studio 2022 von Microsoft.
 
 ## Credits
 * DocumentFormat.OpenXml by Microsoft

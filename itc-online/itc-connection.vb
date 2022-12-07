@@ -131,6 +131,38 @@ Public Class ITCConnection
         Return myReturn
     End Function
 
+    Public Function getBooklets() As List(Of BookletDTO)
+        Dim myReturn As New List(Of BookletDTO)
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/files")
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    Dim allFiles As Dictionary(Of String, Linq.JToken) = JsonConvert.DeserializeObject(_response_string, GetType(Dictionary(Of String, Linq.JToken)))
+                    If allFiles.ContainsKey("Booklet") Then myReturn = allFiles.Item("Booklet").ToObject(Of List(Of BookletDTO))
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
+
     Public Function getLogs(dataGroupId As String) As List(Of LogEntryDTO)
         Dim myReturn As New List(Of LogEntryDTO)
         Dim resp As Net.WebResponse

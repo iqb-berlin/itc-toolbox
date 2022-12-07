@@ -4,9 +4,10 @@ Imports iqb.lib.components
 Public Class LoadDataFromTestcenterPage1Credentials
     Private WithEvents myBackgroundWorker As BackgroundWorker = Nothing
     Private myConnection As ITCConnection = Nothing
-    Private url As String = ""
     Private credentials As Net.NetworkCredential = Nothing
+    Private url As String
     Private Sub Me_Loaded() Handles Me.Loaded
+        TBUrl.Text = My.Settings.lastServerUrl
         CrUC.UserCredentials = New Net.NetworkCredential(My.Settings.lastlogin_name, "")
         APBUC.UpdateProgressState(0.0#)
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
@@ -16,7 +17,6 @@ Public Class LoadDataFromTestcenterPage1Credentials
         Else
             LbLoginTip.Visibility = Visibility.Collapsed
             TBUrl.IsEnabled = False
-            TBUrl.Text = ParentDlg.itcConnection.url
             CrUC.IsEnabled = False
         End If
     End Sub
@@ -35,6 +35,7 @@ Public Class LoadDataFromTestcenterPage1Credentials
                 DialogFactory.MsgError(Me, Me.Title, "Bitte geben Sie die Url eines Testcenters ein!")
             Else
                 My.Settings.lastlogin_name = CrUC.UserCredentials.UserName
+                My.Settings.lastServerUrl = TBUrl.Text
                 My.Settings.Save()
                 BtnCancel.IsEnabled = False
                 BtnContinue.IsEnabled = False

@@ -23,6 +23,7 @@ Class WriteOutputToXlsx
                 'Responses
                 '########################################################
                 Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Responses")
+                Dim TableStatus As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Status")
                 worker.ReportProgress(0.0#, "Schreibe Daten")
 
                 Dim myRow As Integer = 1
@@ -34,6 +35,15 @@ Class WriteOutputToXlsx
                 xlsxFactory.SetColumnWidth("C", TableResponses, 10)
                 xlsxFactory.SetCellValueString("D", myRow, TableResponses, "Booklet", CellFormatting.RowHeader2, myStyles)
                 xlsxFactory.SetColumnWidth("D", TableResponses, 10)
+
+                xlsxFactory.SetCellValueString("A", myRow, TableStatus, "ID", CellFormatting.RowHeader2, myStyles)
+                xlsxFactory.SetColumnWidth("A", TableStatus, 20)
+                xlsxFactory.SetCellValueString("B", myRow, TableStatus, "Group", CellFormatting.RowHeader2, myStyles)
+                xlsxFactory.SetColumnWidth("B", TableStatus, 10)
+                xlsxFactory.SetCellValueString("C", myRow, TableStatus, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                xlsxFactory.SetColumnWidth("C", TableStatus, 10)
+                xlsxFactory.SetCellValueString("D", myRow, TableStatus, "Booklet", CellFormatting.RowHeader2, myStyles)
+                xlsxFactory.SetColumnWidth("D", TableStatus, 10)
                 Dim myColumn As String = "E"
                 Dim Columns As New Dictionary(Of String, String)
 
@@ -49,6 +59,8 @@ Class WriteOutputToXlsx
                     progressCount += 1
                     xlsxFactory.SetCellValueString(myColumn, myRow, TableResponses, s, CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth(myColumn, TableResponses, 10)
+                    xlsxFactory.SetCellValueString(myColumn, myRow, TableStatus, s, CellFormatting.RowHeader2, myStyles)
+                    xlsxFactory.SetColumnWidth(myColumn, TableStatus, 10)
                     Columns.Add(s, myColumn)
                     myColumn = xlsxFactory.GetNextColumn(myColumn)
                 Next
@@ -75,28 +87,36 @@ Class WriteOutputToXlsx
                                                                 Select s.Key).Distinct.ToList()
                         bookletPeople.Sort()
                         For Each subPerson As String In bookletPeople
-                            Dim myRowData As New List(Of RowData)
+                            Dim myRowDataResponses As New List(Of RowData)
+                            Dim myRowDataStatus As New List(Of RowData)
                             For Each unitData As UnitLineData In bookletData.Value
                                 If Not BookletUnits.ContainsKey(unitData.bookletname) Then BookletUnits.Add(unitData.bookletname, New List(Of String))
                                 If Not BookletUnits.Item(unitData.bookletname).Contains(unitData.unitname) Then BookletUnits.Item(unitData.bookletname).Add(unitData.unitname)
                                 If unitData.responses.ContainsKey(subPerson) Then
                                     Dim respData As List(Of ResponseData) = unitData.responses.Item(subPerson)
                                     If respData.Count > 0 Then
-                                        If myRowData.Count = 0 Then
-                                            myRowData.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
-                                            myRowData.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
-                                            myRowData.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
-                                            myRowData.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
+                                        If myRowDataResponses.Count = 0 Then
+                                            myRowDataResponses.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                            myRowDataResponses.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
+                                            myRowDataResponses.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
+                                            myRowDataResponses.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
+
+                                            myRowDataStatus.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                            myRowDataStatus.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
+                                            myRowDataStatus.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
+                                            myRowDataStatus.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
                                         End If
                                         For Each rd As ResponseData In respData
-                                            myRowData.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
+                                            myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
+                                            myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.status, .CellType = CellTypes.str})
                                         Next
                                     End If
                                 End If
                             Next
-                            If myRowData.Count > 0 Then
+                            If myRowDataResponses.Count > 0 Then
                                 myRow += 1
-                                xlsxFactory.AppendRow(myRow, myRowData, TableResponses)
+                                xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses)
+                                xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
                             End If
                         Next
                     Next

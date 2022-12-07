@@ -45,56 +45,61 @@ Public Class LoadDataFromTestcenterPage4Results
         End Try
 
         If myTemplate IsNot Nothing Then
+            myBW.ReportProgress(3.0#, "Lese Booklets")
+            Dim booklets As List(Of BookletDTO) = ParentDlg.itcConnection.getBooklets()
+            Dim bookletSizes As Dictionary(Of String, Long) = (From b As BookletDTO In booklets).ToDictionary(Of String, Long)(Function(b) b.id, Function(b) b.info.totalSize)
 
             Dim myTestPersonList As New TestPersonList
-        Dim AllPeople As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
-        Dim AllVariables As New List(Of String)
-        Dim AllUnitsWithResponses As New List(Of String)
-        Dim multiplePersonAndUnits As New List(Of String)
-        Dim LogEntryCount As Long = 0
+            Dim AllPeople As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
+            Dim AllVariables As New List(Of String)
+            Dim AllUnitsWithResponses As New List(Of String)
+            Dim multiplePersonAndUnits As New List(Of String)
+            Dim LogEntryCount As Long = 0
 
-        Dim maxProgressValue As Integer = ParentDlg.selectedDataGroups.Count * 2
-        Dim progressValue As Integer = 0
-        For Each dataGroupId As String In ParentDlg.selectedDataGroups
-            Dim logData As List(Of LogEntryDTO) = ParentDlg.itcConnection.getLogs(dataGroupId)
-            If Not String.IsNullOrEmpty(ParentDlg.itcConnection.lastErrorMsgText) Then
-                myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e: Problem bei Logingruppe '" + dataGroupId + "': " +
-                    ParentDlg.itcConnection.lastErrorMsgText + " (Logs)")
-            Else
-                For Each log As LogEntryDTO In logData
-                    LogEntryCount += 1
-                    Dim key As String = log.logentry
-                    Dim parameter As String = ""
-                    If key.IndexOf(" : ") > 0 Then
-                        parameter = key.Substring(key.IndexOf(" : ") + 3)
-                        If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
-                            parameter = parameter.Substring(1, parameter.Length - 2)
-                            parameter = parameter.Replace("""""", """")
-                            parameter = parameter.Replace("\\", "\")
+            Dim maxProgressValue As Integer = ParentDlg.selectedDataGroups.Count * 2
+            Dim progressValue As Integer = 0
+            For Each dataGroupId As String In ParentDlg.selectedDataGroups
+                myBW.ReportProgress(progressValue * 100 / maxProgressValue, "Lese '" + dataGroupId + "': ")
+                Dim logData As List(Of LogEntryDTO) = ParentDlg.itcConnection.getLogs(dataGroupId)
+                If Not String.IsNullOrEmpty(ParentDlg.itcConnection.lastErrorMsgText) Then
+                    myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e: Problem bei Logingruppe '" + dataGroupId + "': " +
+                        ParentDlg.itcConnection.lastErrorMsgText + " (Logs)")
+                Else
+                    For Each log As LogEntryDTO In logData
+                        LogEntryCount += 1
+                        Dim key As String = log.logentry
+                        Dim parameter As String = ""
+                        If key.IndexOf(" : ") > 0 Then
+                            parameter = key.Substring(key.IndexOf(" : ") + 3)
+                            If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
+                                parameter = parameter.Substring(1, parameter.Length - 2)
+                                parameter = parameter.Replace("""""", """")
+                                parameter = parameter.Replace("\\", "\")
+                            End If
+                            key = key.Substring(0, key.IndexOf(" : "))
+                        ElseIf key.IndexOf(" = ") > 0 Then
+                            parameter = key.Substring(key.IndexOf(" = ") + 3)
+                            key = key.Substring(0, key.IndexOf(" = "))
                         End If
-                        key = key.Substring(0, key.IndexOf(" : "))
-                    ElseIf key.IndexOf(" = ") > 0 Then
-                        parameter = key.Substring(key.IndexOf(" = ") + 3)
-                        key = key.Substring(0, key.IndexOf(" = "))
-                    End If
 
-                    If key = "LOADCOMPLETE" Then
-                        Dim sysdata As Dictionary(Of String, String) = Nothing
+                        If key = "LOADCOMPLETE" Then
+                            Dim sysdata As Dictionary(Of String, String) = Nothing
                             parameter = parameter.Replace("\""", """")
                             Try
                                 sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
                             Catch ex As Exception
                                 sysdata = Nothing
                                 Debug.Print("sysdata json convert failed: " + ex.Message)
-                        End Try
-                        myTestPersonList.SetSysdata(log.timestamp, log.groupname, log.loginname, log.code, log.bookletname, sysdata)
-                    End If
-                    myTestPersonList.AddLogEvent(log.groupname, log.loginname, log.code, log.bookletname, log.timestamp, log.unitname, key, parameter)
-                Next
-            End If
-            progressValue += 1
+                            End Try
+                            myTestPersonList.SetSysdata(log.timestamp, log.groupname, log.loginname, log.code, log.bookletname, sysdata)
+                        End If
+                        myTestPersonList.AddLogEvent(log.groupname, log.loginname, log.code, log.bookletname, log.timestamp, log.unitname, key, parameter)
+                    Next
+                End If
+                progressValue += 1
 
-            Dim responseDataList As List(Of ResponseDTO) = ParentDlg.itcConnection.getResponses(dataGroupId)
+                myBW.ReportProgress(progressValue * 100 / maxProgressValue)
+                Dim responseDataList As List(Of ResponseDTO) = ParentDlg.itcConnection.getResponses(dataGroupId)
                 If Not String.IsNullOrEmpty(ParentDlg.itcConnection.lastErrorMsgText) Then
                     myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e: Problem bei Logingruppe '" + dataGroupId + "': " +
                     ParentDlg.itcConnection.lastErrorMsgText + " (Responses)")
@@ -138,7 +143,7 @@ Public Class LoadDataFromTestcenterPage4Results
             myBW.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
 
             If Not myBW.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myBW, e, AllVariables, AllPeople, myTestPersonList,
-                                                                         Nothing, targetXlsxFilename)
+                                                                         bookletSizes, targetXlsxFilename)
         End If
     End Sub
 
