@@ -1,23 +1,17 @@
 ﻿# itc-ToolBox – Antworten
-Über den Admin-Bereich des Testcenters lassen sich vor allem zwei Dateiarten 
-herunterladen: Responses und Logs. Diese Rohdaten sind schlecht auswertbar. 
-Die Funktion "Antworten und Logs csv -> xlsx" transformiert diese Daten. 
-Dieser Text beschreibt die Struktur dieser erzeugten Daten.
+Die Rohdaten der Antworten sind schlecht auswertbar. Die Funktionen "Antworten und Logs csv -> xlsx" und "Antworten und Logs Testcenter online --> xlsx" transformieren diese Daten und erzeugen eine Excel-Datei mit wichtigen Informationen. Dieser Text beschreibt die Struktur dieser erzeugten Daten und Möglichkeiten, die Transformation zu steuern.
 
-Der Anwendung wird zunächst ein Verzeichnis mitgeteilt, in dem die 
-Response- und Log-Daten im CSV-Format liegen. Bei kleineren Erhebungen 
-sind dies zwei Dateien, bei größeren Studien könnte eine Aufteilung in 
-viele Dateien erforderlich sein. Zusätzlich kann im Ordner eine oder mehrere yaml-Dateien 
-hinterlegt sein. Diese Dateien liefern zusätzliche Informationen für die Transformation 
-(s. unten).
+**Antworten und Logs csv -> xlsx**
 
-Als Ausgabe wird eine Xlsx-Datei erzeugt. Diese enthält in drei Tabellen die 
-gewünschten Daten. Nachfolgend wird die Bedeutung der Spalten jeder dieser 
-Tabellen beschrieben. Wenn von **Zeitstempel** die Rede ist, dann handelt es sich um 
-eine in JavaScript über Date.now() ermittelte Anzahl der Millisekunden, die seit 
-dem 01.01.1970 00:00:00 UTC vergangen sind. Für Excel muss man den Wert 
-umrechnen: `=<ts>/(1000*60*60*24) + 25569` und dann als Datum+Zeit 
-formatieren: TT.MM.JJJJ h:mm:ss
+Über den Admin-Bereich des Testcenters lassen sich vor allem zwei Dateiarten herunterladen: Responses und Logs. Der Anwendung wird zunächst ein Verzeichnis mitgeteilt, in dem die Response- und Log-Daten im CSV-Format liegen. Bei kleineren Erhebungen sind dies zwei Dateien, bei größeren Studien könnte eine Aufteilung in viele Dateien erforderlich sein. Zusätzlich kann im Ordner eine oder mehrere yaml-Dateien hinterlegt sein. Diese Dateien liefern zusätzliche Informationen für die Transformation (s. unten).
+
+**Antworten und Logs Testcenter online --> xlsx**
+
+Alternativ kann man die ict-ToolBox mit einer Installation des Testcenters verbinden. Die Antworten und Logs werden dann nicht als Csv-Dateien geholt, sondern in einem JSON-Format. In diesem Fall kann man aber nicht die Variablen umbenennen.
+
+**Der Output**
+
+Als Ausgabe wird eine Xlsx-Datei erzeugt. Diese enthält in vier Tabellen die gewünschten Daten. Nachfolgend wird die Bedeutung der Spalten jeder dieser Tabellen beschrieben. Wenn von **Zeitstempel** die Rede ist, dann handelt es sich um eine in JavaScript über Date.now() ermittelte Anzahl der Millisekunden, die seit dem 01.01.1970 00:00:00 UTC vergangen sind. Für Excel muss man den Wert umrechnen: `=<ts>/(1000*60*60*24) + 25569` und dann als Datum+Zeit formatieren: TT.MM.JJJJ h:mm:ss
 
 ## Tabelle Responses
 
@@ -30,6 +24,9 @@ formatieren: TT.MM.JJJJ h:mm:ss
 | Variablen nach dem Schema<br>`<Unit-ID>##<innere ID>`<br>z. B. `EL105R##canvasElement10` | Der Player des Testcenters speichert im bisherigen Modell die Antwortdaten als Paarung ID->Wert ab, wobei nicht definiert ist, was ID kennzeichnet (Item, Aspekt eines Items, Eingabeelement des Formulars usw.; hier mal als innere ID bezeichnet). Sicher ist nur, dass diese ID innerhalb der Unit eindeutig ist, und da die Unit-ID eindeutig für das Testheft ist, erlaubt die Kombination Unit-ID mit dieser inneren ID eine eindeutige Zuordnung des Antwort-Wertes zu einer Testperson in einem Booklet, wodurch sich die übliche zweidimensionale Struktur der Antwortdaten ergibt.<br> Es werden nur Units berücksichtigt, die tatsächlich Antwortdaten produziert haben. Reine Textseiten, die z. B. nur Instruktionen enthalten, werden nicht in die Tabelle aufgenommen.<br>Die Variablenspalten werden alphabetisch sortiert ausgegeben.<br>Sollte eine Unit mehrfach in einem Test vorkommen, fügt das System ab dem zweiten Vorkommen der Unit automatisch ein Suffix hinzu:<br>`<Unit-ID>%<n>`<br>n steht hier für die fortlaufende Nummerierung, beginnend mit 1 bei dem zweiten Vorkommen der Unit|
 
 Die Zeilen dieser Tabelle sind nach ID sortiert. Sollte eine Testperson den Test nur gestartet, aber keine Antwortdaten abgeschickt haben, erscheint sie nicht in der Liste.
+
+## Tabelle Status
+Diese Tabelle enthält - soweit verfügbar - den Status einer Antwort. Die Struktur ist gleich der Tabelle 'Responses'.
 
 ## Tabelle TimeOnUnit
 

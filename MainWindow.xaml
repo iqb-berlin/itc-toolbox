@@ -47,7 +47,7 @@
                     <Setter Property="Margin" Value="0 1 5 1"/>
                     <Setter Property="VerticalAlignment" Value="Top"/>
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="Width" Value="150"/>
+                    <Setter Property="Width" Value="160"/>
                 </Style>
             </StackPanel.Resources>
             <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 0 0 10">
@@ -134,7 +134,7 @@
                 <Button DockPanel.Dock="Left" Click="BtnResponses_Click">
                     <Button.Content>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Antworten und Logs csv -> xlsx
+                            Antworten und Logs csv &#8594; xlsx
                         </TextBlock>
                     </Button.Content>
                 </Button>
@@ -145,6 +145,20 @@
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">
                         Einlesen aller CSV mit Antworten und Logdaten, Speichern als Xlsx (Umlaute korrigiert), ggf. Transformieren/Umbenennen von Variablen
+                </TextBlock>
+            </DockPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterData_Click">
+                    <Button.Content>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                            Antworten und Logs Testcenter online &#8594; xlsx
+                        </TextBlock>
+                    </Button.Content>
+                </Button>
+                <TextBlock DockPanel.Dock="Right" Width="100">
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap">
+                        Verbinden mit einem Testcenter und Abrufen aller Antworten und Logdaten, Speichern als Xlsx (keine Umbenennung der Variablen möglich)
                 </TextBlock>
             </DockPanel>
         </StackPanel>

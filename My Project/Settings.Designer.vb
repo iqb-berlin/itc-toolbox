@@ -196,6 +196,18 @@ Partial Friend NotInheritable Class MySettings
             Me("lastfile_LoginDocxTarget") = value
         End Set
     End Property
+    
+    <Global.System.Configuration.UserScopedSettingAttribute(),  _
+     Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+     Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+    Public Property lastlogin_name() As String
+        Get
+            Return CType(Me("lastlogin_name"),String)
+        End Get
+        Set
+            Me("lastlogin_name") = value
+        End Set
+    End Property
 End Class
 
 Namespace My

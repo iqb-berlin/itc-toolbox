@@ -1,5 +1,7 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
+    Private itcConnection As ITCConnection = Nothing
+
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
 
@@ -198,5 +200,11 @@ Class MainWindow
             Dim ActionDlg As New LoginsXlsxToDocxDialog() With {.Owner = Me, .Title = "Logins Docx erzeugen"}
             ActionDlg.ShowDialog()
         End If
+    End Sub
+
+    Private Sub BtnGetTestcenterData_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection) With {.Owner = Me}
+        ActionDlg.ShowDialog()
+        itcConnection = ActionDlg.itcConnection
     End Sub
 End Class

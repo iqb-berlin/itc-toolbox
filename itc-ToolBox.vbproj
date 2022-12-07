@@ -31,8 +31,8 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.html</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>1</ApplicationRevision>
-    <ApplicationVersion>1.6.2.%2a</ApplicationVersion>
+    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationVersion>1.7.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -127,6 +127,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage4Results.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\outputConverter\OutputDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -160,6 +180,23 @@
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-online\itc-connection.vb" />
+    <Compile Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage1Credentials.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterDialog.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage3SelectGroups.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage4Results.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage4Results.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\outputConverter\classes\ClassesDTO.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesResponses.vb" />
@@ -172,6 +209,7 @@
     <Compile Include="itc-output\outputConverter\OutputResultPage.xaml.vb">
       <DependentUpon>OutputResultPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-output\outputConverter\WriteOutputToXlsx.vb" />
     <Compile Include="itc-output\transformCsv2Xlsx.vb" />
     <Compile Include="MainWindow.xaml.vb">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -225,6 +263,7 @@
     <None Include="docs\manual-booklet.md" />
     <None Include="docs\manual-logins-docx.md" />
     <None Include="docs\manual-output.md" />
+    <None Include="docs\manual-output_SysCheck.md" />
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
