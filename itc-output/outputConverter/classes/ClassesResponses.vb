@@ -204,7 +204,7 @@ Class UnitLineData
                         dataToAdd = setResponsesAbi(responseChunk.content)
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
-                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0"
+                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
                         dataToAdd = setResponsesIqbStandard(responseChunk.content)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
@@ -373,12 +373,13 @@ Class UnitLineData
     End Function
 
     Private Shared Function setResponsesIqbStandard(responseString As String) As Dictionary(Of String, List(Of ResponseData))
-        Dim myreturn As New List(Of ResponseData)
+        Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(List(Of Dictionary(Of String, Linq.JToken))))
         Catch ex As Exception
-            myreturn.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter iqb-standard failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.Add("", New List(Of ResponseData))
+            myreturn.Item("").Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter iqb-standard failed: " + ex.Message, ResponseData.STATUS_ERROR))
         End Try
         If localdata.Count > 0 Then
             For Each entry As Dictionary(Of String, Linq.JToken) In localdata
@@ -386,14 +387,17 @@ Class UnitLineData
                     Dim myJToken As Linq.JToken = entry.Item("value")
                     Dim newValue As String = "#null#"
                     If myJToken.Type <> Linq.JTokenType.Null Then newValue = entry.Item("value").ToString.Replace(vbNewLine, "")
+                    Dim subform As String = ""
+                    If entry.ContainsKey("subform") Then subform = entry.Item("subform")
+                    If Not myreturn.ContainsKey(subform) Then myreturn.Add(subform, New List(Of ResponseData))
                     If entry.ContainsKey("status") Then
-                        myreturn.Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
+                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
                     Else
-                        myreturn.Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseData.STATUS_UNSET))
+                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseData.STATUS_UNSET))
                     End If
                 End If
             Next
         End If
-        Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
+        Return myreturn
     End Function
 End Class
