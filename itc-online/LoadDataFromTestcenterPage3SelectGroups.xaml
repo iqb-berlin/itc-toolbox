@@ -15,7 +15,8 @@
             <libco:IntegerBooleanExact1Converter x:Key="IntegerBooleanExact1Converter"/>
         </DockPanel.Resources>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="2">
-            <Button Click="BtnContinue_Click">Weiter</Button>
+            <Button Click="BtnResponses_Click">Antworten</Button>
+            <Button Click="BtnReviews_Click">Reviews</Button>
             <Button Click="BtnCancel_Click">Abrechen</Button>
         </ItemsControl>
         <TextBlock Name="TBlPrompt" DockPanel.Dock="Top" Margin="20 0 20 0" TextWrapping="Wrap">Bitte Login-Gruppen wählen</TextBlock>

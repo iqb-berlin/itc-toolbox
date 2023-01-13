@@ -50,3 +50,17 @@ Public Class BookletDTO
     'Public report
     Public info As BookletInfoDTO
 End Class
+
+Public Class ReviewDTO
+    Public groupname As String
+    Public loginname As String
+    Public code As String
+    Public bookletname As String
+    Public unitname As String
+    Public priority As String
+    Public categoryDesign As Boolean
+    Public categoryTech As Boolean
+    Public categoryContent As Boolean
+    Public reviewTime As String
+    Public entry As String
+End Class

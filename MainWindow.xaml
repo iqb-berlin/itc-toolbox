@@ -151,14 +151,14 @@
                 <Button DockPanel.Dock="Left" Click="BtnGetTestcenterData_Click">
                     <Button.Content>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Antworten und Logs Testcenter online &#8594; xlsx
+                            Testcenter online &#8594; xlsx
                         </TextBlock>
                     </Button.Content>
                 </Button>
                 <TextBlock DockPanel.Dock="Right" Width="100">
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">
-                        Verbinden mit einem Testcenter und Abrufen aller Antworten und Logdaten, Speichern als Xlsx (keine Umbenennung der Variablen möglich)
+                        Verbinden mit einem Testcenter und Abrufen aller Antworten und Logdaten ODER Reviews, Speichern als Xlsx (keine Umbenennung der Variablen möglich)
                 </TextBlock>
             </DockPanel>
         </StackPanel>

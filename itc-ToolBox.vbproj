@@ -32,7 +32,7 @@
     <WebPage>publish.html</WebPage>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
     <ApplicationRevision>1</ApplicationRevision>
-    <ApplicationVersion>1.8.0.%2a</ApplicationVersion>
+    <ApplicationVersion>1.9.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -139,11 +139,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterPage4Results.xaml">
+    <Page Include="itc-online\responses\LoadDataFromTestcenterPage4Responses.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-online\reviews\LoadDataFromTestcenterPage4ReviewsXlsx.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -190,12 +194,16 @@
     <Compile Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage3SelectGroups.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\LoadDataFromTestcenterPage4Results.xaml.vb">
-      <DependentUpon>LoadDataFromTestcenterPage4Results.xaml</DependentUpon>
+    <Compile Include="itc-online\responses\LoadDataFromTestcenterPage4Responses.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage4Responses.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-online\reviews\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterPage4ReviewsXlsx.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-online\reviews\WriteReviewsToXlsx.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesDTO.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
@@ -307,5 +315,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

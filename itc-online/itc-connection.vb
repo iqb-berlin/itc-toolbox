@@ -224,4 +224,53 @@ Public Class ITCConnection
         End If
         Return myReturn
     End Function
+
+    Public Function getReviews(dataGroupId As String) As List(Of ReviewDTO)
+        Dim myReturn As New List(Of ReviewDTO)
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/review?dataIds=" + dataGroupId)
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    If Not String.IsNullOrWhiteSpace(_response_string) Then
+                        Dim tmpDictList As List(Of Dictionary(Of String, String)) = JsonConvert.DeserializeObject(_response_string, GetType(List(Of Dictionary(Of String, String))))
+                        For Each rev As Dictionary(Of String, String) In tmpDictList
+                            Dim newReview As New ReviewDTO With {
+                            .bookletname = rev.Item("bookletname"),
+                            .code = rev.Item("code"),
+                            .entry = rev.Item("entry"),
+                            .groupname = rev.Item("groupname"),
+                            .loginname = rev.Item("loginname"),
+                            .priority = rev.Item("priority"),
+                            .reviewTime = rev.Item("reviewtime"),
+                            .unitname = rev.Item("unitname")
+                            }
+                            newReview.categoryContent = rev.Item("category: content") IsNot Nothing
+                            newReview.categoryDesign = rev.Item("category: design") IsNot Nothing
+                            newReview.categoryTech = rev.Item("category: tech") IsNot Nothing
+                            myReturn.Add(newReview)
+                        Next
+                    End If
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
 End Class

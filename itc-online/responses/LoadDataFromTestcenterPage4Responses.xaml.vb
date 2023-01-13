@@ -5,7 +5,7 @@ Imports DocumentFormat.OpenXml.Packaging
 Imports iqb.lib.openxml
 Imports System.ComponentModel
 
-Public Class LoadDataFromTestcenterPage4Results
+Public Class LoadDataFromTestcenterPage4Responses
     Private WithEvents myBackgroundWorker As BackgroundWorker = Nothing
 
     Private Sub Me_Loaded() Handles Me.Loaded

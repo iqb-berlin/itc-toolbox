@@ -15,9 +15,15 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
         ParentDlg.DialogResult = False
     End Sub
 
-    Private Sub BtnContinue_Click(sender As Object, e As RoutedEventArgs)
+    Private Sub BtnResponses_Click(sender As Object, e As RoutedEventArgs)
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         ParentDlg.selectedDataGroups = (From xe As XElement In ICDataGroups.Items Where xe.@checked = "true" Select xe.Value).ToList
-        Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4Results)
+        Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4Responses)
+    End Sub
+
+    Private Sub BtnReviews_Click(sender As Object, e As RoutedEventArgs)
+        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
+        ParentDlg.selectedDataGroups = (From xe As XElement In ICDataGroups.Items Where xe.@checked = "true" Select xe.Value).ToList
+        Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4ReviewsXlsx)
     End Sub
 End Class
