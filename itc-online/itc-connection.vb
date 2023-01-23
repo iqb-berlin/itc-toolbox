@@ -183,7 +183,7 @@ Public Class ITCConnection
             Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
                 Try
                     _response_string = WebReader.ReadToEnd()
-                    myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of LogEntryDTO)))
+                    If Not String.IsNullOrEmpty(_response_string) Then myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of LogEntryDTO)))
                     Me._lastErrorMsgText = ""
                 Catch ex As Exception
                     _lastErrorMsgText = ex.Message
@@ -214,7 +214,7 @@ Public Class ITCConnection
             Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
                 Try
                     _response_string = WebReader.ReadToEnd()
-                    myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of ResponseDTO)))
+                    If Not String.IsNullOrEmpty(_response_string) Then myReturn = JsonConvert.DeserializeObject(_response_string, GetType(List(Of ResponseDTO)))
                     Me._lastErrorMsgText = ""
                 Catch ex As Exception
                     _lastErrorMsgText = ex.Message
