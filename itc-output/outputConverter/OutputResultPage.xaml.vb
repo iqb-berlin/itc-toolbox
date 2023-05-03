@@ -98,49 +98,56 @@ Public Class OutputResultPage
                                 isFirstLine = False
                             Else
                                 Dim lineSplits As String() = line.Split({""";"}, StringSplitOptions.RemoveEmptyEntries)
+                                If lineSplits.Count <> 7 Then lineSplits = line.Split({";"}, StringSplitOptions.None)
                                 If lineSplits.Count = 7 Then
                                     LogEntryCount += 1
-                                    Dim group As String = lineSplits(0).Substring(1)
-                                    Dim login As String = lineSplits(1).Substring(1)
-                                    Dim code As String = lineSplits(2).Substring(1)
-                                    Dim booklet As String = lineSplits(3).Substring(1).ToUpper()
-                                    Dim unit As String = lineSplits(4)
-                                    If unit.Length < 2 Then
-                                        unit = ""
+                                    Dim group As String = IIf(lineSplits(0).Substring(0, 1) = """", lineSplits(0).Substring(1), lineSplits(0))
+                                    Dim login As String = IIf(lineSplits(1).Substring(0, 1) = """", lineSplits(1).Substring(1), lineSplits(1))
+                                    Dim code As String = ""
+                                    If Not String.IsNullOrEmpty(lineSplits(2)) Then code = IIf(lineSplits(2).Substring(0, 1) = """", lineSplits(2).Substring(1), lineSplits(2))
+                                    Dim booklet As String = IIf(lineSplits(3).Substring(0, 1) = """", lineSplits(3).Substring(1).ToUpper, lineSplits(3).ToUpper)
+                                    Dim unit As String = ""
+                                    If Not String.IsNullOrEmpty(lineSplits(4)) Then unit = IIf(lineSplits(4).Substring(0, 1) = """", lineSplits(4).Substring(1), lineSplits(4))
+                                    Dim timestampStr As String = IIf(lineSplits(5).Substring(0, 1) = """", lineSplits(5).Substring(1), lineSplits(5))
+                                    Dim timestampInt As Long = 0
+                                    If timestampStr.IndexOf("E+") > 0 Then
+                                        timestampInt = Long.Parse(timestampStr, System.Globalization.NumberStyles.Float)
                                     Else
-                                        unit = unit.Substring(1)
+                                        timestampInt = Long.Parse(timestampStr)
                                     End If
-                                    Dim timestampStr As String = lineSplits(5).Substring(1)
-                                    Dim timestampInt As Long = Long.Parse(timestampStr)
                                     Dim entry As String = lineSplits(6)
-                                    Dim key As String = entry
-                                    Dim parameter As String = ""
-                                    If key.IndexOf(" : ") > 0 Then
-                                        parameter = key.Substring(key.IndexOf(" : ") + 3)
-                                        If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
-                                            parameter = parameter.Substring(1, parameter.Length - 2)
-                                            parameter = parameter.Replace("""""", """")
-                                            parameter = parameter.Replace("\\", "\")
-                                        End If
-                                        key = key.Substring(0, key.IndexOf(" : "))
-                                    ElseIf key.IndexOf(" = ") > 0 Then
-                                        parameter = key.Substring(key.IndexOf(" = ") + 3)
-                                        key = key.Substring(0, key.IndexOf(" = "))
+                                    If Not String.IsNullOrEmpty(entry) AndAlso entry.Substring(0, 1) = """" Then
+                                        entry = entry.Substring(1, entry.Length - 2).Replace("""""", """")
                                     End If
 
-                                    If key = "LOADCOMPLETE" Then
-                                        Dim sysdata As Dictionary(Of String, String) = Nothing
-                                        Try
-                                            sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
-                                        Catch ex As Exception
-                                            sysdata = Nothing
-                                            Debug.Print("sysdata json convert failed: " + ex.Message)
-                                        End Try
-                                        myTestPersonList.SetSysdata(timestampInt, group, login, code, booklet, sysdata)
+                                    Dim key As String = entry
+                                        Dim parameter As String = ""
+                                        If key.IndexOf(" : ") > 0 Then
+                                            parameter = key.Substring(key.IndexOf(" : ") + 3)
+                                            If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
+                                                parameter = parameter.Substring(1, parameter.Length - 2)
+                                                parameter = parameter.Replace("""""", """")
+                                                parameter = parameter.Replace("\\", "\")
+                                            End If
+                                            key = key.Substring(0, key.IndexOf(" : "))
+                                        ElseIf key.IndexOf(" = ") > 0 Then
+                                            parameter = key.Substring(key.IndexOf(" = ") + 3)
+                                            key = key.Substring(0, key.IndexOf(" = "))
+                                        End If
+
+                                        If key = "LOADCOMPLETE" Then
+                                            Dim sysdata As Dictionary(Of String, String) = Nothing
+                                            Try
+                                                sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
+                                            Catch ex As Exception
+                                                sysdata = Nothing
+                                                Debug.Print("sysdata json convert failed: " + ex.Message)
+                                            End Try
+                                            myTestPersonList.SetSysdata(timestampInt, group, login, code, booklet, sysdata)
+                                        End If
+                                        myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
                                     End If
-                                    myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
                                 End If
-                            End If
                         Next
                     Else
                         '#########################
