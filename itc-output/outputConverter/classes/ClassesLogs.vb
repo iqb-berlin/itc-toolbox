@@ -153,7 +153,7 @@ Class TestPerson
             If sysdata.ContainsKey("osName") Then _os = sysdata.Item("osName")
             If sysdata.ContainsKey("screenSizeWidth") AndAlso sysdata.ContainsKey("screenSizeHeight") Then _screen = sysdata.Item("screenSizeWidth") + " x " + sysdata.Item("screenSizeHeight")
             If sysdata.ContainsKey("loadTime") Then
-                _loadtime = Integer.Parse(sysdata.Item("loadTime"))
+                _loadtime = Long.Parse(sysdata.Item("loadTime"))
                 loadStart = timestamp - _loadtime
             End If
         End If
