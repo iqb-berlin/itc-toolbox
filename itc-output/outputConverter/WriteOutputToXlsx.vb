@@ -83,8 +83,8 @@ Class WriteOutputToXlsx
                         From kvp2 As KeyValuePair(Of String, List(Of UnitLineData)) In persondata Order By kvp2.Key
 
                         Dim bookletPeople As List(Of String) = (From ud As UnitLineData In bookletData.Value
-                                                                From s As KeyValuePair(Of String, List(Of ResponseData)) In ud.responses
-                                                                Select s.Key).Distinct.ToList()
+                                                                From s As SingleFormResponseData In ud.responses
+                                                                Select s.subformId).Distinct.ToList()
                         bookletPeople.Sort()
                         For Each subPerson As String In bookletPeople
                             Dim myRowDataResponses As New List(Of RowData)
@@ -92,25 +92,23 @@ Class WriteOutputToXlsx
                             For Each unitData As UnitLineData In bookletData.Value
                                 If Not BookletUnits.ContainsKey(unitData.bookletname) Then BookletUnits.Add(unitData.bookletname, New List(Of String))
                                 If Not BookletUnits.Item(unitData.bookletname).Contains(unitData.unitname) Then BookletUnits.Item(unitData.bookletname).Add(unitData.unitname)
-                                If unitData.responses.ContainsKey(subPerson) Then
-                                    Dim respData As List(Of ResponseData) = unitData.responses.Item(subPerson)
-                                    If respData.Count > 0 Then
-                                        If myRowDataResponses.Count = 0 Then
-                                            myRowDataResponses.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
-                                            myRowDataResponses.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
-                                            myRowDataResponses.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
-                                            myRowDataResponses.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
+                                Dim respData As List(Of ResponseData) = (From r As SingleFormResponseData In unitData.responses Where r.subformId = subPerson Select r.responses).FirstOrDefault
+                                If respData IsNot Nothing AndAlso respData.Count > 0 Then
+                                    If myRowDataResponses.Count = 0 Then
+                                        myRowDataResponses.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                        myRowDataResponses.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
+                                        myRowDataResponses.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
+                                        myRowDataResponses.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
 
-                                            myRowDataStatus.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
-                                            myRowDataStatus.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
-                                            myRowDataStatus.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
-                                            myRowDataStatus.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
-                                        End If
-                                        For Each rd As ResponseData In respData
-                                            myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
-                                            myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.status, .CellType = CellTypes.str})
-                                        Next
+                                        myRowDataStatus.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
                                     End If
+                                    For Each rd As ResponseData In respData
+                                        myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.status, .CellType = CellTypes.str})
+                                    Next
                                 End If
                             Next
                             If myRowDataResponses.Count > 0 Then

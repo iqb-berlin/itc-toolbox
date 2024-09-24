@@ -165,8 +165,8 @@ Public Class OutputResultPage
                                 If unitData.hasResponses AndAlso
                                     (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                     If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
-                                    For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
-                                        For Each respData As ResponseData In entry.Value
+                                    For Each entry As SingleFormResponseData In unitData.responses
+                                        For Each respData As ResponseData In entry.responses
                                             If Not AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then AllVariables.Add(unitData.unitname + "##" + respData.variableId)
                                         Next
                                     Next

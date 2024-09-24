@@ -113,8 +113,8 @@ Public Class LoadDataFromTestcenterPage4Responses
                         Dim unitData As UnitLineData = UnitLineData.fromTestcenterAPI(responseData)
                         If unitData.hasResponses Then
                             If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
-                            For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
-                                For Each respData As ResponseData In entry.Value
+                            For Each entry As SingleFormResponseData In unitData.responses
+                                For Each respData As ResponseData In entry.responses
                                     If Not ParentDlg.AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then ParentDlg.AllVariables.Add(unitData.unitname + "##" + respData.variableId)
                                 Next
                             Next

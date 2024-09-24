@@ -17,6 +17,11 @@ Public Class ResponseData
     End Sub
 End Class
 
+Public Class SingleFormResponseData
+    Public subformId As String
+    Public responses As List(Of ResponseData)
+End Class
+
 Class ResponseChunk
     Public id As String
     Public content As String
@@ -37,14 +42,19 @@ Class ResponseChunkDAO
     Public responseType As String
 End Class
 
+Public Class LastStateEntry
+    Public key As String
+    Public value As String
+End Class
+
 Public Class UnitLineData
     Public groupname As String
     Public loginname As String
     Public code As String
     Public bookletname As String
     Public unitname As String
-    Public laststate As Dictionary(Of String, String)
-    Public responses As Dictionary(Of String, List(Of ResponseData))
+    Public laststate As List(Of LastStateEntry)
+    Public responses As List(Of SingleFormResponseData)
     Public responseChunks As List(Of ResponseChunkData)
     Public ReadOnly Property personKey As String
         Get
@@ -53,7 +63,7 @@ Public Class UnitLineData
     End Property
     Public ReadOnly Property hasResponses As Boolean
         Get
-            Return responses IsNot Nothing AndAlso responses.Count > 0 AndAlso responses.First.Value.Count > 0
+            Return responses IsNot Nothing AndAlso responses.Count > 0 AndAlso responses.First.responses.Count > 0
         End Get
     End Property
 
@@ -62,7 +72,7 @@ Public Class UnitLineData
                                        csvSeparator As String) As UnitLineData
         Dim returnUnitData As New UnitLineData
         Dim responseChunks As New List(Of ResponseChunk)
-        returnUnitData.laststate = New Dictionary(Of String, String)
+        returnUnitData.laststate = New List(Of LastStateEntry)
         Dim position As Integer = 0
         Dim separatorActive As Boolean = True
         Dim tmpStr As String = ""
@@ -148,19 +158,22 @@ Public Class UnitLineData
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
-                returnUnitData.laststate = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+                Dim stateDict As Dictionary(Of String, String) = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+                For Each state As KeyValuePair(Of String, String) In stateDict
+                    returnUnitData.laststate.Add(New LastStateEntry With {.key = state.Key, .value = state.Value})
+                Next
             Catch ex As Exception
-                returnUnitData.laststate.Add("state", tmpLastState)
+                returnUnitData.laststate.Add(New LastStateEntry With {.key = "state", .value = tmpLastState})
             End Try
         End If
 
-        returnUnitData.responses = New Dictionary(Of String, List(Of ResponseData))
+        returnUnitData.responses = New List(Of SingleFormResponseData)
         returnUnitData.responseChunks = New List(Of ResponseChunkData)
         If responseChunks.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
             If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
             For Each responseChunk As ResponseChunk In responseChunks
-                Dim dataToAdd As Dictionary(Of String, List(Of ResponseData)) = Nothing
+                Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
                 Select Case responseChunk.responseType
                     Case "IQBVisualUnitPlayerV2.1.0"
                         dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
@@ -173,14 +186,12 @@ Public Class UnitLineData
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
-                If dataToAdd IsNot Nothing Then
+                If dataToAdd IsNot Nothing AndAlso dataToAdd.Count > 0 Then
                     Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.responseTimestamp,
                         .responseType = responseChunk.responseType, .variables = New List(Of String)}
-                    For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
-                        If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
-                        Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
-                        respList.AddRange(kvp.Value)
-                        newChunk.variables.AddRange(From v In kvp.Value Select v.variableId)
+                    returnUnitData.responses.AddRange(dataToAdd)
+                    For Each kvp As SingleFormResponseData In dataToAdd
+                        newChunk.variables.AddRange(From v In kvp.responses Select v.variableId)
                     Next
                     returnUnitData.responseChunks.Add(newChunk)
                 End If
@@ -192,23 +203,26 @@ Public Class UnitLineData
     Public Shared Function fromTestcenterAPI(responseData As ResponseDTO) As UnitLineData
         Dim returnUnitData As New UnitLineData With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
-            .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New Dictionary(Of String, String),
-            .responses = New Dictionary(Of String, List(Of ResponseData)), .responseChunks = New List(Of ResponseChunkData)
+            .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New List(Of LastStateEntry),
+            .responses = New List(Of SingleFormResponseData), .responseChunks = New List(Of ResponseChunkData)
             }
         Dim tmpLastState As String = responseData.laststate
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
-                returnUnitData.laststate = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+                Dim stateDict As Dictionary(Of String, String) = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
+                For Each state As KeyValuePair(Of String, String) In stateDict
+                    returnUnitData.laststate.Add(New LastStateEntry With {.key = state.Key, .value = state.Value})
+                Next
             Catch ex As Exception
-                returnUnitData.laststate.Add("state", tmpLastState)
+                returnUnitData.laststate.Add(New LastStateEntry With {.key = "state", .value = tmpLastState})
             End Try
         End If
 
         If responseData.responses.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
             For Each responseChunk As ResponseDataDTO In responseData.responses
-                Dim dataToAdd As Dictionary(Of String, List(Of ResponseData)) = Nothing
+                Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
                 Select Case responseChunk.responseType
                     Case "IQBVisualUnitPlayerV2.1.0"
                         dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
@@ -224,11 +238,9 @@ Public Class UnitLineData
                 If dataToAdd IsNot Nothing Then
                     Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.ts,
                         .responseType = responseChunk.responseType, .variables = New List(Of String)}
-                    For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
-                        If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
-                        Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
-                        respList.AddRange(kvp.Value)
-                        newChunk.variables.AddRange(From v In kvp.Value Select v.variableId)
+                    returnUnitData.responses.AddRange(dataToAdd)
+                    For Each kvp As SingleFormResponseData In dataToAdd
+                        newChunk.variables.AddRange(From v In kvp.responses Select v.variableId)
                     Next
                     returnUnitData.responseChunks.Add(newChunk)
                 End If
@@ -237,13 +249,13 @@ Public Class UnitLineData
         Return returnUnitData
     End Function
 
-    Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
-        Dim myreturn As New List(Of ResponseData)
+    Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
+        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
         Catch ex As Exception
-            myreturn.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter Dan failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter Dan failed: " + ex.Message, ResponseData.STATUS_ERROR))
         End Try
         If localdata.Count > 0 Then
             Dim foundRadioButtonGroups As New Dictionary(Of String, Integer)
@@ -277,20 +289,20 @@ Public Class UnitLineData
                         Next
                     End If
                     If Not ignoreVar Then
-                        myreturn.Add(New ResponseData(varName, varValue, IIf(valueChanged, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
+                        myreturn.responses.Add(New ResponseData(varName, varValue, IIf(valueChanged, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
                     End If
                 End If
             Next
             For Each radioVariable As KeyValuePair(Of String, Integer) In foundRadioButtonGroups
-                myreturn.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
+                myreturn.responses.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
                                               IIf(radioVariable.Value > 0, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
             Next
         End If
 
-        Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
+        Return New List(Of SingleFormResponseData) From {[myreturn]}
     End Function
 
-    Private Shared Function setResponsesAbi(responseString As String) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesAbi(responseString As String) As List(Of SingleFormResponseData)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New Dictionary(Of String, String)
         Try
@@ -325,16 +337,20 @@ Public Class UnitLineData
                 Next
             End If
         End If
-        Return myreturn
+        Dim returnList As New List(Of SingleFormResponseData)
+        For Each r As KeyValuePair(Of String, List(Of ResponseData)) In myreturn
+            returnList.Add(New SingleFormResponseData With {.subformId = r.Key, .responses = r.Value})
+        Next
+        Return returnList
     End Function
 
-    Private Shared Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
-        Dim myreturn As New List(Of ResponseData)
+    Private Shared Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
+        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
         Catch ex As Exception
-            myreturn.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter KeyValue failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter KeyValue failed: " + ex.Message, ResponseData.STATUS_ERROR))
         End Try
         If localdata.Count > 0 Then
             Dim foundRadioButtonGroups As New Dictionary(Of String, Integer)
@@ -362,33 +378,33 @@ Public Class UnitLineData
                         End If
                     Next
                 End If
-                If Not ignoreVar Then myreturn.Add(New ResponseData(varName, s.Value, ResponseData.STATUS_UNSET))
+                If Not ignoreVar Then myreturn.responses.Add(New ResponseData(varName, s.Value, ResponseData.STATUS_UNSET))
             Next
             For Each radioVariable As KeyValuePair(Of String, Integer) In foundRadioButtonGroups
-                myreturn.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
+                myreturn.responses.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
                                               IIf(radioVariable.Value > 0, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
             Next
         End If
 
-        Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
+        Return New List(Of SingleFormResponseData) From {[myreturn]}
     End Function
 
-    Private Shared Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As Dictionary(Of String, List(Of ResponseData))
-        Dim myreturn As New List(Of ResponseData)
+    Private Shared Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
+        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JObject)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JObject)))
         Catch ex As Exception
-            myreturn.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter SimplePlayerLegacy failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter SimplePlayerLegacy failed: " + ex.Message, ResponseData.STATUS_ERROR))
         End Try
         If localdata.ContainsKey("answers") Then
             Return setResponsesKeyValue(JsonConvert.SerializeObject(localdata.Item("answers")), varRenameDef)
         Else
-            Return New Dictionary(Of String, List(Of ResponseData)) From {{"", myreturn}}
+            Return New List(Of SingleFormResponseData) From {[myreturn]}
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String) As Dictionary(Of String, List(Of ResponseData))
+    Private Shared Function setResponsesIqbStandard(responseString As String) As List(Of SingleFormResponseData)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Try
@@ -414,6 +430,10 @@ Public Class UnitLineData
                 End If
             Next
         End If
-        Return myreturn
+        Dim returnList As New List(Of SingleFormResponseData)
+        For Each r As KeyValuePair(Of String, List(Of ResponseData)) In myreturn
+            returnList.Add(New SingleFormResponseData With {.subformId = r.Key, .responses = r.Value})
+        Next
+        Return returnList
     End Function
 End Class

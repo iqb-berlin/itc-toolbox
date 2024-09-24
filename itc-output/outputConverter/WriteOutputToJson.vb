@@ -9,10 +9,11 @@ Public Class WriteOutputToJson
                            )
         Using file As New IO.StreamWriter(targetJsonFilename)
             Dim js As New JsonSerializer()
-            js.Serialize(file, AllVariables)
-            js.Serialize(file, AllPeople)
-            js.Serialize(file, myTestPersonList)
-            js.Serialize(file, bookletSizes)
+            js.Serialize(file,
+                         From p As KeyValuePair(Of String, Dictionary(Of String, List(Of UnitLineData))) In AllPeople
+                         From b As KeyValuePair(Of String, List(Of UnitLineData)) In p.Value
+                         From u As UnitLineData In b.Value
+                         Select u)
         End Using
     End Sub
 
