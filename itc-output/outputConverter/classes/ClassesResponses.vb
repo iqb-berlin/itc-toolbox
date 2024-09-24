@@ -1,5 +1,5 @@
 ﻿Imports Newtonsoft.Json
-Class ResponseData
+Public Class ResponseData
     Public Const STATUS_UNSET = "UNSET"
     Public Const STATUS_ERROR = "ERROR"
     Public Const STATUS_VALUE_CHANGED = "VALUE_CHANGED"
@@ -23,6 +23,12 @@ Class ResponseChunk
     Public responseType As String
     Public responseTimestamp As String
 End Class
+Public Class ResponseChunkData
+    Public id As String
+    Public responseType As String
+    Public responseTimestamp As String
+    Public variables As List(Of String)
+End Class
 
 Class ResponseChunkDAO
     Public id As String
@@ -31,7 +37,7 @@ Class ResponseChunkDAO
     Public responseType As String
 End Class
 
-Class UnitLineData
+Public Class UnitLineData
     Public groupname As String
     Public loginname As String
     Public code As String
@@ -39,6 +45,7 @@ Class UnitLineData
     Public unitname As String
     Public laststate As Dictionary(Of String, String)
     Public responses As Dictionary(Of String, List(Of ResponseData))
+    Public responseChunks As List(Of ResponseChunkData)
     Public ReadOnly Property personKey As String
         Get
             Return groupname + loginname + code
@@ -148,6 +155,7 @@ Class UnitLineData
         End If
 
         returnUnitData.responses = New Dictionary(Of String, List(Of ResponseData))
+        returnUnitData.responseChunks = New List(Of ResponseChunkData)
         If responseChunks.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
             If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
@@ -166,11 +174,15 @@ Class UnitLineData
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
                 If dataToAdd IsNot Nothing Then
+                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.responseTimestamp,
+                        .responseType = responseChunk.responseType, .variables = New List(Of String)}
                     For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
                         If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
                         Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
                         respList.AddRange(kvp.Value)
+                        newChunk.variables.AddRange(From v In kvp.Value Select v.variableId)
                     Next
+                    returnUnitData.responseChunks.Add(newChunk)
                 End If
             Next
         End If
@@ -181,7 +193,7 @@ Class UnitLineData
         Dim returnUnitData As New UnitLineData With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
             .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New Dictionary(Of String, String),
-            .responses = New Dictionary(Of String, List(Of ResponseData))
+            .responses = New Dictionary(Of String, List(Of ResponseData)), .responseChunks = New List(Of ResponseChunkData)
             }
         Dim tmpLastState As String = responseData.laststate
         If Not String.IsNullOrEmpty(tmpLastState) Then
@@ -210,11 +222,15 @@ Class UnitLineData
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
                 If dataToAdd IsNot Nothing Then
+                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.ts,
+                        .responseType = responseChunk.responseType, .variables = New List(Of String)}
                     For Each kvp As KeyValuePair(Of String, List(Of ResponseData)) In dataToAdd
                         If Not returnUnitData.responses.ContainsKey(kvp.Key) Then returnUnitData.responses.Add(kvp.Key, New List(Of ResponseData))
                         Dim respList As List(Of ResponseData) = returnUnitData.responses.Item(kvp.Key)
                         respList.AddRange(kvp.Value)
+                        newChunk.variables.AddRange(From v In kvp.Value Select v.variableId)
                     Next
+                    returnUnitData.responseChunks.Add(newChunk)
                 End If
             Next
         End If

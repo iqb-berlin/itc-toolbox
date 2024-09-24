@@ -207,4 +207,43 @@ Class MainWindow
         ActionDlg.ShowDialog()
         itcConnection = ActionDlg.itcConnection
     End Sub
+
+    Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, True, False) With {.Owner = Me}
+        If ActionDlg.ShowDialog() Then
+            itcConnection = ActionDlg.itcConnection
+            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "json", .Title = "JSON Zieldatei wählen"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_OutputTargetJson = filepicker.FileName
+                My.Settings.Save()
+
+                WriteOutputToJson.Write(ActionDlg.AllVariables, ActionDlg.AllPeople, ActionDlg.myTestPersonList, ActionDlg.bookletSizes, filepicker.FileName)
+                DialogFactory.Msg(Me, "DataMerge", "fertig")
+            End If
+
+        End If
+    End Sub
+
+    Private Sub BtnMergeDataLoadCsv_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "DataMerge", "Function coming soon")
+    End Sub
+
+    Private Sub BtnMergeDataLoadJson_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "DataMerge", "Function coming soon")
+    End Sub
+
+    Private Sub BtnMergeDataClear_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "DataMerge", "Function coming soon")
+    End Sub
+
+    Private Sub BtnMergeDataSaveCsv_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "DataMerge", "Function coming soon")
+    End Sub
+
+    Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
+
+    End Sub
 End Class

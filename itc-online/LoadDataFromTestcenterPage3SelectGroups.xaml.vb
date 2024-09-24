@@ -3,6 +3,10 @@
 Public Class LoadDataFromTestcenterPage3SelectGroups
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
+        If ParentDlg.ResponsesOnly Then
+            Me.BtnResponses.Content = "Weiter"
+            Me.BtnReviews.Visibility = Visibility.Collapsed
+        End If
         Dim dataGroups As List(Of GroupDataDTO) = ParentDlg.itcConnection.getDataGroups()
         ICDataGroups.ItemsSource = From ds As GroupDataDTO In dataGroups Order By ds.groupName
                                    Where ds.bookletsStarted > 0

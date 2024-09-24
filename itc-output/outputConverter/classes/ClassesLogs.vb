@@ -1,7 +1,7 @@
 ﻿Imports Newtonsoft.Json
 
 
-Class LogEvent
+Public Class LogEvent
     Public timestamp As Long
     Public unit As String = ""
     Public key As String = ""
@@ -14,7 +14,7 @@ Class TimeOnPage
     Public count As Integer = 0
 End Class
 
-Class TimeOnUnit
+Public Class TimeOnUnit
     Public unit As String = ""
     Public navigationStart As Long = 0
     Public playerLoadTime As Long = 0
@@ -25,7 +25,7 @@ Class TimeOnUnit
     Public lostFocus As Boolean = False
 End Class
 
-Class TestPerson
+Public Class TestPerson
     Public group As String
     Public login As String
     Public code As String
@@ -178,7 +178,7 @@ Class TestPerson
 
 End Class
 
-Class TestPersonList
+Public Class TestPersonList
     Inherits SortedDictionary(Of String, TestPerson)
     Public Sub SetFirstUnitEnter(g As String, l As String, c As String, b As String, value As Long)
         If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))

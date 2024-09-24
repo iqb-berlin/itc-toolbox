@@ -2,7 +2,6 @@
 Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
-Imports iqb.lib.openxml
 Imports System.ComponentModel
 
 Public Class LoadDataFromTestcenterPage4Responses
@@ -11,19 +10,23 @@ Public Class LoadDataFromTestcenterPage4Responses
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         Me.BtnCancelClose.IsEnabled = False
+        If ParentDlg.WriteToXls Then
+            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Antworten Zieldatei wählen"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+                My.Settings.Save()
 
-        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
-        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
-                                                        .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Antworten Zieldatei wählen"}
-        If filepicker.ShowDialog Then
-            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
-            My.Settings.Save()
-
+                myBackgroundWorker = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
+                myBackgroundWorker.RunWorkerAsync()
+            Else
+                ParentDlg.DialogResult = False
+            End If
+        Else
             myBackgroundWorker = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
             myBackgroundWorker.RunWorkerAsync()
-        Else
-            ParentDlg.DialogResult = False
         End If
     End Sub
 
@@ -32,26 +35,28 @@ Public Class LoadDataFromTestcenterPage4Responses
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         Dim targetXlsxFilename As String = My.Settings.lastfile_OutputTargetXlsx
         Dim myTemplate As Byte() = Nothing
-        Try
-            Dim TmpZielXLS As SpreadsheetDocument = SpreadsheetDocument.Create(targetXlsxFilename, SpreadsheetDocumentType.Workbook)
-            Dim myWorkbookPart As WorkbookPart = TmpZielXLS.AddWorkbookPart()
-            myWorkbookPart.Workbook = New Workbook()
-            myWorkbookPart.Workbook.AppendChild(Of Sheets)(New Sheets())
-            TmpZielXLS.Close()
+        If ParentDlg.WriteToXls Then
+            Try
+                Dim TmpZielXLS As SpreadsheetDocument = SpreadsheetDocument.Create(targetXlsxFilename, SpreadsheetDocumentType.Workbook)
+                Dim myWorkbookPart As WorkbookPart = TmpZielXLS.AddWorkbookPart()
+                myWorkbookPart.Workbook = New Workbook()
+                myWorkbookPart.Workbook.AppendChild(Of Sheets)(New Sheets())
+                TmpZielXLS.Close()
 
-            myTemplate = IO.File.ReadAllBytes(targetXlsxFilename)
-        Catch ex As Exception
-            myBW.ReportProgress(0.0#, "e: Konnte Datei '" + targetXlsxFilename + "' nicht schreiben (noch geöffnet?)" + vbNewLine + ex.Message)
-        End Try
+                myTemplate = IO.File.ReadAllBytes(targetXlsxFilename)
+            Catch ex As Exception
+                myBW.ReportProgress(0.0#, "e: Konnte Datei '" + targetXlsxFilename + "' nicht schreiben (noch geöffnet?)" + vbNewLine + ex.Message)
+            End Try
+        End If
 
-        If myTemplate IsNot Nothing Then
+        If myTemplate IsNot Nothing OrElse Not ParentDlg.WriteToXls Then
             myBW.ReportProgress(3.0#, "Lese Booklets")
             Dim booklets As List(Of BookletDTO) = ParentDlg.itcConnection.getBooklets()
-            Dim bookletSizes As Dictionary(Of String, Long) = (From b As BookletDTO In booklets).ToDictionary(Of String, Long)(Function(b) b.id, Function(b) b.info.totalSize)
+            ParentDlg.bookletSizes = (From b As BookletDTO In booklets).ToDictionary(Of String, Long)(Function(b) b.id, Function(b) b.info.totalSize)
 
-            Dim myTestPersonList As New TestPersonList
-            Dim AllPeople As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
-            Dim AllVariables As New List(Of String)
+            ParentDlg.myTestPersonList = New TestPersonList
+            ParentDlg.AllPeople = New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
+            ParentDlg.AllVariables = New List(Of String)
             Dim AllUnitsWithResponses As New List(Of String)
             Dim multiplePersonAndUnits As New List(Of String)
             Dim LogEntryCount As Long = 0
@@ -91,9 +96,9 @@ Public Class LoadDataFromTestcenterPage4Responses
                                 sysdata = Nothing
                                 Debug.Print("sysdata json convert failed: " + ex.Message)
                             End Try
-                            myTestPersonList.SetSysdata(log.timestamp, log.groupname, log.loginname, log.code, log.bookletname, sysdata)
+                            ParentDlg.myTestPersonList.SetSysdata(log.timestamp, log.groupname, log.loginname, log.code, log.bookletname, sysdata)
                         End If
-                        myTestPersonList.AddLogEvent(log.groupname, log.loginname, log.code, log.bookletname, log.timestamp, log.unitname, key, parameter)
+                        ParentDlg.myTestPersonList.AddLogEvent(log.groupname, log.loginname, log.code, log.bookletname, log.timestamp, log.unitname, key, parameter)
                     Next
                 End If
                 progressValue += 1
@@ -110,11 +115,11 @@ Public Class LoadDataFromTestcenterPage4Responses
                             If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                             For Each entry As KeyValuePair(Of String, List(Of ResponseData)) In unitData.responses
                                 For Each respData As ResponseData In entry.Value
-                                    If Not AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then AllVariables.Add(unitData.unitname + "##" + respData.variableId)
+                                    If Not ParentDlg.AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then ParentDlg.AllVariables.Add(unitData.unitname + "##" + respData.variableId)
                                 Next
                             Next
-                            If Not AllPeople.ContainsKey(unitData.personKey) Then AllPeople.Add(unitData.personKey, New Dictionary(Of String, List(Of UnitLineData)))
-                            Dim myPerson As Dictionary(Of String, List(Of UnitLineData)) = AllPeople.Item(unitData.personKey)
+                            If Not ParentDlg.AllPeople.ContainsKey(unitData.personKey) Then ParentDlg.AllPeople.Add(unitData.personKey, New Dictionary(Of String, List(Of UnitLineData)))
+                            Dim myPerson As Dictionary(Of String, List(Of UnitLineData)) = ParentDlg.AllPeople.Item(unitData.personKey)
                             If Not myPerson.ContainsKey(unitData.bookletname) Then myPerson.Add(unitData.bookletname, New List(Of UnitLineData))
                             Dim myBooklet As List(Of UnitLineData) = myPerson.Item(unitData.bookletname)
                             Dim myUnit As UnitLineData = (From u As UnitLineData In myBooklet Where u.unitname = unitData.unitname).FirstOrDefault
@@ -139,11 +144,12 @@ Public Class LoadDataFromTestcenterPage4Responses
                 myBW.ReportProgress(progressValue * 100 / maxProgressValue, warningMessage)
             End If
 
-            myBW.ReportProgress(0.0#, "Daten für " + AllPeople.Count.ToString("#,##0") + " Testpersonen und " + AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
+            myBW.ReportProgress(0.0#, "Daten für " + ParentDlg.AllPeople.Count.ToString("#,##0") + " Testpersonen und " + ParentDlg.AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
             myBW.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
 
-            If Not myBW.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myBW, e, AllVariables, AllPeople, myTestPersonList,
-                                                                         bookletSizes, targetXlsxFilename)
+            If Not myBW.CancellationPending AndAlso ParentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myBW, e, ParentDlg.AllVariables,
+                                                                                                      ParentDlg.AllPeople, ParentDlg.myTestPersonList,
+                                                                                                      ParentDlg.bookletSizes, targetXlsxFilename)
         End If
     End Sub
 
@@ -159,7 +165,7 @@ Public Class LoadDataFromTestcenterPage4Responses
 
     Private Sub BtnCancelClose_Click(sender As System.Object, e As System.Windows.RoutedEventArgs)
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
-        ParentDlg.DialogResult = False
+        ParentDlg.DialogResult = True
     End Sub
 
 End Class
