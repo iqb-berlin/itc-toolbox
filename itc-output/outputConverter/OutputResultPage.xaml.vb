@@ -42,7 +42,7 @@ Public Class OutputResultPage
     End Sub
 
     Private Sub myBackgroundWorker_ProgressChanged(ByVal sender As Object, ByVal e As ProgressChangedEventArgs) Handles myBackgroundWorker.ProgressChanged
-        Me.TBInfo.Text = IIf(e.ProgressPercentage > 0, e.ProgressPercentage.ToString("#.###"), "-")
+        Me.TBInfo.Text = IIf(e.ProgressPercentage > 0, "Zeile " + e.ProgressPercentage.ToString("N0"), "-")
         If Not String.IsNullOrEmpty(e.UserState) Then Me.MBUC.AddMessage(e.UserState)
     End Sub
 
@@ -160,10 +160,7 @@ Public Class OutputResultPage
                             line = readFile.ReadLine()
                             lineNumber += 1
                             myworker.ReportProgress(lineNumber)
-                            Dim startDT As DateTime = DateTime.Now
-                            Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator)
-                            If line.Length > 100000 Then myworker.ReportProgress(0.0#, DateTime.Now.ToString + " / " + (DateTime.Now - startDT).ToString + " / " + line.Length.ToString)
-
+                            Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator, parentDlg.replaceBigdata)
                             If unitData.hasResponses AndAlso
                                     (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                 If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)

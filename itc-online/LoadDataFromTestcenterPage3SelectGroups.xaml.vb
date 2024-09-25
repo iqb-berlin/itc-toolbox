@@ -21,6 +21,7 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
 
     Private Sub BtnResponses_Click(sender As Object, e As RoutedEventArgs)
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
+        ParentDlg.replaceBigdata = Not CBBigData.IsChecked
         ParentDlg.selectedDataGroups = (From xe As XElement In ICDataGroups.Items Where xe.@checked = "true" Select xe.Value).ToList
         Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4Responses)
     End Sub

@@ -9,6 +9,7 @@
     Public myTestPersonList As TestPersonList
     Public AllPeople As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
     Public AllVariables As List(Of String)
+    Public replaceBigdata As Boolean
 
     Public Sub New(itcConnection As ITCConnection, Optional responsesOnly As Boolean = False, Optional writeToXls As Boolean = True)
         InitializeComponent()

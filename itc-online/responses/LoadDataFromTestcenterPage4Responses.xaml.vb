@@ -110,7 +110,7 @@ Public Class LoadDataFromTestcenterPage4Responses
                     ParentDlg.itcConnection.lastErrorMsgText + " (Responses)")
                 Else
                     For Each responseData As ResponseDTO In responseDataList
-                        Dim unitData As UnitLineData = UnitLineData.fromTestcenterAPI(responseData)
+                        Dim unitData As UnitLineData = UnitLineData.fromTestcenterAPI(responseData, ParentDlg.replaceBigdata)
                         If unitData.hasResponses Then
                             If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                             For Each entry As SingleFormResponseData In unitData.responses

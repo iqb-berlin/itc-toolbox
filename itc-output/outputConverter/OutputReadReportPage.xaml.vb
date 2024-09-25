@@ -63,6 +63,7 @@
 
     Private Sub BtnOk_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles BtnOK.Click
         Dim parentDlg As OutputDialog = Me.Parent
+        parentDlg.replaceBigdata = Not CBBigData.IsChecked
         If parentDlg.WriteToXls Then
             inputTargetFileName()
         Else

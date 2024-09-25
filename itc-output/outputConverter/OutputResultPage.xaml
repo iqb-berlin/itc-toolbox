@@ -16,7 +16,7 @@
             <Button Name="BtnCancelClose" Click="BtnCancelClose_Click"
                 HorizontalAlignment="Center" TabIndex="4">Schließen</Button>
         </ItemsControl>
-        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Right" Name="TBInfo"></TextBlock>
+        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Right" Name="TBInfo" Margin="10 0 10 0"></TextBlock>
         <libco:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom" Margin="10 0 10 10"/>
         <libco:MessageBoxUserControl Name="MBUC" Margin="10 10 10 0"/>
     </DockPanel>

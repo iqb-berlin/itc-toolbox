@@ -11,6 +11,7 @@
     Public myTestPersonList As TestPersonList
     Public AllPeople As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
     Public AllVariables As List(Of String)
+    Public replaceBigdata As Boolean
 
     Public Sub New(Optional writeToXls As Boolean = True)
         InitializeComponent()

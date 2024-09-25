@@ -16,6 +16,7 @@
             <Button Name="BtnOK" HorizontalAlignment="Center" TabIndex="4" IsDefault="True">Weiter</Button>
             <Button Name="BtnCancel" IsCancel="True" HorizontalAlignment="Center" TabIndex="4">Abbrechen</Button>
         </ItemsControl>
+        <CheckBox x:Name="CBBigData" DockPanel.Dock="Bottom" Margin="5">Speichere auch Big Data (z. B. GeoGebra)</CheckBox>
         <libco:MessageBoxUserControl Name="MBUC" Margin="10 10 10 0"/>
     </DockPanel>
 </Page>

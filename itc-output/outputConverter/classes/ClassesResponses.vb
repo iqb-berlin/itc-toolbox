@@ -70,7 +70,7 @@ Public Class UnitLineData
 
     Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
-                                       csvSeparator As String) As UnitLineData
+                                       csvSeparator As String, replaceBigdata As Boolean) As UnitLineData
         Dim returnUnitData As New UnitLineData
         Dim responseChunks As New List(Of ResponseChunk)
         returnUnitData.laststate = New List(Of LastStateEntry)
@@ -140,7 +140,7 @@ Public Class UnitLineData
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                     Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content)
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content, replaceBigdata)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
@@ -158,7 +158,7 @@ Public Class UnitLineData
         Return returnUnitData
     End Function
 
-    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO) As UnitLineData
+    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, replaceBigdata As Boolean) As UnitLineData
         Dim returnUnitData As New UnitLineData With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
             .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New List(Of LastStateEntry),
@@ -189,7 +189,7 @@ Public Class UnitLineData
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                     Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content)
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content, replaceBigdata)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
@@ -362,21 +362,37 @@ Public Class UnitLineData
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String) As List(Of SingleFormResponseData)
+    Private Shared Function setResponsesIqbStandard(responseString As String, replaceBigdata As Boolean) As List(Of SingleFormResponseData)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
+        Dim conversionErrorMessage As String = ""
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(List(Of Dictionary(Of String, Linq.JToken))))
         Catch ex As Exception
-            myreturn.Add("", New List(Of ResponseData))
-            myreturn.Item("").Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter iqb-standard failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            conversionErrorMessage = "Converter iqb-standard failed: " + ex.Message
         End Try
+        If Not String.IsNullOrEmpty(conversionErrorMessage) Then
+            Try
+                localdata.Add(JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken))))
+            Catch ex As Exception
+                myreturn.Add("", New List(Of ResponseData))
+                myreturn.Item("").Add(New ResponseData(ResponseData.STATUS_ERROR, conversionErrorMessage, ResponseData.STATUS_ERROR))
+            End Try
+        End If
         If localdata.Count > 0 Then
             For Each entry As Dictionary(Of String, Linq.JToken) In localdata
                 If entry.ContainsKey("id") AndAlso entry.ContainsKey("value") Then
                     Dim myJToken As Linq.JToken = entry.Item("value")
                     Dim newValue As String = "#null#"
-                    If myJToken.Type <> Linq.JTokenType.Null Then newValue = entry.Item("value").ToString.Replace(vbNewLine, "")
+                    If myJToken.Type <> Linq.JTokenType.Null Then
+                        newValue = entry.Item("value").ToString
+                        Const bigDataMarker = "data:application/octet-stream;base64"
+                        If newValue.IndexOf(bigDataMarker) = 0 AndAlso replaceBigdata Then
+                            newValue = bigDataMarker + " - hash: " + newValue.GetHashCode().ToString
+                        Else
+                            newValue = newValue.Replace(vbNewLine, "")
+                        End If
+                    End If
                     Dim subform As String = ""
                     If entry.ContainsKey("subform") Then subform = entry.Item("subform")
                     If Not myreturn.ContainsKey(subform) Then myreturn.Add(subform, New List(Of ResponseData))
