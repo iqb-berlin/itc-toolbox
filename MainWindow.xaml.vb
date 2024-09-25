@@ -219,7 +219,18 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataLoadCsv_Click(sender As Object, e As RoutedEventArgs)
-        DialogFactory.Msg(Me, "DataMerge", "Function coming soon")
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim ActionDlg As New OutputDialog(False) With {.Owner = Me}
+            If ActionDlg.ShowDialog() Then
+                addToDataStoreDict(ActionDlg.AllPeople)
+                updateGroupCount()
+            End If
+        End If
     End Sub
 
     Private Sub BtnMergeDataLoadJson_Click(sender As Object, e As RoutedEventArgs)

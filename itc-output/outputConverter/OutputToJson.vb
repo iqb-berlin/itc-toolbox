@@ -6,6 +6,7 @@ Public Class OutputToJson
                            )
         Using file As New IO.StreamWriter(targetJsonFilename)
             Dim js As New JsonSerializer()
+            js.Formatting = Formatting.Indented
             js.Serialize(file,
                          From group As KeyValuePair(Of String, List(Of UnitLineData)) In data
                          From u As UnitLineData In group.Value

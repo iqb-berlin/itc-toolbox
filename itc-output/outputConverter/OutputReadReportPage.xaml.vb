@@ -62,7 +62,13 @@
     End Sub
 
     Private Sub BtnOk_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles BtnOK.Click
-        inputTargetFileName()
+        Dim parentDlg As OutputDialog = Me.Parent
+        If parentDlg.WriteToXls Then
+            inputTargetFileName()
+        Else
+            Me.NavigationService.Navigate(New OutputResultPage)
+        End If
+
     End Sub
 
     Private Sub inputTargetFileName()

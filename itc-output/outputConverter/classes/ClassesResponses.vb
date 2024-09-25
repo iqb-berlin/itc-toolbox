@@ -1,4 +1,5 @@
 ﻿Imports Newtonsoft.Json
+
 Public Class ResponseData
     Public Const STATUS_UNSET = "UNSET"
     Public Const STATUS_ERROR = "ERROR"
@@ -67,103 +68,60 @@ Public Class UnitLineData
         End Get
     End Property
 
-    Public Shared Function fromCsvLine(line As String, legacyMode As Boolean,
+    Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
                                        csvSeparator As String) As UnitLineData
         Dim returnUnitData As New UnitLineData
         Dim responseChunks As New List(Of ResponseChunk)
         returnUnitData.laststate = New List(Of LastStateEntry)
-        Dim position As Integer = 0
-        Dim separatorActive As Boolean = True
-        Dim tmpStr As String = ""
-        Dim tmpResponses As String = ""
-        Dim tmpResponseType As String = ""
-        Dim tmpResponseTimestamp As String = ""
-        Dim tmpLastState As String = ""
-        For Each c As Char In line
-            If c = csvSeparator Then
-                If separatorActive Then
-                    If Not String.IsNullOrEmpty(tmpStr) Then
-                        If tmpStr.Substring(0, 1) = """" Then
-                            If tmpStr.Substring(tmpStr.Length - 1, 1) = """" Then
-                                tmpStr = tmpStr.Substring(1, tmpStr.Length - 2)
-                            End If
-                        End If
-                        Select Case position
-                            Case 0
-                                returnUnitData.groupname = tmpStr
-                            Case 1
-                                returnUnitData.loginname = tmpStr
-                            Case 2
-                                returnUnitData.code = tmpStr
-                            Case 3
-                                returnUnitData.bookletname = tmpStr
-                            Case 4
-                                returnUnitData.unitname = tmpStr
-                            Case 5
-                                If Not legacyMode Then tmpResponses = tmpStr
-                            Case 6
-                                If legacyMode Then
-                                    tmpResponses = tmpStr
-                                Else
-                                    tmpLastState = tmpStr
-                                End If
-                            Case 7
-                                If legacyMode Then tmpResponseType = tmpStr
-                            Case 8
-                                If legacyMode Then tmpResponseTimestamp = tmpStr
-                            Case 10
-                                If legacyMode Then tmpLastState = tmpStr
-                        End Select
-                        tmpStr = ""
-                    End If
-                    position += 1
-                Else
-                    tmpStr += c
+
+        Dim separator As String = """" + csvSeparator + """"
+        Dim lineSplits As String() = Text.RegularExpressions.Regex.Split(line, separator)
+        If lineSplits.Length > 5 Then
+            returnUnitData.groupname = lineSplits(0).Substring(1)
+            returnUnitData.loginname = lineSplits(1)
+            returnUnitData.code = lineSplits(2)
+            returnUnitData.bookletname = lineSplits(3)
+            returnUnitData.unitname = lineSplits(4)
+            Dim startPos As Integer = lineSplits(0).Length + lineSplits(1).Length + lineSplits(2).Length + lineSplits(3).Length + lineSplits(4).Length
+            Dim residual As String = line.Substring(startPos + 5 * separator.Length)
+            Dim stateStartPos As Integer = residual.LastIndexOf(separator)
+            Dim dataPartsString As String = ""
+            If stateStartPos > 0 Then
+                Dim lastStateString As String = residual.Substring(stateStartPos + separator.Length)
+                lastStateString = lastStateString.Substring(0, lastStateString.Length - 1).Replace("""""", """")
+                If Not String.IsNullOrEmpty(lastStateString) Then
+                    Try
+                        Dim stateDict As Dictionary(Of String, String) = JsonConvert.DeserializeObject(lastStateString, GetType(Dictionary(Of String, String)))
+                        For Each state As KeyValuePair(Of String, String) In stateDict
+                            returnUnitData.laststate.Add(New LastStateEntry With {.key = state.Key, .value = state.Value})
+                        Next
+                    Catch ex As Exception
+                        returnUnitData.laststate.Add(New LastStateEntry With {.key = "state", .value = lastStateString})
+                    End Try
                 End If
+                dataPartsString = residual.Substring(0, stateStartPos)
             Else
-                tmpStr += c
-                If c = """" Then separatorActive = Not separatorActive
+                dataPartsString = residual
             End If
-        Next
-        If Not String.IsNullOrEmpty(tmpResponses) Then
-            tmpResponses = tmpResponses.Replace("""""", """")
-            If legacyMode Then
-                responseChunks.Add(New ResponseChunk With {
-                    .id = "all",
-                    .content = tmpResponses,
-                    .responseType = tmpResponseType,
-                    .responseTimestamp = tmpResponseTimestamp
-                })
-            Else
-                Try
-                    For Each rCh As ResponseChunkDAO In JsonConvert.DeserializeObject(tmpResponses, GetType(List(Of ResponseChunkDAO)))
-                        responseChunks.Add(New ResponseChunk With {
-                            .id = rCh.id,
-                            .content = rCh.content,
-                            .responseType = rCh.responseType,
-                            .responseTimestamp = rCh.ts.ToString
-                        })
-                    Next
-                Catch ex As Exception
-                    responseChunks.Add(New ResponseChunk With {
-                        .id = "all-error",
-                        .content = tmpResponses,
-                        .responseType = tmpResponseType,
-                        .responseTimestamp = tmpResponseTimestamp
-                    })
-                End Try
-            End If
-        End If
-        If Not String.IsNullOrEmpty(tmpLastState) Then
-            tmpLastState = tmpLastState.Replace("""""", """")
+
+            dataPartsString = dataPartsString.Replace("""""", """")
             Try
-                Dim stateDict As Dictionary(Of String, String) = JsonConvert.DeserializeObject(tmpLastState, GetType(Dictionary(Of String, String)))
-                For Each state As KeyValuePair(Of String, String) In stateDict
-                    returnUnitData.laststate.Add(New LastStateEntry With {.key = state.Key, .value = state.Value})
+                For Each rCh As ResponseChunkDAO In JsonConvert.DeserializeObject(dataPartsString, GetType(List(Of ResponseChunkDAO)))
+                    responseChunks.Add(New ResponseChunk With {
+                        .id = rCh.id,
+                        .content = rCh.content,
+                        .responseType = rCh.responseType,
+                        .responseTimestamp = rCh.ts.ToString
+                    })
                 Next
             Catch ex As Exception
-                returnUnitData.laststate.Add(New LastStateEntry With {.key = "state", .value = tmpLastState})
+                responseChunks.Add(New ResponseChunk With {
+                        .id = "all-error",
+                        .content = dataPartsString,
+                        .responseType = "?",
+                        .responseTimestamp = "?"
+                    })
             End Try
         End If
 
