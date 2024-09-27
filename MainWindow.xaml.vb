@@ -200,16 +200,19 @@ Class MainWindow
         End If
     End Sub
 
-    Private Sub BtnGetTestcenterData_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog() With {.Owner = Me}
+    Private Sub BtnGetTestcenterReviewsData_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Reviews) With {.Owner = Me, .Title = "Reviews aus Testcenter laden und speichern"}
+        ActionDlg.ShowDialog()
+    End Sub
+
+    Private Sub BtnGetTestcenterDataResponses_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, True) With {.Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
     End Sub
 
     Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(True, False) With {.Owner = Me}
-        If ActionDlg.ShowDialog() Then
-            updateGroupCount()
-        End If
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, False) With {.Owner = Me, .Title = "Antworten und Logs aus Testcenter laden"}
+        If ActionDlg.ShowDialog() Then updateGroupCount()
     End Sub
 
     Private Sub BtnMergeDataLoadCsv_Click(sender As Object, e As RoutedEventArgs)
@@ -267,6 +270,6 @@ Class MainWindow
         End If
     End Sub
     Private Sub updateGroupCount()
-        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Personengruppe(n) gelesen."
+        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen."
     End Sub
 End Class

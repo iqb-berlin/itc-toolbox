@@ -78,5 +78,6 @@ Public Class LoadDataFromTestcenterPage1Credentials
         LbLoginTip.Visibility = Visibility.Visible
         TBUrl.IsEnabled = True
         CrUC.IsEnabled = True
+        globalOutputStore.itcConnection = Nothing
     End Sub
 End Class

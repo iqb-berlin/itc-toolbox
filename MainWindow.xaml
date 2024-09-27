@@ -47,7 +47,7 @@
                     <Setter Property="Margin" Value="0 1 5 1"/>
                     <Setter Property="VerticalAlignment" Value="Top"/>
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="Width" Value="160"/>
+                    <Setter Property="Width" Value="180"/>
                 </Style>
             </StackPanel.Resources>
             <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 0 0 10">
@@ -123,51 +123,48 @@
                 </TextBlock>
             </DockPanel>
             <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 10 0 10">
-                <Run Text="Testergebnisse &#8594; Xlsx" FontSize="16"/></TextBlock>
+                <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
             <DockPanel>
                 <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv</Button>
+                <TextBlock DockPanel.Dock="Right" Width="100">
+                </TextBlock>
                 <TextBlock TextWrapping="Wrap">
                         Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
                 </TextBlock>
             </DockPanel>
             <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnResponses_Click">
+                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterReviewsData_Click">
                     <Button.Content>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Antworten und Logs csv
-                        </TextBlock>
-                    </Button.Content>
-                </Button>
-                <TextBlock DockPanel.Dock="Right" Width="100">
-                    <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-output.md">
-                        <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
-                    </Hyperlink>
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap">
-                        Einlesen aller CSV mit Antworten und Logdaten, Speichern als Xlsx (Umlaute korrigiert), ggf. Transformieren/Umbenennen von Variablen
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterData_Click">
-                    <Button.Content>
-                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Testcenter online
+                            Reviews Testcenter
                         </TextBlock>
                     </Button.Content>
                 </Button>
                 <TextBlock DockPanel.Dock="Right" Width="100">
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">
-                        Verbinden mit einem Testcenter und Abrufen aller Antworten und Logdaten ODER Reviews, Speichern als Xlsx (keine Umbenennung der Variablen möglich)
+                        Verbinden mit einem Testcenter und Abrufen aller Reviews, Speichern als Xlsx
                 </TextBlock>
             </DockPanel>
-            <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 10 0 10">
-                <Run Text="Testergebnisse &#8594; JSON" FontSize="16"/></TextBlock>
             <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Width="100" TextWrapping="Wrap">
-                    Antworten konvertieren und mergen
+                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterDataResponses_Click">
+                    <Button.Content>
+                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                            Antworten+Logs Testcenter
+                        </TextBlock>
+                    </Button.Content>
+                </Button>
+                <TextBlock DockPanel.Dock="Right" Width="100">
                 </TextBlock>
-                <StackPanel Margin="10 0 0 0">
+                <TextBlock TextWrapping="Wrap">
+                    Verbinden mit einem Testcenter und Abrufen aller Antworten und Logs;
+                    Speichern sofort als JSON, eine Datei pro Testtaker-Gruppe
+                </TextBlock>
+            </DockPanel>
+            <TextBlock Padding="4 5 0 5" Background="#FFEAEAEA" Margin="0 10 0 5">
+                <Run Text="Antworten und Logs über Puffer" FontSize="14"/></TextBlock>
+            <DockPanel>
+                <StackPanel>
                     <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadTC_Click">
                         <Button.Content>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center">

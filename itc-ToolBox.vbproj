@@ -127,27 +127,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterDialog.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\responses\LoadDataFromTestcenterPage4Responses.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-online\reviews\LoadDataFromTestcenterPage4ReviewsXlsx.xaml">
+    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -184,23 +184,23 @@
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\itc-connection.vb" />
-    <Compile Include="itc-online\LoadDataFromTestcenterPage1Credentials.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\itc-connection.vb" />
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage1Credentials.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\LoadDataFromTestcenterDialog.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterDialog.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage3SelectGroups.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\responses\LoadDataFromTestcenterPage4Responses.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage4Responses.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\reviews\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
+    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage4ReviewsXlsx.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-online\reviews\WriteReviewsToXlsx.vb" />
@@ -320,6 +320,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="itc-mege\" />
+    <Folder Include="itc-online\responses\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

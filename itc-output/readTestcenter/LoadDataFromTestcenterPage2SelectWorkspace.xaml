@@ -16,7 +16,7 @@
             <libco:IntegerBooleanExact1Converter x:Key="IntegerBooleanExact1Converter"/>
         </DockPanel.Resources>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="2">
-            <Button Width="150" IsEnabled="{Binding ElementName=LBIDList, Path=SelectedItems.Count, Converter={StaticResource IntegerBooleanExact1Converter}}" 
+            <Button IsEnabled="{Binding ElementName=LBIDList, Path=SelectedItems.Count, Converter={StaticResource IntegerBooleanExact1Converter}}" 
                     Click="BtnContinue_Click">Weiter</Button>
             <Button Click="BtnCancel_Click">Abrechen</Button>
         </ItemsControl>

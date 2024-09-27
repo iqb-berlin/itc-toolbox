@@ -10,7 +10,7 @@ Public Class LoadDataFromTestcenterPage4Responses
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         Me.BtnCancelClose.IsEnabled = False
-        If ParentDlg.WriteToXls Then
+        If ParentDlg.write Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
@@ -35,7 +35,7 @@ Public Class LoadDataFromTestcenterPage4Responses
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         Dim targetXlsxFilename As String = My.Settings.lastfile_OutputTargetXlsx
         Dim myTemplate As Byte() = Nothing
-        If ParentDlg.WriteToXls Then
+        If ParentDlg.write Then
             Try
                 Dim TmpZielXLS As SpreadsheetDocument = SpreadsheetDocument.Create(targetXlsxFilename, SpreadsheetDocumentType.Workbook)
                 Dim myWorkbookPart As WorkbookPart = TmpZielXLS.AddWorkbookPart()
@@ -49,7 +49,7 @@ Public Class LoadDataFromTestcenterPage4Responses
             End Try
         End If
 
-        If myTemplate IsNot Nothing OrElse Not ParentDlg.WriteToXls Then
+        If myTemplate IsNot Nothing OrElse Not ParentDlg.write Then
             myBW.ReportProgress(3.0#, "Lese Booklets")
             Dim booklets As List(Of BookletDTO) = globalOutputStore.itcConnection.getBooklets()
             globalOutputStore.bookletSizes = (From b As BookletDTO In booklets).ToDictionary(Of String, Long)(Function(b) b.id, Function(b) b.info.totalSize)
@@ -113,7 +113,7 @@ Public Class LoadDataFromTestcenterPage4Responses
             Next
             myBW.ReportProgress(0.0#, "beendet.")
             If Not myBW.CancellationPending AndAlso
-                ParentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myBW, e, ParentDlg.AllVariables, targetXlsxFilename)
+                ParentDlg.write Then WriteOutputToXlsx.Write(myTemplate, myBW, e, ParentDlg.AllVariables, targetXlsxFilename)
         End If
     End Sub
 
