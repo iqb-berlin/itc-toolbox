@@ -8,6 +8,7 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
         Dim dataGroups As List(Of GroupDataDTO) = globalOutputStore.itcConnection.getDataGroups()
         dataGroupNames = (From ds As GroupDataDTO In dataGroups Order By ds.groupName Where ds.bookletsStarted > 0 Select ds.groupName).ToList
         ICDataGroups.ItemsSource = dataGroupNames.Select(Of XElement)(Function(name, index) New XElement(<g checked="True" number=<%= index %>><%= name %></g>))
+        CBBigData.IsChecked = True
     End Sub
 
     Private Sub BtnCancel_Click(sender As System.Object, e As System.Windows.RoutedEventArgs)
@@ -19,7 +20,7 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         ParentDlg.selectedDataGroups = (From xe As XElement In ICDataGroups.Items Where xe.@checked = "True" Select xe.Value).ToList
         If ParentDlg.readMode = TestcenterReadMode.Responses Then
-            ParentDlg.segregateBigdata = Not CBBigData.IsChecked
+            ParentDlg.segregateBigdata = CBBigData.IsChecked
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4Responses)
         Else
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4ReviewsXlsx)

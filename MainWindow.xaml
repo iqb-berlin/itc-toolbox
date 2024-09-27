@@ -203,6 +203,13 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
+                    <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJsonByGroup_Click">
+                        <Button.Content>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                Schreiben Json gruppenweise
+                            </TextBlock>
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
                 <StackPanel Margin="10 0 0 0">
                     <TextBlock TextWrapping="Wrap">

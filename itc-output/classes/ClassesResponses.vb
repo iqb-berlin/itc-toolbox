@@ -380,7 +380,7 @@ Public Class UnitLineData
                         Const bigDataMarker = "data:application/octet-stream;base64"
                         If newValue.IndexOf(bigDataMarker) = 0 AndAlso Not String.IsNullOrEmpty(bigdataFilePrefix) Then
                             Dim bigDataFileName As String = bigdataFilePrefix + "_" + newValue.GetHashCode().ToString + ".base64"
-                            globalOutputStore.bigData.Add(bigDataFileName, newValue)
+                            If Not globalOutputStore.bigData.ContainsKey(bigDataFileName) Then globalOutputStore.bigData.Add(bigDataFileName, newValue)
                             newValue = bigDataMarker + " Filename: '" + bigDataFileName + "'"
                         Else
                             newValue = newValue.Replace(vbNewLine, "")

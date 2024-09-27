@@ -271,6 +271,20 @@ Class MainWindow
             DialogFactory.MsgError(Me, "DataMerge", "Keine Daten")
         End If
     End Sub
+
+    Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Zielverzeichnisses für die JSON-Dateien",
+                                                        .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
+            JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
+            DialogFactory.Msg(Me, "DataMerge", "fertig")
+        End If
+    End Sub
+
     Private Sub updateGroupCount()
         Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen." + vbNewLine +
             globalOutputStore.bigData.Count.ToString + " BigData"

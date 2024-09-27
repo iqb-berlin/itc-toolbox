@@ -10,6 +10,19 @@ Public Class JsonReadWrite
         End Using
     End Sub
 
+    Public Shared Sub WriteByGroup(targetFoldername As String)
+        Dim groups As List(Of String) = (From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Select p.Value.group).Distinct.ToList
+        For Each g As String In groups
+            Using file As New IO.StreamWriter(targetFoldername + IO.Path.DirectorySeparatorChar + g + ".json")
+                Dim js As New JsonSerializer()
+                js.Formatting = Formatting.Indented
+                js.Serialize(file,
+                         From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Where p.Value.group = g
+                         Select p.Value)
+            End Using
+        Next
+    End Sub
+
     Public Shared Sub WriteBigData(targetFoldername As String)
         For Each big As KeyValuePair(Of String, String) In globalOutputStore.bigData
             Using file As New IO.StreamWriter(targetFoldername + IO.Path.DirectorySeparatorChar + big.Key)
