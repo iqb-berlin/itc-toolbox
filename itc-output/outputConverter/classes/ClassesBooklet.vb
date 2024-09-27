@@ -135,7 +135,7 @@ Public Class Session
     Public os As String
     Public screen As String
     Public ts As Long
-    Public loadTimeCompleteTS As Long
+    Public loadCompleteMS As Long
 End Class
 
 Public Class BookletTechData
@@ -163,14 +163,14 @@ Public Class Booklet
     End Sub
 
     Public Sub addSession(timestamp As Long, sysdata As Dictionary(Of String, String))
+        Dim newSession As New Session With {.ts = timestamp, .loadCompleteMS = 0}
         If sysdata IsNot Nothing Then
-            Dim newSession As New Session With {.ts = timestamp, .loadTimeCompleteTS = 0}
             If sysdata.ContainsKey("browserVersion") AndAlso sysdata.ContainsKey("browserName") Then newSession.browser = sysdata.Item("browserName") + " " + sysdata.Item("browserVersion")
             If sysdata.ContainsKey("osName") Then newSession.os = sysdata.Item("osName")
             If sysdata.ContainsKey("screenSizeWidth") AndAlso sysdata.ContainsKey("screenSizeHeight") Then newSession.screen = sysdata.Item("screenSizeWidth") + " x " + sysdata.Item("screenSizeHeight")
-            If sysdata.ContainsKey("loadTime") Then newSession.loadTimeCompleteTS = Long.Parse(sysdata.Item("loadTime"))
-            sessions.Add(newSession)
+            If sysdata.ContainsKey("loadTime") Then newSession.loadCompleteMS = Long.Parse(sysdata.Item("loadTime"))
         End If
+        sessions.Add(newSession)
     End Sub
 
     Public Function getTechData(bookletSizes As Dictionary(Of String, Long)) As BookletTechData
