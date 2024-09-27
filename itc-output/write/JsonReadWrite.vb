@@ -1,12 +1,28 @@
 ﻿Imports Newtonsoft.Json
-Public Class OutputToJson
+Public Class JsonReadWrite
     Public Shared Sub Write(targetJsonFilename As String)
         Using file As New IO.StreamWriter(targetJsonFilename)
             Dim js As New JsonSerializer()
             js.Formatting = Formatting.Indented
             js.Serialize(file,
-                         From group As KeyValuePair(Of String, Person) In globalOutputStore.personData
-                         Select group.Value)
+                         From p As KeyValuePair(Of String, Person) In globalOutputStore.personData
+                         Select p.Value)
+        End Using
+    End Sub
+
+    Public Shared Sub WriteBigData(targetFoldername As String)
+        For Each big As KeyValuePair(Of String, String) In globalOutputStore.bigData
+            Using file As New IO.StreamWriter(targetFoldername + IO.Path.DirectorySeparatorChar + big.Key)
+                file.Write(big.Value)
+            End Using
+        Next
+    End Sub
+
+    Public Shared Sub WriteBooklets(targetJsonFilename As String)
+        Using file As New IO.StreamWriter(targetJsonFilename)
+            Dim js As New JsonSerializer()
+            js.Formatting = Formatting.Indented
+            js.Serialize(file, globalOutputStore.bookletSizes)
         End Using
     End Sub
 

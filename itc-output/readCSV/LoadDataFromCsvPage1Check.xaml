@@ -1,4 +1,4 @@
-﻿<Page x:Class="OutputResultPage"
+﻿<Page x:Class="LoadDataFromCsvPage1Check"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -13,11 +13,10 @@
     </Page.Resources>
     <DockPanel>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Margin="0 20 0 0">
-            <Button Name="BtnCancelClose" Click="BtnCancelClose_Click"
-                HorizontalAlignment="Center" TabIndex="4">Schließen</Button>
+            <Button Name="BtnOK" HorizontalAlignment="Center" TabIndex="4" IsDefault="True">Weiter</Button>
+            <Button Name="BtnCancel" IsCancel="True" HorizontalAlignment="Center" TabIndex="4">Abbrechen</Button>
         </ItemsControl>
-        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Right" Name="TBInfo" Margin="10 0 10 0"></TextBlock>
-        <libco:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom" Margin="10 0 10 10"/>
+        <CheckBox x:Name="CBBigData" DockPanel.Dock="Bottom" Margin="5">Speichere auch Big Data (z. B. GeoGebra)</CheckBox>
         <libco:MessageBoxUserControl Name="MBUC" Margin="10 10 10 0"/>
     </DockPanel>
 </Page>

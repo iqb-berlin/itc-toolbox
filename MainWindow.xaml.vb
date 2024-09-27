@@ -206,8 +206,10 @@ Class MainWindow
     End Sub
 
     Private Sub BtnGetTestcenterDataResponses_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, True) With {.Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und speichern"}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, True) With {
+            .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
+        updateGroupCount()
     End Sub
 
     Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
@@ -238,7 +240,7 @@ Class MainWindow
             My.Settings.lastfile_InputTargetJson = filepicker.FileName
             My.Settings.Save()
 
-            Dim NewData As List(Of UnitLineData) = OutputToJson.Read(filepicker.FileNames)
+            Dim NewData As List(Of UnitLineData) = JsonReadWrite.Read(filepicker.FileNames)
             If NewData Is Nothing Then
                 DialogFactory.MsgError(Me, "DataMerge", "Konnte Datenfile nicht lesen")
             Else
@@ -262,7 +264,7 @@ Class MainWindow
                 My.Settings.lastfile_OutputTargetJson = filepicker.FileName
                 My.Settings.Save()
 
-                OutputToJson.Write(filepicker.FileName)
+                JsonReadWrite.Write(filepicker.FileName)
                 DialogFactory.Msg(Me, "DataMerge", "fertig")
             End If
         Else
@@ -270,6 +272,7 @@ Class MainWindow
         End If
     End Sub
     Private Sub updateGroupCount()
-        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen."
+        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen." + vbNewLine +
+            globalOutputStore.bigData.Count.ToString + " BigData"
     End Sub
 End Class

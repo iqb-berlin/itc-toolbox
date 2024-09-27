@@ -47,5 +47,8 @@
     <Setting Name="lastfile_InputTargetJson" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="lastfolder_OutputTarget" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

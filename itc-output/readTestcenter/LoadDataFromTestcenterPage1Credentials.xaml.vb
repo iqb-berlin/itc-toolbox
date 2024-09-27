@@ -63,7 +63,6 @@ Public Class LoadDataFromTestcenterPage1Credentials
         BtnCancel.IsEnabled = True
         BtnContinue.IsEnabled = True
         Me.APBUC.UpdateProgressState(0.0#)
-        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         If String.IsNullOrEmpty(myConnection.lastErrorMsgText) Then
             globalOutputStore.itcConnection = myConnection
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage2SelectWorkspace)

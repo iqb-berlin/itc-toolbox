@@ -1,4 +1,4 @@
-﻿Public Class OutputReadReportPage
+﻿Public Class LoadDataFromCsvPage1Check
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
         Dim LogFileCount As Integer = 0
@@ -67,7 +67,7 @@
         If parentDlg.WriteToXls Then
             inputTargetFileName()
         Else
-            Me.NavigationService.Navigate(New OutputResultPage)
+            Me.NavigationService.Navigate(New LoadDataFromCsvPage2Result)
         End If
 
     End Sub
@@ -81,7 +81,7 @@
             My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
             My.Settings.Save()
 
-            Me.NavigationService.Navigate(New OutputResultPage)
+            Me.NavigationService.Navigate(New LoadDataFromCsvPage2Result)
         End If
     End Sub
 End Class

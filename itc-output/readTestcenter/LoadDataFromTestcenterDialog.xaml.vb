@@ -4,11 +4,9 @@
     SystemCheck
 End Enum
 Class LoadDataFromTestcenterDialog
-    Public creds As Net.NetworkCredential
     Public selectedDataGroups As List(Of String)
     Public write As Boolean
-    Public AllVariables As List(Of String)
-    Public replaceBigdata As Boolean
+    Public segregateBigdata As Boolean
     Public readMode As TestcenterReadMode
 
     Public Sub New(mode As TestcenterReadMode, Optional instantWrite As Boolean = True)

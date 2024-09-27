@@ -5,6 +5,6 @@
                   WindowStartupLocation="CenterOwner"
                   ShowInTaskbar="False"
                   
-                  Source="OutputReadReportPage.xaml" 
+                  Source="LoadDataFromCsvPage1Check.xaml" 
                   Icon="pack://application:,,,/iqblib-components;component/Resources/iqbGrau.ico"
 />

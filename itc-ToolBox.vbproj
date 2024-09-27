@@ -151,15 +151,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\outputConverter\OutputDialog.xaml">
+    <Page Include="itc-output\readCSV\LoadDataFromCsvDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\outputConverter\OutputReadReportPage.xaml">
+    <Page Include="itc-output\readCSV\LoadDataFromCsvPage1Check.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\outputConverter\OutputResultPage.xaml">
+    <Page Include="itc-output\readCSV\LoadDataFromCsvPage2Result.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -203,25 +203,25 @@
     <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage4ReviewsXlsx.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-online\reviews\WriteReviewsToXlsx.vb" />
+    <Compile Include="itc-output\write\WriteReviewsToXlsx.vb" />
     <Compile Include="itc-output\globalOutputStore.vb" />
-    <Compile Include="itc-output\outputConverter\classes\ClassesBooklet.vb" />
-    <Compile Include="itc-output\outputConverter\classes\ClassesDTO.vb" />
-    <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
-    <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />
-    <Compile Include="itc-output\outputConverter\classes\ClassesResponses.vb" />
-    <Compile Include="itc-output\outputConverter\OutputDialog.xaml.vb">
-      <DependentUpon>OutputDialog.xaml</DependentUpon>
+    <Compile Include="itc-output\classes\ClassesBooklet.vb" />
+    <Compile Include="itc-output\classes\ClassesDTO.vb" />
+    <Compile Include="itc-output\classes\ClassesConfig.vb" />
+    <Compile Include="itc-output\classes\ClassesLogs.vb" />
+    <Compile Include="itc-output\classes\ClassesResponses.vb" />
+    <Compile Include="itc-output\readCSV\LoadDataFromCsvDialog.xaml.vb">
+      <DependentUpon>LoadDataFromCsvDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\outputConverter\OutputReadReportPage.xaml.vb">
-      <DependentUpon>OutputReadReportPage.xaml</DependentUpon>
+    <Compile Include="itc-output\readCSV\LoadDataFromCsvPage1Check.xaml.vb">
+      <DependentUpon>LoadDataFromCsvPage1Check.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\outputConverter\OutputResultPage.xaml.vb">
-      <DependentUpon>OutputResultPage.xaml</DependentUpon>
+    <Compile Include="itc-output\readCSV\LoadDataFromCsvPage2Result.xaml.vb">
+      <DependentUpon>LoadDataFromCsvPage2Result.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\outputConverter\WriteOutputToXlsx.vb" />
+    <Compile Include="itc-output\write\WriteOutputToXlsx.vb" />
     <Compile Include="itc-output\transformCsv2Xlsx.vb" />
-    <Compile Include="itc-output\outputConverter\OutputToJson.vb" />
+    <Compile Include="itc-output\write\JsonReadWrite.vb" />
     <Compile Include="MainWindow.xaml.vb">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -320,7 +320,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="itc-mege\" />
-    <Folder Include="itc-online\responses\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

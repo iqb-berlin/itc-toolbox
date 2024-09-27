@@ -59,7 +59,7 @@ Public Class UnitLineData
 
     Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
-                                       csvSeparator As String, replaceBigdata As Boolean) As UnitLineData
+                                       csvSeparator As String, segregateBigdata As Boolean) As UnitLineData
         Dim returnUnitData As New UnitLineData
         Dim responseChunks As New List(Of ResponseChunk)
         returnUnitData.laststate = New List(Of LastStateEntry)
@@ -70,6 +70,7 @@ Public Class UnitLineData
             returnUnitData.groupname = lineSplits(0).Substring(1)
             returnUnitData.loginname = lineSplits(1)
             returnUnitData.code = lineSplits(2)
+            Dim bigDataPrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
             returnUnitData.bookletname = lineSplits(3)
             returnUnitData.unitname = lineSplits(4)
             Dim startPos As Integer = lineSplits(0).Length + lineSplits(1).Length + lineSplits(2).Length + lineSplits(3).Length + lineSplits(4).Length
@@ -112,48 +113,49 @@ Public Class UnitLineData
                         .ts = "?"
                     })
             End Try
-        End If
 
-        returnUnitData.responses = New List(Of SingleFormResponseData)
+            returnUnitData.responses = New List(Of SingleFormResponseData)
         returnUnitData.responseChunks = New List(Of ResponseChunkData)
-        If responseChunks.Count > 0 Then
-            Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
-            If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
-            For Each responseChunk As ResponseChunk In responseChunks
-                Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
-                Select Case responseChunk.type
-                    Case "IQBVisualUnitPlayerV2.1.0"
-                        dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
-                    Case "unknown"
-                        dataToAdd = setResponsesAbi(responseChunk.content)
-                    Case "iqb-simple-player@1.0.0"
-                        dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
-                    Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content, replaceBigdata)
-                    Case Else
-                        dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
-                End Select
-                If dataToAdd IsNot Nothing AndAlso dataToAdd.Count > 0 Then
-                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
-                        .type = responseChunk.type, .variables = New List(Of String)}
-                    returnUnitData.responses.AddRange(dataToAdd)
-                    For Each kvp As SingleFormResponseData In dataToAdd
-                        newChunk.variables.AddRange(From v In kvp.responses Select v.id)
-                    Next
-                    returnUnitData.responseChunks.Add(newChunk)
-                End If
-            Next
+            If responseChunks.Count > 0 Then
+                Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
+                If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
+                For Each responseChunk As ResponseChunk In responseChunks
+                    Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
+                    Select Case responseChunk.type
+                        Case "IQBVisualUnitPlayerV2.1.0"
+                            dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
+                        Case "unknown"
+                            dataToAdd = setResponsesAbi(responseChunk.content)
+                        Case "iqb-simple-player@1.0.0"
+                            dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
+                        Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
+                            dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataPrefix)
+                        Case Else
+                            dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
+                    End Select
+                    If dataToAdd IsNot Nothing AndAlso dataToAdd.Count > 0 Then
+                        Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
+                            .type = responseChunk.type, .variables = New List(Of String)}
+                        returnUnitData.responses.AddRange(dataToAdd)
+                        For Each kvp As SingleFormResponseData In dataToAdd
+                            newChunk.variables.AddRange(From v In kvp.responses Select v.id)
+                        Next
+                        returnUnitData.responseChunks.Add(newChunk)
+                    End If
+                Next
+            End If
         End If
         Return returnUnitData
     End Function
 
-    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, replaceBigdata As Boolean) As UnitLineData
+    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, segregateBigdata As Boolean) As UnitLineData
         Dim returnUnitData As New UnitLineData With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
             .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New List(Of LastStateEntry),
             .responses = New List(Of SingleFormResponseData), .responseChunks = New List(Of ResponseChunkData)
             }
         Dim tmpLastState As String = responseData.laststate
+        Dim bigDataPrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
@@ -178,7 +180,7 @@ Public Class UnitLineData
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                     Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content, replaceBigdata)
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataPrefix)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
@@ -351,7 +353,7 @@ Public Class UnitLineData
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String, replaceBigdata As Boolean) As List(Of SingleFormResponseData)
+    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilePrefix As String) As List(Of SingleFormResponseData)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Dim conversionErrorMessage As String = ""
@@ -376,8 +378,10 @@ Public Class UnitLineData
                     If myJToken.Type <> Linq.JTokenType.Null Then
                         newValue = entry.Item("value").ToString
                         Const bigDataMarker = "data:application/octet-stream;base64"
-                        If newValue.IndexOf(bigDataMarker) = 0 AndAlso replaceBigdata Then
-                            newValue = bigDataMarker + " - hash: " + newValue.GetHashCode().ToString
+                        If newValue.IndexOf(bigDataMarker) = 0 AndAlso Not String.IsNullOrEmpty(bigdataFilePrefix) Then
+                            Dim bigDataFileName As String = bigdataFilePrefix + "_" + newValue.GetHashCode().ToString + ".base64"
+                            globalOutputStore.bigData.Add(bigDataFileName, newValue)
+                            newValue = bigDataMarker + " Filename: '" + bigDataFileName + "'"
                         Else
                             newValue = newValue.Replace(vbNewLine, "")
                         End If
