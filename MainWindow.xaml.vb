@@ -1,8 +1,5 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
-    Private itcConnection As ITCConnection = Nothing
-    Private dataStore As New Dictionary(Of String, List(Of UnitLineData)) 'group -> unitdata
-
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
 
@@ -204,16 +201,13 @@ Class MainWindow
     End Sub
 
     Private Sub BtnGetTestcenterData_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection) With {.Owner = Me}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog() With {.Owner = Me}
         ActionDlg.ShowDialog()
-        itcConnection = ActionDlg.itcConnection
     End Sub
 
     Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, True, False) With {.Owner = Me}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(True, False) With {.Owner = Me}
         If ActionDlg.ShowDialog() Then
-            itcConnection = ActionDlg.itcConnection
-            addToDataStoreDict(ActionDlg.AllPeople)
             updateGroupCount()
         End If
     End Sub
@@ -227,7 +221,6 @@ Class MainWindow
 
             Dim ActionDlg As New OutputDialog(False) With {.Owner = Me}
             If ActionDlg.ShowDialog() Then
-                addToDataStoreDict(ActionDlg.AllPeople)
                 updateGroupCount()
             End If
         End If
@@ -246,19 +239,18 @@ Class MainWindow
             If NewData Is Nothing Then
                 DialogFactory.MsgError(Me, "DataMerge", "Konnte Datenfile nicht lesen")
             Else
-                addToDataStoreList(NewData)
                 updateGroupCount()
             End If
         End If
     End Sub
 
     Private Sub BtnMergeDataClear_Click(sender As Object, e As RoutedEventArgs)
-        dataStore.Clear()
+        globalOutputStore.clear()
         updateGroupCount()
     End Sub
 
     Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
-        If dataStore.Count > 0 Then
+        If globalOutputStore.personData.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
@@ -267,7 +259,7 @@ Class MainWindow
                 My.Settings.lastfile_OutputTargetJson = filepicker.FileName
                 My.Settings.Save()
 
-                OutputToJson.Write(dataStore, filepicker.FileName)
+                OutputToJson.Write(filepicker.FileName)
                 DialogFactory.Msg(Me, "DataMerge", "fertig")
             End If
         Else
@@ -275,24 +267,6 @@ Class MainWindow
         End If
     End Sub
     Private Sub updateGroupCount()
-        Me.TBMerge.Text = "Daten für " + dataStore.Count.ToString + " Personengruppe(n) gelesen."
-    End Sub
-
-    Private Sub addToDataStoreDict(data As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))))
-        For Each p As KeyValuePair(Of String, Dictionary(Of String, List(Of UnitLineData))) In data
-            For Each b As KeyValuePair(Of String, List(Of UnitLineData)) In p.Value
-                addToDataStoreList(b.Value)
-            Next
-        Next
-    End Sub
-    Private Sub addToDataStoreList(data As List(Of UnitLineData))
-        For Each u As UnitLineData In data
-            If Not dataStore.ContainsKey(u.groupname) Then
-                dataStore.Add(u.groupname, New List(Of UnitLineData) From {[u]})
-            Else
-                Dim myGroup As List(Of UnitLineData) = dataStore.Item(u.groupname)
-                myGroup.Add(u)
-            End If
-        Next
+        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Personengruppe(n) gelesen."
     End Sub
 End Class

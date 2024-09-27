@@ -1,20 +1,19 @@
 ﻿Imports Newtonsoft.Json
 
-Public Class ResponseData
+Public Class ResponseSymbols
     Public Const STATUS_UNSET = "UNSET"
     Public Const STATUS_ERROR = "ERROR"
     Public Const STATUS_VALUE_CHANGED = "VALUE_CHANGED"
-    Public variableId As String
-    Public status As String
-    Public value As String
-    Public code As Integer
-    Public score As Integer
+End Class
+
+Public Class ResponseData
+    Public ReadOnly id As String
+    Public ReadOnly status As String
+    Public ReadOnly value As String
     Public Sub New(id As String, v As String, st As String)
-        variableId = id
+        Me.id = id
         value = v
         status = st
-        code = 0
-        score = 0
     End Sub
 End Class
 
@@ -26,13 +25,13 @@ End Class
 Class ResponseChunk
     Public id As String
     Public content As String
-    Public responseType As String
-    Public responseTimestamp As String
+    Public type As String
+    Public ts As String
 End Class
 Public Class ResponseChunkData
     Public id As String
-    Public responseType As String
-    Public responseTimestamp As String
+    Public type As String
+    Public ts As String
     Public variables As List(Of String)
 End Class
 
@@ -57,16 +56,6 @@ Public Class UnitLineData
     Public laststate As List(Of LastStateEntry)
     Public responses As List(Of SingleFormResponseData)
     Public responseChunks As List(Of ResponseChunkData)
-    Public ReadOnly Property personKey As String
-        Get
-            Return groupname + loginname + code
-        End Get
-    End Property
-    Public ReadOnly Property hasResponses As Boolean
-        Get
-            Return responses IsNot Nothing AndAlso responses.Count > 0 AndAlso responses.First.responses.Count > 0
-        End Get
-    End Property
 
     Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
@@ -111,16 +100,16 @@ Public Class UnitLineData
                     responseChunks.Add(New ResponseChunk With {
                         .id = rCh.id,
                         .content = rCh.content,
-                        .responseType = rCh.responseType,
-                        .responseTimestamp = rCh.ts.ToString
+                        .type = rCh.responseType,
+                        .ts = rCh.ts.ToString
                     })
                 Next
             Catch ex As Exception
                 responseChunks.Add(New ResponseChunk With {
                         .id = "all-error",
                         .content = dataPartsString,
-                        .responseType = "?",
-                        .responseTimestamp = "?"
+                        .type = "?",
+                        .ts = "?"
                     })
             End Try
         End If
@@ -132,7 +121,7 @@ Public Class UnitLineData
             If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
             For Each responseChunk As ResponseChunk In responseChunks
                 Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
-                Select Case responseChunk.responseType
+                Select Case responseChunk.type
                     Case "IQBVisualUnitPlayerV2.1.0"
                         dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
                     Case "unknown"
@@ -145,11 +134,11 @@ Public Class UnitLineData
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
                 If dataToAdd IsNot Nothing AndAlso dataToAdd.Count > 0 Then
-                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.responseTimestamp,
-                        .responseType = responseChunk.responseType, .variables = New List(Of String)}
+                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
+                        .type = responseChunk.type, .variables = New List(Of String)}
                     returnUnitData.responses.AddRange(dataToAdd)
                     For Each kvp As SingleFormResponseData In dataToAdd
-                        newChunk.variables.AddRange(From v In kvp.responses Select v.variableId)
+                        newChunk.variables.AddRange(From v In kvp.responses Select v.id)
                     Next
                     returnUnitData.responseChunks.Add(newChunk)
                 End If
@@ -194,11 +183,11 @@ Public Class UnitLineData
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
                 If dataToAdd IsNot Nothing Then
-                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .responseTimestamp = responseChunk.ts,
-                        .responseType = responseChunk.responseType, .variables = New List(Of String)}
+                    Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
+                        .type = responseChunk.responseType, .variables = New List(Of String)}
                     returnUnitData.responses.AddRange(dataToAdd)
                     For Each kvp As SingleFormResponseData In dataToAdd
-                        newChunk.variables.AddRange(From v In kvp.responses Select v.variableId)
+                        newChunk.variables.AddRange(From v In kvp.responses Select v.id)
                     Next
                     returnUnitData.responseChunks.Add(newChunk)
                 End If
@@ -213,7 +202,7 @@ Public Class UnitLineData
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
         Catch ex As Exception
-            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter Dan failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseSymbols.STATUS_ERROR, "Converter Dan failed: " + ex.Message, ResponseSymbols.STATUS_ERROR))
         End Try
         If localdata.Count > 0 Then
             Dim foundRadioButtonGroups As New Dictionary(Of String, Integer)
@@ -247,13 +236,13 @@ Public Class UnitLineData
                         Next
                     End If
                     If Not ignoreVar Then
-                        myreturn.responses.Add(New ResponseData(varName, varValue, IIf(valueChanged, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
+                        myreturn.responses.Add(New ResponseData(varName, varValue, IIf(valueChanged, ResponseSymbols.STATUS_VALUE_CHANGED, ResponseSymbols.STATUS_UNSET)))
                     End If
                 End If
             Next
             For Each radioVariable As KeyValuePair(Of String, Integer) In foundRadioButtonGroups
                 myreturn.responses.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
-                                              IIf(radioVariable.Value > 0, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
+                                              IIf(radioVariable.Value > 0, ResponseSymbols.STATUS_VALUE_CHANGED, ResponseSymbols.STATUS_UNSET)))
             Next
         End If
 
@@ -266,7 +255,7 @@ Public Class UnitLineData
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, String)))
         Catch ex As Exception
-            myreturn.Add("", New List(Of ResponseData) From {New ResponseData(ResponseData.STATUS_ERROR, "Converter Abi failed: " + ex.Message, ResponseData.STATUS_ERROR)})
+            myreturn.Add("", New List(Of ResponseData) From {New ResponseData(ResponseSymbols.STATUS_ERROR, "Converter Abi failed: " + ex.Message, ResponseSymbols.STATUS_ERROR)})
         End Try
         If localdata.Count > 0 Then
             Dim testeeData As New Dictionary(Of Integer, Dictionary(Of String, String))
@@ -283,14 +272,14 @@ Public Class UnitLineData
                 End If
                 If pIndex <= 0 Then
                     If Not myreturn.ContainsKey("") Then myreturn.Add("", New List(Of ResponseData))
-                    myreturn.Item("").Add(New ResponseData(singleResponse.Key, singleResponse.Value, ResponseData.STATUS_UNSET))
+                    myreturn.Item("").Add(New ResponseData(singleResponse.Key, singleResponse.Value, ResponseSymbols.STATUS_UNSET))
                 End If
             Next
             If testeeData.Count > 0 Then
                 For Each td As KeyValuePair(Of Integer, Dictionary(Of String, String)) In testeeData
                     For Each v As KeyValuePair(Of String, String) In td.Value
                         If Not myreturn.ContainsKey(td.Key.ToString) Then myreturn.Add(td.Key.ToString, New List(Of ResponseData))
-                        myreturn.Item(td.Key.ToString).Add(New ResponseData(v.Key, v.Value, ResponseData.STATUS_UNSET))
+                        myreturn.Item(td.Key.ToString).Add(New ResponseData(v.Key, v.Value, ResponseSymbols.STATUS_UNSET))
                     Next
                 Next
             End If
@@ -308,7 +297,7 @@ Public Class UnitLineData
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
         Catch ex As Exception
-            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter KeyValue failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseSymbols.STATUS_ERROR, "Converter KeyValue failed: " + ex.Message, ResponseSymbols.STATUS_ERROR))
         End Try
         If localdata.Count > 0 Then
             Dim foundRadioButtonGroups As New Dictionary(Of String, Integer)
@@ -336,11 +325,11 @@ Public Class UnitLineData
                         End If
                     Next
                 End If
-                If Not ignoreVar Then myreturn.responses.Add(New ResponseData(varName, s.Value, ResponseData.STATUS_UNSET))
+                If Not ignoreVar Then myreturn.responses.Add(New ResponseData(varName, s.Value, ResponseSymbols.STATUS_UNSET))
             Next
             For Each radioVariable As KeyValuePair(Of String, Integer) In foundRadioButtonGroups
                 myreturn.responses.Add(New ResponseData(radioVariable.Key, radioVariable.Value.ToString,
-                                              IIf(radioVariable.Value > 0, ResponseData.STATUS_VALUE_CHANGED, ResponseData.STATUS_UNSET)))
+                                              IIf(radioVariable.Value > 0, ResponseSymbols.STATUS_VALUE_CHANGED, ResponseSymbols.STATUS_UNSET)))
             Next
         End If
 
@@ -353,7 +342,7 @@ Public Class UnitLineData
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JObject)))
         Catch ex As Exception
-            myreturn.responses.Add(New ResponseData(ResponseData.STATUS_ERROR, "Converter SimplePlayerLegacy failed: " + ex.Message, ResponseData.STATUS_ERROR))
+            myreturn.responses.Add(New ResponseData(ResponseSymbols.STATUS_ERROR, "Converter SimplePlayerLegacy failed: " + ex.Message, ResponseSymbols.STATUS_ERROR))
         End Try
         If localdata.ContainsKey("answers") Then
             Return setResponsesKeyValue(JsonConvert.SerializeObject(localdata.Item("answers")), varRenameDef)
@@ -376,7 +365,7 @@ Public Class UnitLineData
                 localdata.Add(JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken))))
             Catch ex As Exception
                 myreturn.Add("", New List(Of ResponseData))
-                myreturn.Item("").Add(New ResponseData(ResponseData.STATUS_ERROR, conversionErrorMessage, ResponseData.STATUS_ERROR))
+                myreturn.Item("").Add(New ResponseData(ResponseSymbols.STATUS_ERROR, conversionErrorMessage, ResponseSymbols.STATUS_ERROR))
             End Try
         End If
         If localdata.Count > 0 Then
@@ -399,7 +388,7 @@ Public Class UnitLineData
                     If entry.ContainsKey("status") Then
                         myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
                     Else
-                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseData.STATUS_UNSET))
+                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseSymbols.STATUS_UNSET))
                     End If
                 End If
             Next

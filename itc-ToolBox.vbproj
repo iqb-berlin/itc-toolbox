@@ -204,6 +204,8 @@
       <DependentUpon>LoadDataFromTestcenterPage4ReviewsXlsx.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-online\reviews\WriteReviewsToXlsx.vb" />
+    <Compile Include="itc-output\globalOutputStore.vb" />
+    <Compile Include="itc-output\outputConverter\classes\ClassesBooklet.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesDTO.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\outputConverter\classes\ClassesLogs.vb" />

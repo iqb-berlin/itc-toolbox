@@ -10,9 +10,6 @@ Class WriteOutputToXlsx
                            worker As BackgroundWorker,
                            e As DoWorkEventArgs,
                            AllVariables As List(Of String),
-                           AllPeople As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))),
-                           myTestPersonList As TestPersonList,
-                           bookletSizes As Dictionary(Of String, Long),
                            targetXlsxFilename As String
                            )
         Using MemStream As New IO.MemoryStream()
@@ -67,11 +64,12 @@ Class WriteOutputToXlsx
 
                 Dim BookletUnits As New Dictionary(Of String, List(Of String)) 'für unten TechTable
 
-                progressMax = AllPeople.Count
+                Dim dataAsUnitLineData As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) = globalOutputStore.personData.ToUnitLineData()
+                progressMax = dataAsUnitLineData.Count
                 progressCount = 1
                 stepCount += 1
                 For Each persondata As Dictionary(Of String, List(Of UnitLineData)) In
-                    From kvp As KeyValuePair(Of String, Dictionary(Of String, List(Of UnitLineData))) In AllPeople Order By kvp.Key Select kvp.Value
+                    From kvp As KeyValuePair(Of String, Dictionary(Of String, List(Of UnitLineData))) In dataAsUnitLineData Order By kvp.Key Select kvp.Value
                     If worker.CancellationPending Then
                         e.Cancel = True
                         Exit For
@@ -95,19 +93,20 @@ Class WriteOutputToXlsx
                                 Dim respData As List(Of ResponseData) = (From r As SingleFormResponseData In unitData.responses Where r.subformId = subPerson Select r.responses).FirstOrDefault
                                 If respData IsNot Nothing AndAlso respData.Count > 0 Then
                                     If myRowDataResponses.Count = 0 Then
-                                        myRowDataResponses.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                        Dim personKey As String = unitData.groupname + unitData.loginname + unitData.code
+                                        myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + unitData.bookletname, .CellType = CellTypes.str})
                                         myRowDataResponses.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
                                         myRowDataResponses.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
                                         myRowDataResponses.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
 
-                                        myRowDataStatus.Add(New RowData With {.Column = "A", .Value = unitData.personKey + unitData.bookletname, .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = "A", .Value = personKey + unitData.bookletname, .CellType = CellTypes.str})
                                         myRowDataStatus.Add(New RowData With {.Column = "B", .Value = unitData.groupname, .CellType = CellTypes.str})
                                         myRowDataStatus.Add(New RowData With {.Column = "C", .Value = unitData.loginname + unitData.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
                                         myRowDataStatus.Add(New RowData With {.Column = "D", .Value = unitData.bookletname, .CellType = CellTypes.str})
                                     End If
                                     For Each rd As ResponseData In respData
-                                        myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.value, .CellType = CellTypes.str})
-                                        myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.variableId), .Value = rd.status, .CellType = CellTypes.str})
+                                        myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.id), .Value = rd.value, .CellType = CellTypes.str})
+                                        myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.id), .Value = rd.status, .CellType = CellTypes.str})
                                     Next
                                 End If
                             Next
@@ -124,7 +123,7 @@ Class WriteOutputToXlsx
                 '########################################################
                 'TimeOnPage
                 '########################################################
-                progressMax = myTestPersonList.Count
+                progressMax = globalOutputStore.personData.Count
                 progressCount = 1
                 stepCount += 1
                 Dim TableTimeOnUnit As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "TimeOnUnit")
@@ -154,7 +153,7 @@ Class WriteOutputToXlsx
                 xlsxFactory.SetCellValueString("L", myRow, TableTimeOnUnit, "Responses Complete Time", CellFormatting.RowHeader2, myStyles)
                 xlsxFactory.SetColumnWidth("L", TableTimeOnUnit, 10)
 
-                For Each tc As KeyValuePair(Of String, TestPerson) In myTestPersonList
+                For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Order By p.Key
                     If worker.CancellationPending Then
                         e.Cancel = True
                         Exit For
@@ -162,23 +161,27 @@ Class WriteOutputToXlsx
                     progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
                     worker.ReportProgress(progressValue, "")
                     progressCount += 1
-                    For Each tou As TimeOnUnit In tc.Value.GetTimeOnUnitList
 
-                        Dim myRowData As New List(Of RowData)
-                        myRowData.Add(New RowData With {.Column = "A", .Value = tc.Value.group + tc.Value.login + tc.Value.code + tc.Value.booklet, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "B", .Value = tc.Value.group, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "C", .Value = tc.Value.login + tc.Value.code, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "D", .Value = tc.Value.booklet, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "E", .Value = tou.unit, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "F", .Value = tou.navigationStart, .CellType = CellTypes.int})
-                        myRowData.Add(New RowData With {.Column = "G", .Value = tou.playerLoadTime, .CellType = CellTypes.int})
-                        myRowData.Add(New RowData With {.Column = "H", .Value = tou.stayTime, .CellType = CellTypes.int})
-                        myRowData.Add(New RowData With {.Column = "I", .Value = tou.wasPaused.ToString, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "J", .Value = tou.lostFocus.ToString, .CellType = CellTypes.str})
-                        myRowData.Add(New RowData With {.Column = "K", .Value = tou.responseProgressTimeSome, .CellType = CellTypes.int})
-                        myRowData.Add(New RowData With {.Column = "L", .Value = tou.responseProgressTimeComplete, .CellType = CellTypes.int})
-                        myRow += 1
-                        xlsxFactory.AppendRow(myRow, myRowData, TableTimeOnUnit)
+                    For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.name
+                        For Each unit As Unit In From u As Unit In booklet.units Order By u.name
+                            Dim topData As TimeOnPageData = unit.getTimeOnPageData()
+                            Dim myRowData As New List(Of RowData)
+                            myRowData.Add(New RowData With {.Column = "A", .Value = testPerson.Value.group + testPerson.Value.login +
+                                          testPerson.Value.code + booklet.name, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "B", .Value = testPerson.Value.group, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "C", .Value = testPerson.Value.login + testPerson.Value.code, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "D", .Value = booklet.name, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "E", .Value = unit.name, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "F", .Value = topData.navigationStart, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "G", .Value = topData.playerLoadTime, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "H", .Value = topData.stayTime, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "I", .Value = topData.wasPaused.ToString, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "J", .Value = topData.lostFocus.ToString, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "K", .Value = topData.responseProgressTimeSome, .CellType = CellTypes.int})
+                            myRowData.Add(New RowData With {.Column = "L", .Value = topData.responseProgressTimeComplete, .CellType = CellTypes.int})
+                            myRow += 1
+                            xlsxFactory.AppendRow(myRow, myRowData, TableTimeOnUnit)
+                        Next
                     Next
                 Next
 
@@ -214,10 +217,10 @@ Class WriteOutputToXlsx
                 xlsxFactory.SetCellValueString("H", myRow, TableTechData, "screen", CellFormatting.RowHeader2, myStyles)
                 xlsxFactory.SetColumnWidth("H", TableTechData, 20)
 
-                progressMax = myTestPersonList.Count
+                progressMax = globalOutputStore.personData.Count
                 progressCount = 1
                 stepCount += 1
-                For Each tc As KeyValuePair(Of String, TestPerson) In myTestPersonList
+                For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Order By p.Key
                     If worker.CancellationPending Then
                         e.Cancel = True
                         Exit For
@@ -226,20 +229,22 @@ Class WriteOutputToXlsx
                     worker.ReportProgress(progressValue, "")
                     progressCount += 1
 
-                    myRow += 1
-                    Dim myRowData As New List(Of RowData)
-                    myRowData.Add(New RowData With {.Column = "A", .Value = tc.Key, .CellType = CellTypes.str})
-                    myRowData.Add(New RowData With {.Column = "B", .Value = tc.Value.loadStart, .CellType = CellTypes.int})
-                    myRowData.Add(New RowData With {.Column = "C", .Value = tc.Value.loadtime, .CellType = CellTypes.int})
-                    myRowData.Add(New RowData With {.Column = "D", .Value = tc.Value.loadspeed(bookletSizes).ToString(), .CellType = CellTypes.dec})
-                    myRowData.Add(New RowData With {.Column = "E", .Value = tc.Value.getFirstPlayerRunning, .CellType = CellTypes.int})
-                    myRowData.Add(New RowData With {.Column = "F", .Value = tc.Value.os, .CellType = CellTypes.str})
-                    myRowData.Add(New RowData With {.Column = "G", .Value = tc.Value.browser, .CellType = CellTypes.str})
-                    myRowData.Add(New RowData With {.Column = "H", .Value = tc.Value.screen, .CellType = CellTypes.str})
+                    For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.name
+                        myRow += 1
+                        Dim myRowData As New List(Of RowData)
+                        Dim techData As BookletTechData = booklet.getTechData(globalOutputStore.bookletSizes)
+                        myRowData.Add(New RowData With {.Column = "A", .Value = booklet.name, .CellType = CellTypes.str})
+                        myRowData.Add(New RowData With {.Column = "B", .Value = techData.loadStart, .CellType = CellTypes.int})
+                        myRowData.Add(New RowData With {.Column = "C", .Value = techData.loadTimeCompleteTS, .CellType = CellTypes.int})
+                        myRowData.Add(New RowData With {.Column = "D", .Value = techData.loadspeed, .CellType = CellTypes.dec})
+                        myRowData.Add(New RowData With {.Column = "E", .Value = techData.firstUnitRunningAfterMS, .CellType = CellTypes.int})
+                        myRowData.Add(New RowData With {.Column = "F", .Value = techData.os, .CellType = CellTypes.str})
+                        myRowData.Add(New RowData With {.Column = "G", .Value = techData.browser, .CellType = CellTypes.str})
+                        myRowData.Add(New RowData With {.Column = "H", .Value = techData.screen, .CellType = CellTypes.str})
 
-                    xlsxFactory.AppendRow(myRow, myRowData, TableTechData)
+                        xlsxFactory.AppendRow(myRow, myRowData, TableTechData)
+                    Next
                 Next
-
 
             End Using
             worker.ReportProgress(100.0#, "Speichern Datei")

@@ -67,16 +67,13 @@ Public Class OutputResultPage
         End If
 
         If myTemplate IsNot Nothing OrElse Not parentDlg.WriteToXls Then
-            parentDlg.myTestPersonList = New TestPersonList
             Dim Events As New List(Of String)
-            parentDlg.AllPeople = New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData))) 'id -> booklet -> entries
             parentDlg.AllVariables = New List(Of String)
             Dim AllUnitsWithResponses As New List(Of String)
             Dim LogEntryCount As Long = 0
 
             'Dim LogData As New Dictionary(Of String, Dictionary(Of String, Long))
             Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
-            Dim multiplePersonAndUnitLineNumbers As New List(Of Integer)
             For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
                 If myworker.CancellationPending Then
                     e.Cancel = True
@@ -138,17 +135,7 @@ Public Class OutputResultPage
                                     key = key.Substring(0, key.IndexOf(" = "))
                                 End If
 
-                                If key = "LOADCOMPLETE" Then
-                                    Dim sysdata As Dictionary(Of String, String) = Nothing
-                                    Try
-                                        sysdata = JsonConvert.DeserializeObject(parameter, GetType(Dictionary(Of String, String)))
-                                    Catch ex As Exception
-                                        sysdata = Nothing
-                                        Debug.Print("sysdata json convert failed: " + ex.Message)
-                                    End Try
-                                    parentDlg.myTestPersonList.SetSysdata(timestampInt, group, login, code, booklet, sysdata)
-                                End If
-                                parentDlg.myTestPersonList.AddLogEvent(group, login, code, booklet, timestampInt, unit, key, parameter)
+                                globalOutputStore.personData.AddLogEntry(group, login, code, booklet, timestampInt, unit, key, parameter)
                             End If
                         End While
                         If myworker.CancellationPending Then e.Cancel = True
@@ -161,46 +148,25 @@ Public Class OutputResultPage
                             lineNumber += 1
                             myworker.ReportProgress(lineNumber)
                             Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator, parentDlg.replaceBigdata)
-                            If unitData.hasResponses AndAlso
+                            If unitData.responses IsNot Nothing AndAlso unitData.responses.Count > 0 AndAlso unitData.responses.First.responses.Count > 0 AndAlso
                                     (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                 If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                                 For Each entry As SingleFormResponseData In unitData.responses
                                     For Each respData As ResponseData In entry.responses
-                                        If Not parentDlg.AllVariables.Contains(unitData.unitname + "##" + respData.variableId) Then parentDlg.AllVariables.Add(unitData.unitname + "##" + respData.variableId)
+                                        If Not parentDlg.AllVariables.Contains(unitData.unitname + "##" + respData.id) Then parentDlg.AllVariables.Add(unitData.unitname + "##" + respData.id)
                                     Next
                                 Next
-                                If Not parentDlg.AllPeople.ContainsKey(unitData.personKey) Then parentDlg.AllPeople.Add(unitData.personKey, New Dictionary(Of String, List(Of UnitLineData)))
-                                Dim myPerson As Dictionary(Of String, List(Of UnitLineData)) = parentDlg.AllPeople.Item(unitData.personKey)
-                                If Not myPerson.ContainsKey(unitData.bookletname) Then myPerson.Add(unitData.bookletname, New List(Of UnitLineData))
-                                Dim myBooklet As List(Of UnitLineData) = myPerson.Item(unitData.bookletname)
-                                Dim myUnit As UnitLineData = (From u As UnitLineData In myBooklet Where u.unitname = unitData.unitname).FirstOrDefault
-                                If myUnit Is Nothing Then
-                                    myBooklet.Add(unitData)
-                                Else
-                                    multiplePersonAndUnitLineNumbers.Add(lineNumber)
-                                End If
+                                globalOutputStore.personData.AddUnitData(unitData)
                             End If
                         End While
                         If myworker.CancellationPending Then e.Cancel = True
                     End If
                 End If
             Next
-            If multiplePersonAndUnitLineNumbers.Count > 0 Then
-                Dim warningMessage As String = "w: Achtung: In " + multiplePersonAndUnitLineNumbers.Count.ToString +
-                        " Fällen wurden mehrere Einträge pro Person und Unit gefunden. Nur der jeweils erste Eintrag wurde übernommen (ignoriere Zeilen "
-                If multiplePersonAndUnitLineNumbers.Count > 20 Then
-                    warningMessage += String.Join(", ", multiplePersonAndUnitLineNumbers.GetRange(0, 19)) + ", ... )."
-                Else
-                    warningMessage += String.Join(", ", multiplePersonAndUnitLineNumbers) + ")."
-                End If
-                myworker.ReportProgress(0.0#, warningMessage)
-            End If
-            myworker.ReportProgress(0.0#, "Daten für " + parentDlg.AllPeople.Count.ToString("#,##0") + " Testpersonen und " + parentDlg.AllVariables.Count.ToString("#,##0") + " Variablen gelesen.")
-            myworker.ReportProgress(0.0#, LogEntryCount.ToString("#,##0") + " Log-Einträge gelesen.")
+            myworker.ReportProgress(0.0#, "beendet.")
 
 
-            If Not myworker.CancellationPending AndAlso parentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myworker, e, parentDlg.AllVariables, parentDlg.AllPeople, parentDlg.myTestPersonList,
-                                                                             parentDlg.outputConfig.bookletSizes, targetXlsxFilename)
+            If Not myworker.CancellationPending AndAlso parentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myworker, e, parentDlg.AllVariables, targetXlsxFilename)
         End If
     End Sub
 

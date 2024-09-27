@@ -177,19 +177,3 @@ Public Class TestPerson
     End Function
 
 End Class
-
-Public Class TestPersonList
-    Inherits SortedDictionary(Of String, TestPerson)
-    Public Sub SetFirstUnitEnter(g As String, l As String, c As String, b As String, value As Long)
-        If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).firstUnitEnter = value
-    End Sub
-    Public Sub SetSysdata(timestamp As Long, g As String, l As String, c As String, b As String, sysdata As Dictionary(Of String, String))
-        If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).SetSysdata(timestamp, sysdata)
-    End Sub
-    Public Sub AddLogEvent(g As String, l As String, c As String, b As String, timestamp As Long, unit As String, event_key As String, event_parameter As String)
-        If Not Me.ContainsKey(g + l + c + b) Then Me.Add(g + l + c + b, New TestPerson(g, l, c, b))
-        Me.Item(g + l + c + b).AddLogEvent(timestamp, unit, event_key, event_parameter)
-    End Sub
-End Class

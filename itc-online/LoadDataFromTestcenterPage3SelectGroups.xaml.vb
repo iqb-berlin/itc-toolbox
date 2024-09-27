@@ -7,7 +7,7 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
             Me.BtnResponses.Content = "Weiter"
             Me.BtnReviews.Visibility = Visibility.Collapsed
         End If
-        Dim dataGroups As List(Of GroupDataDTO) = ParentDlg.itcConnection.getDataGroups()
+        Dim dataGroups As List(Of GroupDataDTO) = globalOutputStore.itcConnection.getDataGroups()
         ICDataGroups.ItemsSource = From ds As GroupDataDTO In dataGroups Order By ds.groupName
                                    Where ds.bookletsStarted > 0
                                    Let xGroup = New XElement(<g checked="true"><%= ds.groupName %></g>)
