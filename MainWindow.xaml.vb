@@ -240,12 +240,9 @@ Class MainWindow
             My.Settings.lastfile_InputTargetJson = filepicker.FileName
             My.Settings.Save()
 
-            Dim NewData As List(Of UnitLineData) = JsonReadWrite.Read(filepicker.FileNames)
-            If NewData Is Nothing Then
-                DialogFactory.MsgError(Me, "DataMerge", "Konnte Datenfile nicht lesen")
-            Else
-                updateGroupCount()
-            End If
+            JsonReadWrite.Read(filepicker.FileNames)
+            updateGroupCount()
+            DialogFactory.Msg(Me, "DataMerge", "fertig")
         End If
     End Sub
 

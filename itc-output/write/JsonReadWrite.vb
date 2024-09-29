@@ -39,18 +39,19 @@ Public Class JsonReadWrite
         End Using
     End Sub
 
-    Public Shared Function Read(sourceJsonFilenames As String()) As List(Of UnitLineData)
-        Dim returnData As List(Of UnitLineData) = Nothing
+    Public Shared Sub Read(sourceJsonFilenames As String())
         Try
             For Each fn In sourceJsonFilenames
                 Using file As New IO.StreamReader(fn)
                     Dim js As New JsonSerializer()
-                    returnData = js.Deserialize(file, GetType(List(Of UnitLineData)))
+                    Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
+                    For Each p As Person In groupData
+                        globalOutputStore.personData.Add(p.group + p.login + p.code, p)
+                    Next
                 End Using
             Next
         Catch ex As Exception
-            returnData = Nothing
+            Debug.Print(sourceJsonFilenames.ToString, ex.Message)
         End Try
-        Return returnData
-    End Function
+    End Sub
 End Class
