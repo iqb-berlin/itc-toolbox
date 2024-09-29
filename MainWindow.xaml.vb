@@ -273,7 +273,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
-        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Zielverzeichnisses für die JSON-Dateien",
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
                                                         .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
         If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
             My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath

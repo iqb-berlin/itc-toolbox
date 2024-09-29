@@ -13,7 +13,7 @@ Public Class PersonList
             myBooklet = New Booklet(b)
             myPerson.booklets.Add(myBooklet)
         End If
-        myBooklet.firstUnitEnterTS = value
+        'myBooklet.firstUnitEnterTS = value
     End Sub
     Public Sub AddLogEntry(g As String, l As String, c As String, b As String, timestamp As Long, unit As String, event_key As String, event_parameter As String)
         If Not Me.ContainsKey(g + l + c) Then Me.Add(g + l + c, New Person(g, l, c))
@@ -150,7 +150,7 @@ End Class
 
 Public Class Booklet
     Public name As String
-    Public firstUnitEnterTS As Long
+    'Public firstUnitEnterTS As Long
     Public logs As List(Of LogEntry)
     Public units As List(Of Unit)
     Public sessions As List(Of Session)

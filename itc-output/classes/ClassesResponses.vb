@@ -115,7 +115,7 @@ Public Class UnitLineData
             End Try
 
             returnUnitData.responses = New List(Of SingleFormResponseData)
-        returnUnitData.responseChunks = New List(Of ResponseChunkData)
+            returnUnitData.responseChunks = New List(Of ResponseChunkData)
             If responseChunks.Count > 0 Then
                 Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
                 If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
@@ -138,7 +138,9 @@ Public Class UnitLineData
                             .type = responseChunk.type, .variables = New List(Of String)}
                         returnUnitData.responses.AddRange(dataToAdd)
                         For Each kvp As SingleFormResponseData In dataToAdd
-                            newChunk.variables.AddRange(From v In kvp.responses Select v.id)
+                            newChunk.variables.AddRange(From v In kvp.responses
+                                                        Let varRef As String = IIf(String.IsNullOrEmpty(kvp.subformId), v.id, kvp.subformId + "##" + v.id)
+                                                        Select varRef)
                         Next
                         returnUnitData.responseChunks.Add(newChunk)
                     End If
@@ -189,7 +191,9 @@ Public Class UnitLineData
                         .type = responseChunk.responseType, .variables = New List(Of String)}
                     returnUnitData.responses.AddRange(dataToAdd)
                     For Each kvp As SingleFormResponseData In dataToAdd
-                        newChunk.variables.AddRange(From v In kvp.responses Select v.id)
+                        newChunk.variables.AddRange(From v In kvp.responses
+                                                    Let varRef As String = IIf(String.IsNullOrEmpty(kvp.subformId), v.id, kvp.subformId + "##" + v.id)
+                                                    Select varRef)
                     Next
                     returnUnitData.responseChunks.Add(newChunk)
                 End If
