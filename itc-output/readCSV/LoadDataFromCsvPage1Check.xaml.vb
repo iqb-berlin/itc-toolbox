@@ -2,6 +2,7 @@
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
         Dim LogFileCount As Integer = 0
+        CBBigData.IsChecked = True
         Dim ResponsesFileCount As Integer = 0
         Dim parentDlg As OutputDialog = Me.Parent
         For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
@@ -63,7 +64,7 @@
 
     Private Sub BtnOk_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles BtnOK.Click
         Dim parentDlg As OutputDialog = Me.Parent
-        parentDlg.replaceBigdata = Not CBBigData.IsChecked
+        parentDlg.segregateBigdata = CBBigData.IsChecked
         If parentDlg.WriteToXls Then
             inputTargetFileName()
         Else

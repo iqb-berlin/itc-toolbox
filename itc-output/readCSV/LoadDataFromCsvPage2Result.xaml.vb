@@ -147,7 +147,7 @@ Public Class LoadDataFromCsvPage2Result
                             line = readFile.ReadLine()
                             lineNumber += 1
                             myworker.ReportProgress(lineNumber)
-                            Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator, parentDlg.replaceBigdata)
+                            Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator, parentDlg.segregateBigdata)
                             If unitData.responses IsNot Nothing AndAlso unitData.responses.Count > 0 AndAlso unitData.responses.First.responses.Count > 0 AndAlso
                                     (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                 If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
@@ -166,7 +166,7 @@ Public Class LoadDataFromCsvPage2Result
             myworker.ReportProgress(0.0#, "beendet.")
 
 
-            If Not myworker.CancellationPending AndAlso parentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myworker, e, parentDlg.AllVariables, targetXlsxFilename)
+            If Not myworker.CancellationPending AndAlso parentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myworker, e, targetXlsxFilename)
         End If
     End Sub
 

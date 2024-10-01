@@ -8,7 +8,7 @@
     Public WriteToXls As Boolean
     Public bookletSizes As Dictionary(Of String, Long)
     Public AllVariables As List(Of String)
-    Public replaceBigdata As Boolean
+    Public segregateBigdata As Boolean
 
     Public Sub New(Optional writeToXls As Boolean = True)
         InitializeComponent()

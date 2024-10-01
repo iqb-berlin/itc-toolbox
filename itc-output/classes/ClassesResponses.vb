@@ -7,6 +7,8 @@ Public Class ResponseSymbols
 End Class
 
 Public Class ResponseData
+    Public Const bigDataMarker = "data:application/octet-stream;base64"
+    Public Const geoGebraFixMarker = "UEsDBBQAAAA"
     Public ReadOnly id As String
     Public ReadOnly status As String
     Public ReadOnly value As String
@@ -70,7 +72,7 @@ Public Class UnitLineData
             returnUnitData.groupname = lineSplits(0).Substring(1)
             returnUnitData.loginname = lineSplits(1)
             returnUnitData.code = lineSplits(2)
-            Dim bigDataPrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
+            Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
             returnUnitData.bookletname = lineSplits(3)
             returnUnitData.unitname = lineSplits(4)
             Dim startPos As Integer = lineSplits(0).Length + lineSplits(1).Length + lineSplits(2).Length + lineSplits(3).Length + lineSplits(4).Length
@@ -129,7 +131,7 @@ Public Class UnitLineData
                         Case "iqb-simple-player@1.0.0"
                             dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                         Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                            dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataPrefix)
+                            dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataFilenamePrefix)
                         Case Else
                             dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                     End Select
@@ -157,7 +159,7 @@ Public Class UnitLineData
             .responses = New List(Of SingleFormResponseData), .responseChunks = New List(Of ResponseChunkData)
             }
         Dim tmpLastState As String = responseData.laststate
-        Dim bigDataPrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
+        Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
@@ -182,7 +184,7 @@ Public Class UnitLineData
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                     Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataPrefix)
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataFilenamePrefix)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
@@ -357,7 +359,7 @@ Public Class UnitLineData
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilePrefix As String) As List(Of SingleFormResponseData)
+    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilenamePrefix As String) As List(Of SingleFormResponseData)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Dim conversionErrorMessage As String = ""
@@ -381,11 +383,12 @@ Public Class UnitLineData
                     Dim newValue As String = "#null#"
                     If myJToken.Type <> Linq.JTokenType.Null Then
                         newValue = entry.Item("value").ToString
-                        Const bigDataMarker = "data:application/octet-stream;base64"
-                        If newValue.IndexOf(bigDataMarker) = 0 AndAlso Not String.IsNullOrEmpty(bigdataFilePrefix) Then
-                            Dim bigDataFileName As String = bigdataFilePrefix + "_" + newValue.GetHashCode().ToString + ".base64"
+                        If newValue.Length > 500 AndAlso Not String.IsNullOrEmpty(bigdataFilenamePrefix) AndAlso
+                            (newValue.IndexOf(ResponseData.bigDataMarker) = 0 OrElse newValue.IndexOf(ResponseData.geoGebraFixMarker) = 0) Then
+                            If newValue.IndexOf(ResponseData.geoGebraFixMarker) = 0 Then newValue = ResponseData.bigDataMarker + "," + newValue
+                            Dim bigDataFileName As String = bigdataFilenamePrefix + "_" + newValue.GetHashCode().ToString + ".base64"
                             If Not globalOutputStore.bigData.ContainsKey(bigDataFileName) Then globalOutputStore.bigData.Add(bigDataFileName, newValue)
-                            newValue = bigDataMarker + " Filename: '" + bigDataFileName + "'"
+                            newValue = ResponseData.bigDataMarker + " Filename: '" + bigDataFileName + "'"
                         Else
                             newValue = newValue.Replace(vbNewLine, "")
                         End If
