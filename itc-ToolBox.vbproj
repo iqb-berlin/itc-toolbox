@@ -127,39 +127,47 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterDialog.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml">
+    <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readCSV\LoadDataFromCsvDialog.xaml">
+    <Page Include="itc-output\read\readCSV\LoadDataFromCsvDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readCSV\LoadDataFromCsvPage1Check.xaml">
+    <Page Include="itc-output\read\readCSV\LoadDataFromCsvPage1Check.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="itc-output\readCSV\LoadDataFromCsvPage2Result.xaml">
+    <Page Include="itc-output\read\readCSV\LoadDataFromCsvPage2Result.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\read\readJsonFilesDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\write\ToXlsxDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -184,24 +192,30 @@
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\itc-connection.vb" />
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\itc-connection.vb" />
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage1Credentials.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterDialog.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterDialog.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage3SelectGroups.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage3SelectGroups.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage4Responses.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage4Responses.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage2SelectWorkspace.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage2SelectWorkspace.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
+    <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage4ReviewsXlsx.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage4ReviewsXlsx.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\read\readJsonFilesDialog.xaml.vb">
+      <DependentUpon>readJsonFilesDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\write\ToXlsxDialog.xaml.vb">
+      <DependentUpon>ToXlsxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\write\WriteReviewsToXlsx.vb" />
     <Compile Include="itc-output\globalOutputStore.vb" />
@@ -210,13 +224,13 @@
     <Compile Include="itc-output\classes\ClassesConfig.vb" />
     <Compile Include="itc-output\classes\ClassesLogs.vb" />
     <Compile Include="itc-output\classes\ClassesResponses.vb" />
-    <Compile Include="itc-output\readCSV\LoadDataFromCsvDialog.xaml.vb">
+    <Compile Include="itc-output\read\readCSV\LoadDataFromCsvDialog.xaml.vb">
       <DependentUpon>LoadDataFromCsvDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readCSV\LoadDataFromCsvPage1Check.xaml.vb">
+    <Compile Include="itc-output\read\readCSV\LoadDataFromCsvPage1Check.xaml.vb">
       <DependentUpon>LoadDataFromCsvPage1Check.xaml</DependentUpon>
     </Compile>
-    <Compile Include="itc-output\readCSV\LoadDataFromCsvPage2Result.xaml.vb">
+    <Compile Include="itc-output\read\readCSV\LoadDataFromCsvPage2Result.xaml.vb">
       <DependentUpon>LoadDataFromCsvPage2Result.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\write\WriteOutputToXlsx.vb" />

@@ -9,9 +9,9 @@ End Class
 Public Class ResponseData
     Public Const bigDataMarker = "data:application/octet-stream;base64"
     Public Const geoGebraFixMarker = "UEsDBBQAAAA"
-    Public ReadOnly id As String
-    Public ReadOnly status As String
-    Public ReadOnly value As String
+    Public id As String
+    Public status As String
+    Public value As String
     Public Sub New(id As String, v As String, st As String)
         Me.id = id
         value = v
@@ -19,8 +19,8 @@ Public Class ResponseData
     End Sub
 End Class
 
-Public Class SingleFormResponseData
-    Public subformId As String
+Public Class SubForm
+    Public id As String
     Public responses As List(Of ResponseData)
 End Class
 
@@ -56,8 +56,8 @@ Public Class UnitLineData
     Public bookletname As String
     Public unitname As String
     Public laststate As List(Of LastStateEntry)
-    Public responses As List(Of SingleFormResponseData)
-    Public responseChunks As List(Of ResponseChunkData)
+    Public subforms As List(Of SubForm)
+    Public chunks As List(Of ResponseChunkData)
 
     Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
@@ -116,13 +116,13 @@ Public Class UnitLineData
                     })
             End Try
 
-            returnUnitData.responses = New List(Of SingleFormResponseData)
-            returnUnitData.responseChunks = New List(Of ResponseChunkData)
+            returnUnitData.subforms = New List(Of SubForm)
+            returnUnitData.chunks = New List(Of ResponseChunkData)
             If responseChunks.Count > 0 Then
                 Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
                 If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
                 For Each responseChunk As ResponseChunk In responseChunks
-                    Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
+                    Dim dataToAdd As List(Of SubForm) = Nothing
                     Select Case responseChunk.type
                         Case "IQBVisualUnitPlayerV2.1.0"
                             dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
@@ -138,13 +138,13 @@ Public Class UnitLineData
                     If dataToAdd IsNot Nothing AndAlso dataToAdd.Count > 0 Then
                         Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
                             .type = responseChunk.type, .variables = New List(Of String)}
-                        returnUnitData.responses.AddRange(dataToAdd)
-                        For Each kvp As SingleFormResponseData In dataToAdd
+                        returnUnitData.subforms.AddRange(dataToAdd)
+                        For Each kvp As SubForm In dataToAdd
                             newChunk.variables.AddRange(From v In kvp.responses
-                                                        Let varRef As String = IIf(String.IsNullOrEmpty(kvp.subformId), v.id, kvp.subformId + "##" + v.id)
+                                                        Let varRef As String = IIf(String.IsNullOrEmpty(kvp.id), v.id, kvp.id + "##" + v.id)
                                                         Select varRef)
                         Next
-                        returnUnitData.responseChunks.Add(newChunk)
+                        returnUnitData.chunks.Add(newChunk)
                     End If
                 Next
             End If
@@ -156,7 +156,7 @@ Public Class UnitLineData
         Dim returnUnitData As New UnitLineData With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
             .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New List(Of LastStateEntry),
-            .responses = New List(Of SingleFormResponseData), .responseChunks = New List(Of ResponseChunkData)
+            .subforms = New List(Of SubForm), .chunks = New List(Of ResponseChunkData)
             }
         Dim tmpLastState As String = responseData.laststate
         Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
@@ -175,7 +175,7 @@ Public Class UnitLineData
         If responseData.responses.Count > 0 Then
             Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
             For Each responseChunk As ResponseDataDTO In responseData.responses
-                Dim dataToAdd As List(Of SingleFormResponseData) = Nothing
+                Dim dataToAdd As List(Of SubForm) = Nothing
                 Select Case responseChunk.responseType
                     Case "IQBVisualUnitPlayerV2.1.0"
                         dataToAdd = setResponsesDan(responseChunk.content, varRenameDef)
@@ -191,21 +191,21 @@ Public Class UnitLineData
                 If dataToAdd IsNot Nothing Then
                     Dim newChunk = New ResponseChunkData() With {.id = responseChunk.id, .ts = responseChunk.ts,
                         .type = responseChunk.responseType, .variables = New List(Of String)}
-                    returnUnitData.responses.AddRange(dataToAdd)
-                    For Each kvp As SingleFormResponseData In dataToAdd
+                    returnUnitData.subforms.AddRange(dataToAdd)
+                    For Each kvp As SubForm In dataToAdd
                         newChunk.variables.AddRange(From v In kvp.responses
-                                                    Let varRef As String = IIf(String.IsNullOrEmpty(kvp.subformId), v.id, kvp.subformId + "##" + v.id)
+                                                    Let varRef As String = IIf(String.IsNullOrEmpty(kvp.id), v.id, kvp.id + "##" + v.id)
                                                     Select varRef)
                     Next
-                    returnUnitData.responseChunks.Add(newChunk)
+                    returnUnitData.chunks.Add(newChunk)
                 End If
             Next
         End If
         Return returnUnitData
     End Function
 
-    Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
-        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
+    Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SubForm)
+        Dim myreturn As New SubForm With {.id = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
@@ -254,10 +254,10 @@ Public Class UnitLineData
             Next
         End If
 
-        Return New List(Of SingleFormResponseData) From {[myreturn]}
+        Return New List(Of SubForm) From {[myreturn]}
     End Function
 
-    Private Shared Function setResponsesAbi(responseString As String) As List(Of SingleFormResponseData)
+    Private Shared Function setResponsesAbi(responseString As String) As List(Of SubForm)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New Dictionary(Of String, String)
         Try
@@ -292,15 +292,15 @@ Public Class UnitLineData
                 Next
             End If
         End If
-        Dim returnList As New List(Of SingleFormResponseData)
+        Dim returnList As New List(Of SubForm)
         For Each r As KeyValuePair(Of String, List(Of ResponseData)) In myreturn
-            returnList.Add(New SingleFormResponseData With {.subformId = r.Key, .responses = r.Value})
+            returnList.Add(New SubForm With {.id = r.Key, .responses = r.Value})
         Next
         Return returnList
     End Function
 
-    Private Shared Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
-        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
+    Private Shared Function setResponsesKeyValue(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SubForm)
+        Dim myreturn As New SubForm With {.id = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JToken)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JToken)))
@@ -341,11 +341,11 @@ Public Class UnitLineData
             Next
         End If
 
-        Return New List(Of SingleFormResponseData) From {[myreturn]}
+        Return New List(Of SubForm) From {[myreturn]}
     End Function
 
-    Private Shared Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SingleFormResponseData)
-        Dim myreturn As New SingleFormResponseData With {.subformId = "", .responses = New List(Of ResponseData)}
+    Private Shared Function setResponsesSimplePlayerLegacy(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SubForm)
+        Dim myreturn As New SubForm With {.id = "", .responses = New List(Of ResponseData)}
         Dim localdata As New Dictionary(Of String, Linq.JObject)
         Try
             localdata = JsonConvert.DeserializeObject(responseString, GetType(Dictionary(Of String, Linq.JObject)))
@@ -355,11 +355,11 @@ Public Class UnitLineData
         If localdata.ContainsKey("answers") Then
             Return setResponsesKeyValue(JsonConvert.SerializeObject(localdata.Item("answers")), varRenameDef)
         Else
-            Return New List(Of SingleFormResponseData) From {[myreturn]}
+            Return New List(Of SubForm) From {[myreturn]}
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilenamePrefix As String) As List(Of SingleFormResponseData)
+    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilenamePrefix As String) As List(Of SubForm)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Dim conversionErrorMessage As String = ""
@@ -404,9 +404,9 @@ Public Class UnitLineData
                 End If
             Next
         End If
-        Dim returnList As New List(Of SingleFormResponseData)
+        Dim returnList As New List(Of SubForm)
         For Each r As KeyValuePair(Of String, List(Of ResponseData)) In myreturn
-            returnList.Add(New SingleFormResponseData With {.subformId = r.Key, .responses = r.Value})
+            returnList.Add(New SubForm With {.id = r.Key, .responses = r.Value})
         Next
         Return returnList
     End Function

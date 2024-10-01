@@ -240,9 +240,10 @@ Class MainWindow
             My.Settings.lastfile_InputTargetJson = filepicker.FileName
             My.Settings.Save()
 
-            JsonReadWrite.Read(filepicker.FileNames)
-            updateGroupCount()
-            DialogFactory.Msg(Me, "DataMerge", "fertig")
+            Dim ActionDlg As New readJsonFilesDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen MC-Merge JSON"}
+            If ActionDlg.ShowDialog() Then
+                updateGroupCount()
+            End If
         End If
     End Sub
 
@@ -285,5 +286,24 @@ Class MainWindow
     Private Sub updateGroupCount()
         Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen." + vbNewLine +
             globalOutputStore.bigData.Count.ToString + " BigData"
+    End Sub
+
+    Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
+        If globalOutputStore.personData.Count > 0 Then
+            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+                My.Settings.Save()
+
+
+                Dim ActionDlg As New ToXlsxDialog() With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+                ActionDlg.ShowDialog()
+            End If
+        Else
+            DialogFactory.MsgError(Me, "DataMerge", "Keine Daten")
+        End If
     End Sub
 End Class

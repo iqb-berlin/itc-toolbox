@@ -8,7 +8,7 @@ Public Class PersonList
     Public Sub SetFirstUnitEnter(g As String, l As String, c As String, b As String, value As Long)
         If Not Me.ContainsKey(g + l + c) Then Me.Add(g + l + c, New Person(g, l, c))
         Dim myPerson As Person = Me.Item(g + l + c)
-        Dim myBooklet As Booklet = (From bt As Booklet In myPerson.booklets Where bt.name = b).FirstOrDefault
+        Dim myBooklet As Booklet = (From bt As Booklet In myPerson.booklets Where bt.id = b).FirstOrDefault
         If myBooklet Is Nothing Then
             myBooklet = New Booklet(b)
             myPerson.booklets.Add(myBooklet)
@@ -23,20 +23,20 @@ Public Class PersonList
         Dim personKey As String = unitdata.groupname + unitdata.loginname + unitdata.code
         If Not Me.ContainsKey(personKey) Then Me.Add(personKey, New Person(unitdata.groupname, unitdata.loginname, unitdata.code))
         Dim myPerson As Person = Me.Item(personKey)
-        Dim myBooklet As Booklet = (From bt As Booklet In myPerson.booklets Where bt.name = unitdata.bookletname).FirstOrDefault
+        Dim myBooklet As Booklet = (From bt As Booklet In myPerson.booklets Where bt.id = unitdata.bookletname).FirstOrDefault
         If myBooklet Is Nothing Then
             myBooklet = New Booklet(unitdata.bookletname)
             myPerson.booklets.Add(myBooklet)
         End If
         'could lead to double unit entries - to be solved later
-        Dim myUnit As Unit = (From u As Unit In myBooklet.units Where u.name = unitdata.unitname).FirstOrDefault
-        If myUnit Is Nothing OrElse myUnit.responses.Count > 0 OrElse myUnit.laststate.Count > 0 OrElse myUnit.chunks.Count > 0 Then
+        Dim myUnit As Unit = (From u As Unit In myBooklet.units Where u.alias = unitdata.unitname).FirstOrDefault
+        If myUnit Is Nothing OrElse myUnit.subforms.Count > 0 OrElse myUnit.laststate.Count > 0 OrElse myUnit.chunks.Count > 0 Then
             myBooklet.units.Add(New Unit(unitdata.unitname) With {
-                            .chunks = unitdata.responseChunks, .laststate = unitdata.laststate, .responses = unitdata.responses})
+                            .chunks = unitdata.chunks, .laststate = unitdata.laststate, .subforms = unitdata.subforms})
         Else
-            myUnit.chunks = unitdata.responseChunks
+            myUnit.chunks = unitdata.chunks
             myUnit.laststate = unitdata.laststate
-            myUnit.responses = unitdata.responses
+            myUnit.subforms = unitdata.subforms
         End If
     End Sub
 
@@ -61,7 +61,7 @@ Public Class Person
     End Sub
 
     Public Sub addLogEntry(bookletName As String, timestamp As Long, unit As String, event_key As String, event_parameter As String)
-        Dim myBooklet As Booklet = (From b As Booklet In booklets Where b.name = bookletName).FirstOrDefault
+        Dim myBooklet As Booklet = (From b As Booklet In booklets Where b.id = bookletName).FirstOrDefault
         If myBooklet Is Nothing Then
             myBooklet = New Booklet(bookletName)
             booklets.Add(myBooklet)
@@ -80,7 +80,7 @@ Public Class Person
                 myBooklet.addSession(timestamp, sysdata)
             End If
         Else
-            Dim myUnit As Unit = (From u As Unit In myBooklet.units Where u.name = unit).FirstOrDefault
+            Dim myUnit As Unit = (From u As Unit In myBooklet.units Where u.alias = unit).FirstOrDefault
             If myUnit Is Nothing Then
                 myUnit = New Unit(unit)
                 myBooklet.units.Add(myUnit)
@@ -91,9 +91,9 @@ Public Class Person
 End Class
 
 Public Structure LogEntry
-    Public ReadOnly ts As Long
-    Public ReadOnly key As String
-    Public ReadOnly parameter As String
+    Public ts As Long
+    Public key As String
+    Public parameter As String
     Public Sub New(ts As Long, key As String, parameter As String)
         Me.ts = ts
         Me.key = key
@@ -112,16 +112,18 @@ Public Class TimeOnPageData
 End Class
 
 Public Class Unit
-    Public name As String
+    Public id As String
+    Public [alias] As String
     Public laststate As List(Of LastStateEntry)
-    Public responses As List(Of SingleFormResponseData)
+    Public subforms As List(Of SubForm)
     Public chunks As List(Of ResponseChunkData)
     Public logs As List(Of LogEntry)
 
-    Public Sub New(unitName As String)
-        name = unitName
+    Public Sub New(unitId As String, Optional unitAlias As String = Nothing)
+        id = unitId
+        [alias] = IIf(String.IsNullOrEmpty(unitAlias), unitId, unitAlias)
         laststate = New List(Of LastStateEntry)
-        responses = New List(Of SingleFormResponseData)
+        subforms = New List(Of SubForm)
         chunks = New List(Of ResponseChunkData)
         logs = New List(Of LogEntry)
     End Sub
@@ -149,14 +151,14 @@ Public Class BookletTechData
 End Class
 
 Public Class Booklet
-    Public name As String
+    Public id As String
     'Public firstUnitEnterTS As Long
     Public logs As List(Of LogEntry)
     Public units As List(Of Unit)
     Public sessions As List(Of Session)
 
-    Public Sub New(bookletName As String)
-        name = bookletName
+    Public Sub New(bookletId As String)
+        id = bookletId
         logs = New List(Of LogEntry)
         units = New List(Of Unit)
         sessions = New List(Of Session)

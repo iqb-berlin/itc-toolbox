@@ -97,8 +97,8 @@ Public Class LoadDataFromTestcenterPage4Responses
             Else
                 For Each responseData As ResponseDTO In responseDataList
                     Dim unitData As UnitLineData = UnitLineData.fromTestcenterAPI(responseData, ParentDlg.segregateBigdata)
-                    If unitData.responses IsNot Nothing AndAlso unitData.responses.Count > 0 AndAlso
-                            unitData.responses.First.responses.Count > 0 Then globalOutputStore.personData.AddUnitData(unitData)
+                    If unitData.subforms IsNot Nothing AndAlso unitData.subforms.Count > 0 AndAlso
+                            unitData.subforms.First.responses.Count > 0 Then globalOutputStore.personData.AddUnitData(unitData)
                 Next
             End If
 

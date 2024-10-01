@@ -148,10 +148,10 @@ Public Class LoadDataFromCsvPage2Result
                             lineNumber += 1
                             myworker.ReportProgress(lineNumber)
                             Dim unitData As UnitLineData = UnitLineData.fromCsvLine(line, parentDlg.outputConfig.variables, csvSeparator, parentDlg.segregateBigdata)
-                            If unitData.responses IsNot Nothing AndAlso unitData.responses.Count > 0 AndAlso unitData.responses.First.responses.Count > 0 AndAlso
+                            If unitData.subforms IsNot Nothing AndAlso unitData.subforms.Count > 0 AndAlso unitData.subforms.First.responses.Count > 0 AndAlso
                                     (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
                                 If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
-                                For Each entry As SingleFormResponseData In unitData.responses
+                                For Each entry As SubForm In unitData.subforms
                                     For Each respData As ResponseData In entry.responses
                                         If Not parentDlg.AllVariables.Contains(unitData.unitname + "##" + respData.id) Then parentDlg.AllVariables.Add(unitData.unitname + "##" + respData.id)
                                     Next

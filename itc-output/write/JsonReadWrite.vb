@@ -39,9 +39,15 @@ Public Class JsonReadWrite
         End Using
     End Sub
 
-    Public Shared Sub Read(sourceJsonFilenames As String())
-        Try
-            For Each fn In sourceJsonFilenames
+    Public Shared Sub Read(sourceJsonFilenames As String(), myworker As ComponentModel.BackgroundWorker)
+        Dim progressMax As Integer = sourceJsonFilenames.Length
+        Dim progressCount As Integer = 1
+        Dim progressValue As Double = 0.0#
+        For Each fn In sourceJsonFilenames
+            progressValue = progressCount * (100 / progressMax)
+            progressCount += 1
+            myworker.ReportProgress(progressValue, IO.Path.GetFileName(fn))
+            Try
                 Using file As New IO.StreamReader(fn)
                     Dim js As New JsonSerializer()
                     Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
@@ -49,9 +55,9 @@ Public Class JsonReadWrite
                         globalOutputStore.personData.Add(p.group + p.login + p.code, p)
                     Next
                 End Using
-            Next
-        Catch ex As Exception
-            Debug.Print(sourceJsonFilenames.ToString, ex.Message)
-        End Try
+            Catch ex As Exception
+                myworker.ReportProgress(progressValue, "Fehler " + IO.Path.GetFileName(fn) + ": " + ex.Message)
+            End Try
+        Next
     End Sub
 End Class

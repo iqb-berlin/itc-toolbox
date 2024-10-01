@@ -210,6 +210,13 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
+                    <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveXlsx_Click">
+                        <Button.Content>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                Schreiben Antworten Xlsx
+                            </TextBlock>
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
                 <StackPanel Margin="10 0 0 0">
                     <TextBlock TextWrapping="Wrap">

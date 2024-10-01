@@ -17,9 +17,11 @@ Class WriteOutputToXlsx
         For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personData
             For Each b As Booklet In p.Value.booklets
                 For Each u As Unit In b.units
-                    For Each rSub As SingleFormResponseData In u.responses
+                    For Each rSub As SubForm In u.subforms
+                        Dim varPrefix As String = u.alias
+                        If Not String.IsNullOrEmpty(rSub.id) Then varPrefix += "##" + rSub.id
                         For Each r As ResponseData In rSub.responses
-                            If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(r.id) Then AllVariables.Add(r.id)
+                            If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(varPrefix + "##" + r.id) Then AllVariables.Add(varPrefix + "##" + r.id)
                         Next
                     Next
                 Next
@@ -92,39 +94,41 @@ Class WriteOutputToXlsx
                         progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
                         worker.ReportProgress(progressValue, "")
                         progressCount += 1
-                        For Each booklet As Booklet In From b As Booklet In person.booklets Order By b.name
+                        For Each booklet As Booklet In From b As Booklet In person.booklets Order By b.id
                             Dim myRowDataResponses As New List(Of RowData)
                             Dim myRowDataStatus As New List(Of RowData)
                             For Each unit As Unit In booklet.units
-                                For Each rSub As SingleFormResponseData In unit.responses
+                                For Each rSub As SubForm In unit.subforms
+                                    Dim varPrefix As String = unit.alias
+                                    If Not String.IsNullOrEmpty(rSub.id) Then varPrefix += "##" + rSub.id
                                     For Each response As ResponseData In rSub.responses
-                                        If AllVariables.Contains(response.id) Then
+                                        If AllVariables.Contains(varPrefix + "##" + response.id) Then
                                             'If Not BookletUnits.ContainsKey(unitData.bookletname) Then BookletUnits.Add(unitData.bookletname, New List(Of String))
                                             'If Not BookletUnits.Item(unitData.bookletname).Contains(unitData.unitname) Then BookletUnits.Item(unitData.bookletname).Add(unitData.unitname)
                                             If myRowDataResponses.Count = 0 Then
                                                 Dim personKey As String = person.group + person.login + person.code
-                                                myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + booklet.name, .CellType = CellTypes.str})
+                                                myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + booklet.id, .CellType = CellTypes.str})
                                                 myRowDataResponses.Add(New RowData With {.Column = "B", .Value = person.group, .CellType = CellTypes.str})
-                                                myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code + IIf(String.IsNullOrEmpty(rSub.subformId), "", "_" + rSub.subformId), .CellType = CellTypes.str})
-                                                myRowDataResponses.Add(New RowData With {.Column = "D", .Value = booklet.name, .CellType = CellTypes.str})
+                                                myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code + IIf(String.IsNullOrEmpty(rSub.id), "", "_" + rSub.id), .CellType = CellTypes.str})
+                                                myRowDataResponses.Add(New RowData With {.Column = "D", .Value = booklet.id, .CellType = CellTypes.str})
 
                                                 'myRowDataStatus.Add(New RowData With {.Column = "A", .Value = personKey + unitdata.bookletname, .CellType = CellTypes.str})
                                                 'myRowDataStatus.Add(New RowData With {.Column = "B", .Value = unitdata.groupname, .CellType = CellTypes.str})
                                                 'myRowDataStatus.Add(New RowData With {.Column = "C", .Value = unitdata.loginname + unitdata.code + IIf(String.IsNullOrEmpty(subPerson), "", "_" + subPerson), .CellType = CellTypes.str})
                                                 'myRowDataStatus.Add(New RowData With {.Column = "D", .Value = unitdata.bookletname, .CellType = CellTypes.str})
                                             End If
-                                            myRowDataResponses.Add(New RowData With {.Column = Columns.Item(unit.name + "##" + response.id), .Value = response.value, .CellType = CellTypes.str})
+                                            myRowDataResponses.Add(New RowData With {.Column = Columns.Item(varPrefix + "##" + response.id), .Value = response.value, .CellType = CellTypes.str})
                                             'myRowDataStatus.Add(New RowData With {.Column = Columns.Item(unitData.unitname + "##" + rd.id), .Value = rd.status, .CellType = CellTypes.str})
                                         End If
                                     Next
                                 Next
-                                If myRowDataResponses.Count > 0 Then
+                            Next
+                            If myRowDataResponses.Count > 0 Then
                                 myRow += 1
                                 xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses)
-                                xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
+                                'xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
                             End If
                         Next
-                    Next
                     Next
 
 
@@ -170,16 +174,16 @@ Class WriteOutputToXlsx
                         worker.ReportProgress(progressValue, "")
                         progressCount += 1
 
-                        For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.name
-                            For Each unit As Unit In From u As Unit In booklet.units Order By u.name
+                        For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.id
+                            For Each unit As Unit In From u As Unit In booklet.units Order By u.alias
                                 Dim topData As TimeOnPageData = unit.getTimeOnPageData()
                                 Dim myRowData As New List(Of RowData)
                                 myRowData.Add(New RowData With {.Column = "A", .Value = testPerson.Value.group + testPerson.Value.login +
-                                              testPerson.Value.code + booklet.name, .CellType = CellTypes.str})
+                                              testPerson.Value.code + booklet.id, .CellType = CellTypes.str})
                                 myRowData.Add(New RowData With {.Column = "B", .Value = testPerson.Value.group, .CellType = CellTypes.str})
                                 myRowData.Add(New RowData With {.Column = "C", .Value = testPerson.Value.login + testPerson.Value.code, .CellType = CellTypes.str})
-                                myRowData.Add(New RowData With {.Column = "D", .Value = booklet.name, .CellType = CellTypes.str})
-                                myRowData.Add(New RowData With {.Column = "E", .Value = unit.name, .CellType = CellTypes.str})
+                                myRowData.Add(New RowData With {.Column = "D", .Value = booklet.id, .CellType = CellTypes.str})
+                                myRowData.Add(New RowData With {.Column = "E", .Value = unit.alias, .CellType = CellTypes.str})
                                 myRowData.Add(New RowData With {.Column = "F", .Value = topData.navigationStart, .CellType = CellTypes.int})
                                 myRowData.Add(New RowData With {.Column = "G", .Value = topData.playerLoadTime, .CellType = CellTypes.int})
                                 myRowData.Add(New RowData With {.Column = "H", .Value = topData.stayTime, .CellType = CellTypes.int})
@@ -237,11 +241,11 @@ Class WriteOutputToXlsx
                         worker.ReportProgress(progressValue, "")
                         progressCount += 1
 
-                        For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.name
+                        For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.id
                             myRow += 1
                             Dim myRowData As New List(Of RowData)
                             Dim techData As BookletTechData = booklet.getTechData(globalOutputStore.bookletSizes)
-                            myRowData.Add(New RowData With {.Column = "A", .Value = booklet.name, .CellType = CellTypes.str})
+                            myRowData.Add(New RowData With {.Column = "A", .Value = booklet.id, .CellType = CellTypes.str})
                             myRowData.Add(New RowData With {.Column = "B", .Value = techData.loadStart, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "C", .Value = techData.loadTimeCompleteTS, .CellType = CellTypes.int})
                             myRowData.Add(New RowData With {.Column = "D", .Value = techData.loadspeed, .CellType = CellTypes.dec})
