@@ -95,7 +95,7 @@ Public Class ToXlsxDialog
         End Try
 
         If myTemplate IsNot Nothing Then
-            If Not myworker.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myworker, e, targetXlsxFilename)
+            If Not myworker.CancellationPending Then WriteOutputToXlsx.WriteLite(myTemplate, myworker, e, targetXlsxFilename)
         End If
     End Sub
 End Class

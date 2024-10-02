@@ -11,7 +11,7 @@ Public Class PersonResponses
     Public login As String
     Public code As String
     Public booklet As String
-    Public responses As List(Of ResponseData)
+    Public subforms As List(Of SubForm)
 End Class
 
 Public Class ResponseData

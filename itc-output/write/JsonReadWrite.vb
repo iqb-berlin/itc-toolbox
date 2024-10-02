@@ -75,13 +75,18 @@ Public Class JsonReadWrite
                     Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
                     For Each p As Person In groupData
                         For Each b As Booklet In p.booklets
-                            Dim newPR As New PersonResponses With {.group = p.group, .login = p.login, .booklet = b.id, .responses = New List(Of ResponseData)}
+                            Dim newPR As New PersonResponses With {.group = p.group, .login = p.login, .code = p.code, .booklet = b.id, .subforms = New List(Of SubForm)}
                             For Each u As Unit In b.units
                                 For Each sf As SubForm In u.subforms
                                     For Each r As ResponseData In sf.responses
-                                        If Not String.IsNullOrEmpty(sf.id) Then r.id = sf.id + "##" + r.id
-                                        newPR.responses.Add(r)
+                                        r.id = u.alias + r.id
                                     Next
+                                    Dim sfToFill As SubForm = (From sfp As SubForm In newPR.subforms Where sfp.id = sf.id).FirstOrDefault
+                                    If sfToFill Is Nothing Then
+                                        newPR.subforms.Add(sf)
+                                    Else
+                                        sfToFill.responses.AddRange(sf.responses)
+                                    End If
                                 Next
                             Next
                             globalOutputStore.personResponses.Add(newPR)
