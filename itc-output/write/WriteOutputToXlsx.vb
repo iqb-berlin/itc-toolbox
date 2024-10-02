@@ -27,6 +27,11 @@ Class WriteOutputToXlsx
                 Next
             Next
         Next
+        For Each p As PersonResponses In globalOutputStore.personResponses
+            For Each r As ResponseData In p.responses
+                If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(r.id) Then AllVariables.Add(r.id)
+            Next
+        Next
         worker.ReportProgress(0.0#, AllVariables.Count.ToString + " Variablen gefunden.")
 
         If AllVariables.Count > 0 Then
@@ -131,6 +136,41 @@ Class WriteOutputToXlsx
                         Next
                     Next
 
+                    progressMax = globalOutputStore.personResponses.Count
+                    progressCount = 1
+                    stepCount += 1
+                    For Each person As PersonResponses In
+                        From p As PersonResponses In globalOutputStore.personResponses
+                        Let key = p.group + p.login + p.code + p.booklet
+                        Order By key
+                        Select p
+                        If worker.CancellationPending Then
+                            e.Cancel = True
+                            Exit For
+                        End If
+                        progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
+                        worker.ReportProgress(progressValue, "")
+                        progressCount += 1
+                        Dim myRowDataResponses As New List(Of RowData)
+                        Dim myRowDataStatus As New List(Of RowData)
+                        For Each response As ResponseData In person.responses
+                            If AllVariables.Contains(response.id) Then
+                                If myRowDataResponses.Count = 0 Then
+                                    Dim personKey As String = person.group + person.login + person.code
+                                    myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + person.booklet, .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "B", .Value = person.group, .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code, .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "D", .Value = person.booklet, .CellType = CellTypes.str})
+                                End If
+                                myRowDataResponses.Add(New RowData With {.Column = Columns.Item(response.id), .Value = response.value, .CellType = CellTypes.str})
+                            End If
+                        Next
+                        If myRowDataResponses.Count > 0 Then
+                            myRow += 1
+                            xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses)
+                            'xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
+                        End If
+                    Next
 
                     '########################################################
                     'TimeOnPage

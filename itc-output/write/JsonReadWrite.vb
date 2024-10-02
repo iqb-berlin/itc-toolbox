@@ -60,4 +60,37 @@ Public Class JsonReadWrite
             End Try
         Next
     End Sub
+
+    Public Shared Sub ReadResponsesOnly(sourceJsonFilenames As String(), myworker As ComponentModel.BackgroundWorker)
+        Dim progressMax As Integer = sourceJsonFilenames.Length
+        Dim progressCount As Integer = 1
+        Dim progressValue As Double = 0.0#
+        For Each fn In sourceJsonFilenames
+            progressValue = progressCount * (100 / progressMax)
+            progressCount += 1
+            myworker.ReportProgress(progressValue, IO.Path.GetFileName(fn))
+            Try
+                Using file As New IO.StreamReader(fn)
+                    Dim js As New JsonSerializer()
+                    Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
+                    For Each p As Person In groupData
+                        For Each b As Booklet In p.booklets
+                            Dim newPR As New PersonResponses With {.group = p.group, .login = p.login, .booklet = b.id, .responses = New List(Of ResponseData)}
+                            For Each u As Unit In b.units
+                                For Each sf As SubForm In u.subforms
+                                    For Each r As ResponseData In sf.responses
+                                        If Not String.IsNullOrEmpty(sf.id) Then r.id = sf.id + "##" + r.id
+                                        newPR.responses.Add(r)
+                                    Next
+                                Next
+                            Next
+                            globalOutputStore.personResponses.Add(newPR)
+                        Next
+                    Next
+                End Using
+            Catch ex As Exception
+                myworker.ReportProgress(progressValue, "Fehler " + IO.Path.GetFileName(fn) + ": " + ex.Message)
+            End Try
+        Next
+    End Sub
 End Class

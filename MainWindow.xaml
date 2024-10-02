@@ -186,6 +186,13 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
+                    <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadJsonResponsesOnly_Click">
+                        <Button.Content>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                            Laden JSON - nut Antworten
+                            </TextBlock>
+                        </Button.Content>
+                    </Button>
                     <Button DockPanel.Dock="Left" Click="BtnMergeDataClear_Click">
                         <Button.Content>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center">

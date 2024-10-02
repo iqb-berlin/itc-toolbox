@@ -6,6 +6,14 @@ Public Class ResponseSymbols
     Public Const STATUS_VALUE_CHANGED = "VALUE_CHANGED"
 End Class
 
+Public Class PersonResponses
+    Public group As String
+    Public login As String
+    Public code As String
+    Public booklet As String
+    Public responses As List(Of ResponseData)
+End Class
+
 Public Class ResponseData
     Public Const bigDataMarker = "data:application/octet-stream;base64"
     Public Const geoGebraFixMarker = "UEsDBBQAAAA"

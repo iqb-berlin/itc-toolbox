@@ -1,10 +1,12 @@
 ﻿Public Class readJsonFilesDialog
     Private files As String()
+    Private responsesOnly As Boolean
 
 #Region "Vorspann"
-    Public Sub New(fileNames As String())
+    Public Sub New(fileNames As String(), limitToResponses As Boolean)
         InitializeComponent()
         files = fileNames
+        responsesOnly = limitToResponses
     End Sub
 
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
@@ -58,6 +60,10 @@
     '######################################################################################
     Private Sub Process1_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process1_bw.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
-        JsonReadWrite.Read(files, myworker)
+        If responsesOnly Then
+            JsonReadWrite.ReadResponsesOnly(files, myworker)
+        Else
+            JsonReadWrite.Read(files, myworker)
+        End If
     End Sub
 End Class

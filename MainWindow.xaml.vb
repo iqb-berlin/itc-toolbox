@@ -232,6 +232,10 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataLoadJson_Click(sender As Object, e As RoutedEventArgs)
+        readJson(False)
+    End Sub
+
+    Private Sub readJson(responsesOnly As Boolean)
         Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
         If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
         Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
@@ -240,13 +244,12 @@ Class MainWindow
             My.Settings.lastfile_InputTargetJson = filepicker.FileName
             My.Settings.Save()
 
-            Dim ActionDlg As New readJsonFilesDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen MC-Merge JSON"}
+            Dim ActionDlg As New readJsonFilesDialog(filepicker.FileNames, responsesOnly) With {.Owner = Me, .Title = "Einlesen TC-Merge JSON"}
             If ActionDlg.ShowDialog() Then
                 updateGroupCount()
             End If
         End If
     End Sub
-
     Private Sub BtnMergeDataClear_Click(sender As Object, e As RoutedEventArgs)
         globalOutputStore.clear()
         updateGroupCount()
@@ -284,12 +287,16 @@ Class MainWindow
     End Sub
 
     Private Sub updateGroupCount()
-        Me.TBMerge.Text = "Daten für " + globalOutputStore.personData.Count.ToString + " Testpersonen geladen." + vbNewLine +
-            globalOutputStore.bigData.Count.ToString + " BigData"
+        Dim newText As String = "Daten geladen: " + vbNewLine
+        newText += globalOutputStore.personData.Count.ToString + " Testpersonen (volle Daten)" + vbNewLine
+        newText += globalOutputStore.personResponses.Count.ToString + " Fälle Testperson + Booklet (nur Antworten)" + vbNewLine
+        newText += globalOutputStore.bigData.Count.ToString + " BigData" + vbNewLine
+        newText += "Größeninfo für " + globalOutputStore.bookletSizes.Count.ToString + " Booklets"
+        Me.TBMerge.Text = newText
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personData.Count > 0 Then
+        If globalOutputStore.personData.Count + globalOutputStore.personResponses.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
@@ -305,5 +312,9 @@ Class MainWindow
         Else
             DialogFactory.MsgError(Me, "DataMerge", "Keine Daten")
         End If
+    End Sub
+
+    Private Sub BtnMergeDataLoadJsonResponsesOnly_Click(sender As Object, e As RoutedEventArgs)
+        readJson(True)
     End Sub
 End Class
