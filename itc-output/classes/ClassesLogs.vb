@@ -1,6 +1,13 @@
 ﻿Imports Newtonsoft.Json
 
-
+Public Class LogSymbols
+    Public Const LogFileFirstLineLegacy = "groupname;loginname;code;bookletname;unitname;timestamp;logentry"
+    Public Const LogFileFirstLine2024 = "groupname;loginname;code;bookletname;unitname;originalUnitId;timestamp;logentry"
+End Class
+Public Enum CsvLogFileType
+    Legacy
+    v2024
+End Enum
 Public Class LogEvent
     Public timestamp As Long
     Public unit As String = ""
@@ -25,6 +32,102 @@ Public Class TimeOnUnit
     Public lostFocus As Boolean = False
 End Class
 
+Public Class UnitLineDataLog
+    Public groupname As String
+    Public loginname As String
+    Public code As String
+    Public bookletname As String
+    Public unitname As String
+    Public timestamp As Long
+    Public originalUnitId As String
+    Public eventKey As String
+    Public eventParameter As String
+
+    Public Shared Function fromCsvLine(line As String, fileType As CsvLogFileType) As UnitLineDataLog
+        Dim lineSplits As String() = line.Split({""";"}, StringSplitOptions.RemoveEmptyEntries)
+        Dim expectedParamCount As Integer = 7
+        If fileType = CsvLogFileType.v2024 Then expectedParamCount = 8
+
+        If lineSplits.Count <> expectedParamCount Then lineSplits = line.Split({";"}, StringSplitOptions.None)
+        If lineSplits.Count = expectedParamCount Then
+            Dim returnLogEntry As New UnitLineDataLog With {
+                .groupname = IIf(lineSplits(0).Substring(0, 1) = """", lineSplits(0).Substring(1), lineSplits(0)),
+                .loginname = IIf(lineSplits(1).Substring(0, 1) = """", lineSplits(1).Substring(1), lineSplits(1)),
+                .code = "",
+                .bookletname = IIf(lineSplits(3).Substring(0, 1) = """", lineSplits(3).Substring(1).ToUpper, lineSplits(3).ToUpper),
+                .unitname = "",
+                .originalUnitId = "",
+                .eventKey = "",
+                .eventParameter = "",
+                .timestamp = 0
+            }
+            If Not String.IsNullOrEmpty(lineSplits(2)) Then returnLogEntry.code = IIf(lineSplits(2).Substring(0, 1) = """", lineSplits(2).Substring(1), lineSplits(2))
+            If Not String.IsNullOrEmpty(lineSplits(4)) Then
+                returnLogEntry.unitname = IIf(lineSplits(4).Substring(0, 1) = """", lineSplits(4).Substring(1), lineSplits(4))
+                If fileType = CsvLogFileType.v2024 Then returnLogEntry.originalUnitId = IIf(lineSplits(5).Substring(0, 1) = """", lineSplits(5).Substring(1), lineSplits(4))
+                If String.IsNullOrEmpty(returnLogEntry.originalUnitId) Then returnLogEntry.originalUnitId = returnLogEntry.unitname
+            End If
+            Dim offset As Integer = IIf(fileType = CsvLogFileType.Legacy, 0, 1)
+            Dim timestampStr As String = IIf(lineSplits(5 + offset).Substring(0, 1) = """", lineSplits(5 + offset).Substring(1), lineSplits(5 + offset))
+            If timestampStr.IndexOf("E+") > 0 Then
+                returnLogEntry.timestamp = Long.Parse(timestampStr, System.Globalization.NumberStyles.Float)
+            Else
+                returnLogEntry.timestamp = Long.Parse(timestampStr)
+            End If
+            Dim entry As String = lineSplits(6 + offset)
+            If Not String.IsNullOrEmpty(entry) AndAlso entry.Substring(0, 1) = """" Then
+                entry = entry.Substring(1, entry.Length - 2).Replace("""""", """")
+            End If
+
+            returnLogEntry.eventKey = entry
+            If returnLogEntry.eventKey.IndexOf(" : ") > 0 Then
+                returnLogEntry.eventParameter = returnLogEntry.eventKey.Substring(returnLogEntry.eventKey.IndexOf(" : ") + 3)
+                If returnLogEntry.eventParameter.IndexOf("""") = 0 AndAlso
+                    returnLogEntry.eventParameter.LastIndexOf("""") = returnLogEntry.eventParameter.Length - 1 Then
+                    returnLogEntry.eventParameter = returnLogEntry.eventParameter.Substring(1, returnLogEntry.eventParameter.Length - 2)
+                    returnLogEntry.eventParameter = returnLogEntry.eventParameter.Replace("""""", """")
+                    returnLogEntry.eventParameter = returnLogEntry.eventParameter.Replace("\\", "\")
+                End If
+                returnLogEntry.eventKey = returnLogEntry.eventKey.Substring(0, returnLogEntry.eventKey.IndexOf(" : "))
+            ElseIf returnLogEntry.eventKey.IndexOf(" = ") > 0 Then
+                returnLogEntry.eventParameter = returnLogEntry.eventKey.Substring(returnLogEntry.eventKey.IndexOf(" = ") + 3)
+                returnLogEntry.eventKey = returnLogEntry.eventKey.Substring(0, returnLogEntry.eventKey.IndexOf(" = "))
+            End If
+            Return returnLogEntry
+        Else
+            Return Nothing
+        End If
+    End Function
+
+    Public Shared Function fromTestcenterAPI(log As LogEntryDTO) As UnitLineDataLog
+        Dim returnLogEntry As New UnitLineDataLog With {
+                .groupname = log.groupname,
+                .loginname = log.loginname,
+                .code = log.code,
+                .bookletname = log.bookletname,
+                .unitname = log.unitname,
+                .originalUnitId = log.originalUnitId,
+                .eventKey = log.logentry,
+                .eventParameter = "",
+                .timestamp = log.timestamp
+            }
+        If String.IsNullOrEmpty(returnLogEntry.originalUnitId) Then returnLogEntry.originalUnitId = returnLogEntry.unitname
+        If returnLogEntry.eventKey.IndexOf(" : ") > 0 Then
+            returnLogEntry.eventParameter = returnLogEntry.eventKey.Substring(returnLogEntry.eventKey.IndexOf(" : ") + 3)
+            If returnLogEntry.eventParameter.IndexOf("""") = 0 AndAlso
+                returnLogEntry.eventParameter.LastIndexOf("""") = returnLogEntry.eventParameter.Length - 1 Then
+                returnLogEntry.eventParameter = returnLogEntry.eventParameter.Substring(1, returnLogEntry.eventParameter.Length - 2)
+                returnLogEntry.eventParameter = returnLogEntry.eventParameter.Replace("""""", """")
+                returnLogEntry.eventParameter = returnLogEntry.eventParameter.Replace("\\", "\")
+            End If
+            returnLogEntry.eventKey = returnLogEntry.eventKey.Substring(0, returnLogEntry.eventKey.IndexOf(" : "))
+        ElseIf returnLogEntry.eventKey.IndexOf(" = ") > 0 Then
+            returnLogEntry.eventParameter = returnLogEntry.eventKey.Substring(returnLogEntry.eventKey.IndexOf(" = ") + 3)
+            returnLogEntry.eventKey = returnLogEntry.eventKey.Substring(0, returnLogEntry.eventKey.IndexOf(" = "))
+        End If
+        Return returnLogEntry
+    End Function
+End Class
 Public Class TestPerson
     Public group As String
     Public login As String

@@ -147,10 +147,10 @@
                 </TextBlock>
             </DockPanel>
             <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterDataResponses_Click">
+                <Button DockPanel.Dock="Left" Click="BtnTestcenterToJson_Click">
                     <Button.Content>
                         <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Antworten+Logs Testcenter
+                            Testcenter -> JSON
                         </TextBlock>
                     </Button.Content>
                 </Button>
@@ -158,7 +158,7 @@
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap">
                     Verbinden mit einem Testcenter und Abrufen aller Antworten und Logs;
-                    Speichern sofort als JSON, eine Datei pro Testtaker-Gruppe
+                    Speichern sofort als JSON; eine Datei pro Testtaker-Gruppe
                 </TextBlock>
             </DockPanel>
             <TextBlock Padding="4 5 0 5" Background="#FFEAEAEA" Margin="0 10 0 5">
@@ -179,17 +179,10 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadJson_Click">
+                    <Button DockPanel.Dock="Left" Click="BtnDataLoadJson_Click">
                         <Button.Content>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Laden JSON
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadJsonResponsesOnly_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Laden JSON - nur Antworten
                             </TextBlock>
                         </Button.Content>
                     </Button>
@@ -206,14 +199,14 @@
                     <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJson_Click">
                         <Button.Content>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben Json
+                                Schreiben Json ohne BigData
                             </TextBlock>
                         </Button.Content>
                     </Button>
                     <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJsonByGroup_Click">
                         <Button.Content>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben Json gruppenweise
+                                Schreiben Json gruppenweise mit BigData
                             </TextBlock>
                         </Button.Content>
                     </Button>

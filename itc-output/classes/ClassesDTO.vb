@@ -16,6 +16,7 @@ Public Class LogEntryDTO
     Public unitname As String
     Public timestamp As Long
     Public logentry As String
+    Public originalUnitId As String
 End Class
 
 Public Class ResponseDataDTO
@@ -33,6 +34,7 @@ Public Class ResponseDTO
     Public unitname As String
     Public laststate As String
     Public responses As List(Of ResponseDataDTO)
+    Public originalUnitId As String
 End Class
 
 Public class BookletInfoDTO

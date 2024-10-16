@@ -235,7 +235,7 @@
     </Compile>
     <Compile Include="itc-output\write\WriteOutputToXlsx.vb" />
     <Compile Include="itc-output\transformCsv2Xlsx.vb" />
-    <Compile Include="itc-output\write\JsonReadWrite.vb" />
+    <Compile Include="itc-output\JsonReadWrite.vb" />
     <Compile Include="MainWindow.xaml.vb">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -332,8 +332,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="itc-mege\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

@@ -8,10 +8,11 @@
         For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
             Try
                 Dim readFile As System.IO.TextReader = New IO.StreamReader(fi.FullName)
-                Dim line As String = readFile.ReadLine()
-                If line = OutputDialog.LogFileFirstLine Then
+                Dim line As String = readFile.ReadLine().Replace("""", "")
+                If line = LogSymbols.LogFileFirstLine2024 OrElse line = LogSymbols.LogFileFirstLineLegacy Then
                     LogFileCount += 1
-                ElseIf line = OutputDialog.ResponsesFileFirstLine OrElse line = OutputDialog.ResponsesFileFirstLineLegacy Then
+                ElseIf line = ResponseSymbols.ResponsesFileFirstLine2019 OrElse
+                    line = ResponseSymbols.ResponsesFileFirstLineLegacy OrElse line = ResponseSymbols.ResponsesFileFirstLine2024 Then
                     ResponsesFileCount += 1
                 Else
                     Me.MBUC.AddMessage("w: Datei nicht erkannt: " + fi.Name)

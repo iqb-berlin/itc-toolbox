@@ -4,8 +4,18 @@ Public Class ResponseSymbols
     Public Const STATUS_UNSET = "UNSET"
     Public Const STATUS_ERROR = "ERROR"
     Public Const STATUS_VALUE_CHANGED = "VALUE_CHANGED"
+    Public Const STATUS_NOT_REACHED = "NOT_REACHED"
+    Public Const STATUS_DISPLAYED = "DISPLAYED"
+    Public Const ResponsesFileFirstLine2024 = "groupname;loginname;code;bookletname;unitname;originalUnitId;responses;laststate"
+    Public Const ResponsesFileFirstLine2019 = "groupname;loginname;code;bookletname;unitname;responses;laststate"
+    Public Const ResponsesFileFirstLineLegacy = "groupname;loginname;code;bookletname;unitname;responses;restorePoint;responseType;response-ts;restorePoint-ts;laststate"
 End Class
 
+Public Enum CsvResponseFileType
+    Legacy
+    v2019
+    v2024
+End Enum
 Public Class PersonResponses
     Public group As String
     Public login As String
@@ -57,20 +67,22 @@ Public Class LastStateEntry
     Public value As String
 End Class
 
-Public Class UnitLineData
+Public Class UnitLineDataResponses
     Public groupname As String
     Public loginname As String
     Public code As String
     Public bookletname As String
     Public unitname As String
+    Public unitId As String
     Public laststate As List(Of LastStateEntry)
     Public subforms As List(Of SubForm)
     Public chunks As List(Of ResponseChunkData)
 
     Public Shared Function fromCsvLine(line As String,
                                        renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
-                                       csvSeparator As String, segregateBigdata As Boolean) As UnitLineData
-        Dim returnUnitData As New UnitLineData
+                                       csvSeparator As String, segregateBigdata As Boolean,
+                                       fileType As CsvResponseFileType) As UnitLineDataResponses
+        Dim returnUnitData As New UnitLineDataResponses
         Dim responseChunks As New List(Of ResponseChunk)
         returnUnitData.laststate = New List(Of LastStateEntry)
 
@@ -83,8 +95,15 @@ Public Class UnitLineData
             Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
             returnUnitData.bookletname = lineSplits(3)
             returnUnitData.unitname = lineSplits(4)
+            returnUnitData.unitId = lineSplits(4)
             Dim startPos As Integer = lineSplits(0).Length + lineSplits(1).Length + lineSplits(2).Length + lineSplits(3).Length + lineSplits(4).Length
-            Dim residual As String = line.Substring(startPos + 5 * separator.Length)
+            Dim parameterCount As Integer = 5
+            If fileType = CsvResponseFileType.v2024 Then
+                returnUnitData.unitId = lineSplits(5)
+                startPos += lineSplits(5).Length
+                parameterCount += 1
+            End If
+            Dim residual As String = line.Substring(startPos + parameterCount * separator.Length)
             Dim stateStartPos As Integer = residual.LastIndexOf(separator)
             Dim dataPartsString As String = ""
             If stateStartPos > 0 Then
@@ -160,12 +179,13 @@ Public Class UnitLineData
         Return returnUnitData
     End Function
 
-    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, segregateBigdata As Boolean) As UnitLineData
-        Dim returnUnitData As New UnitLineData With {
+    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, segregateBigdata As Boolean) As UnitLineDataResponses
+        Dim returnUnitData As New UnitLineDataResponses With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
-            .loginname = responseData.loginname, .unitname = responseData.unitname, .laststate = New List(Of LastStateEntry),
+            .loginname = responseData.loginname, .unitname = responseData.unitname, .unitId = responseData.unitname, .laststate = New List(Of LastStateEntry),
             .subforms = New List(Of SubForm), .chunks = New List(Of ResponseChunkData)
             }
+        If Not String.IsNullOrEmpty(responseData.originalUnitId) Then returnUnitData.unitId = responseData.originalUnitId
         Dim tmpLastState As String = responseData.laststate
         Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
         If Not String.IsNullOrEmpty(tmpLastState) Then

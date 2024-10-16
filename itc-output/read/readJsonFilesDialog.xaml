@@ -13,9 +13,22 @@
     </Window.Resources>
     <DockPanel>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="20">
-            <Button Name="BtnClose">Schließen</Button>
+            <Button Name="BtnContinue" Width="120">Einlesen starten</Button>
             <Button Name="BtnCancel">Abbrechen</Button>
         </ItemsControl>
+        <DockPanel DockPanel.Dock="Top" Margin="10">
+            <TextBlock Margin="0 0 0 5" DockPanel.Dock="Top">Bitte wählen Sie aus, welche Daten eingelesen werden sollen.</TextBlock>
+            <StackPanel DockPanel.Dock="Left" Width="250">
+                <CheckBox x:Name="ChBResponses">Antworten</CheckBox>
+                <CheckBox x:Name="ChBResponsesIgnoreNotReached" Margin="10 0 0 0"
+                          IsEnabled="{Binding ElementName=ChBResponses, Path=IsChecked}">Mit Status "NOT__REACHED" ignorieren</CheckBox>
+                <CheckBox x:Name="ChBResponsesIgnoreDisplayed" Margin="10 0 0 0"
+                          IsEnabled="{Binding ElementName=ChBResponses, Path=IsChecked}">Mit Status "DISPLAYED" ignorieren</CheckBox>
+            </StackPanel>
+            <StackPanel>
+                <CheckBox x:Name="ChBLogs">Logs</CheckBox>
+            </StackPanel>
+        </DockPanel>
         <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
         <lib:MessageBoxUserControl Name="MBUC" />
     </DockPanel>

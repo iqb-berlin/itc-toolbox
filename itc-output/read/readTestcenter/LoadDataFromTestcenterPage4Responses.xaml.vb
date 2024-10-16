@@ -1,7 +1,4 @@
-﻿Imports Newtonsoft.Json
-Imports DocumentFormat.OpenXml
-Imports DocumentFormat.OpenXml.Spreadsheet
-Imports DocumentFormat.OpenXml.Packaging
+﻿Imports DocumentFormat.OpenXml
 Imports System.ComponentModel
 
 Public Class LoadDataFromTestcenterPage4Responses
@@ -11,7 +8,7 @@ Public Class LoadDataFromTestcenterPage4Responses
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         Me.BtnCancelClose.IsEnabled = False
         If ParentDlg.write Then
-            Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für Dateien",
+            Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für Dateien",
                                                             .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
             If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
                 My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
@@ -68,22 +65,8 @@ Public Class LoadDataFromTestcenterPage4Responses
             Else
                 For Each log As LogEntryDTO In logData
                     LogEntryCount += 1
-                    Dim key As String = log.logentry
-                    Dim parameter As String = ""
-                    If key.IndexOf(" : ") > 0 Then
-                        parameter = key.Substring(key.IndexOf(" : ") + 3)
-                        If parameter.IndexOf("""") = 0 AndAlso parameter.LastIndexOf("""") = parameter.Length - 1 Then
-                            parameter = parameter.Substring(1, parameter.Length - 2)
-                            parameter = parameter.Replace("""""", """")
-                            parameter = parameter.Replace("\\", "\")
-                        End If
-                        key = key.Substring(0, key.IndexOf(" : "))
-                    ElseIf key.IndexOf(" = ") > 0 Then
-                        parameter = key.Substring(key.IndexOf(" = ") + 3)
-                        key = key.Substring(0, key.IndexOf(" = "))
-                    End If
-
-                    globalOutputStore.personData.AddLogEntry(log.groupname, log.loginname, log.code, log.bookletname, log.timestamp, log.unitname, key, parameter)
+                    Dim logEntry As UnitLineDataLog = UnitLineDataLog.fromTestcenterAPI(log)
+                    If logData IsNot Nothing Then globalOutputStore.personDataFull.AddLogEntry(logEntry)
                 Next
             End If
             progressValue += 1
@@ -96,9 +79,9 @@ Public Class LoadDataFromTestcenterPage4Responses
                 fatalError = True
             Else
                 For Each responseData As ResponseDTO In responseDataList
-                    Dim unitData As UnitLineData = UnitLineData.fromTestcenterAPI(responseData, ParentDlg.segregateBigdata)
+                    Dim unitData As UnitLineDataResponses = UnitLineDataResponses.fromTestcenterAPI(responseData, ParentDlg.segregateBigdata)
                     If unitData.subforms IsNot Nothing AndAlso unitData.subforms.Count > 0 AndAlso
-                            unitData.subforms.First.responses.Count > 0 Then globalOutputStore.personData.AddUnitData(unitData)
+                            unitData.subforms.First.responses.Count > 0 Then globalOutputStore.personDataFull.AddUnitData(unitData)
                 Next
             End If
 

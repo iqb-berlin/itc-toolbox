@@ -15,11 +15,12 @@ Public Class PersonList
         End If
         'myBooklet.firstUnitEnterTS = value
     End Sub
-    Public Sub AddLogEntry(g As String, l As String, c As String, b As String, timestamp As Long, unit As String, event_key As String, event_parameter As String)
-        If Not Me.ContainsKey(g + l + c) Then Me.Add(g + l + c, New Person(g, l, c))
-        Me.Item(g + l + c).addLogEntry(b, timestamp, unit, event_key, event_parameter)
+    Public Sub AddLogEntry(logData As UnitLineDataLog)
+        Dim logKey As String = logData.groupname + logData.loginname + logData.code
+        If Not Me.ContainsKey(logKey) Then Me.Add(logKey, New Person(logData.groupname, logData.loginname, logData.code))
+        Me.Item(logKey).addLogEntry(logData.bookletname, logData.timestamp, logData.unitname, logData.eventKey, logData.eventParameter)
     End Sub
-    Public Sub AddUnitData(unitdata As UnitLineData)
+    Public Sub AddUnitData(unitdata As UnitLineDataResponses)
         Dim personKey As String = unitdata.groupname + unitdata.loginname + unitdata.code
         If Not Me.ContainsKey(personKey) Then Me.Add(personKey, New Person(unitdata.groupname, unitdata.loginname, unitdata.code))
         Dim myPerson As Person = Me.Item(personKey)
@@ -40,8 +41,8 @@ Public Class PersonList
         End If
     End Sub
 
-    Public Function ToUnitLineData() As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData)))
-        Dim returnDict As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineData)))
+    Public Function ToUnitLineData() As Dictionary(Of String, Dictionary(Of String, List(Of UnitLineDataResponses)))
+        Dim returnDict As New Dictionary(Of String, Dictionary(Of String, List(Of UnitLineDataResponses)))
 
         Return returnDict
     End Function

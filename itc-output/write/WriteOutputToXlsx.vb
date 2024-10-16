@@ -14,7 +14,7 @@ Class WriteOutputToXlsx
         Dim AllVariables As New List(Of String)
         worker.ReportProgress(0.0#, "Ermittle Variablen")
 
-        For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personData
+        For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
             For Each b As Booklet In p.Value.booklets
                 For Each u As Unit In b.units
                     For Each rSub As SubForm In u.subforms
@@ -82,11 +82,11 @@ Class WriteOutputToXlsx
 
                     Dim BookletUnits As New Dictionary(Of String, List(Of String)) 'für unten TechTable
 
-                    progressMax = globalOutputStore.personData.Count
+                    progressMax = globalOutputStore.personDataFull.Count
                     progressCount = 1
                     stepCount += 1
                     For Each person As Person In
-                        From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personData Order By kvp.Key Select kvp.Value
+                        From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By kvp.Key Select kvp.Value
                         If worker.CancellationPending Then
                             e.Cancel = True
                             Exit For
@@ -134,7 +134,7 @@ Class WriteOutputToXlsx
                     '########################################################
                     'TimeOnPage
                     '########################################################
-                    progressMax = globalOutputStore.personData.Count
+                    progressMax = globalOutputStore.personDataFull.Count
                     progressCount = 1
                     stepCount += 1
                     Dim TableTimeOnUnit As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "TimeOnUnit")
@@ -164,7 +164,7 @@ Class WriteOutputToXlsx
                     xlsxFactory.SetCellValueString("L", myRow, TableTimeOnUnit, "Responses Complete Time", CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth("L", TableTimeOnUnit, 10)
 
-                    For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Order By p.Key
+                    For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By p.Key
                         If worker.CancellationPending Then
                             e.Cancel = True
                             Exit For
@@ -228,10 +228,10 @@ Class WriteOutputToXlsx
                     xlsxFactory.SetCellValueString("H", myRow, TableTechData, "screen", CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth("H", TableTechData, 20)
 
-                    progressMax = globalOutputStore.personData.Count
+                    progressMax = globalOutputStore.personDataFull.Count
                     progressCount = 1
                     stepCount += 1
-                    For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personData Order By p.Key
+                    For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By p.Key
                         If worker.CancellationPending Then
                             e.Cancel = True
                             Exit For
@@ -279,7 +279,7 @@ Class WriteOutputToXlsx
         Dim AllVariables As New List(Of String)
         worker.ReportProgress(0.0#, "Ermittle Variablen")
 
-        For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personData
+        For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
             For Each b As Booklet In p.Value.booklets
                 For Each u As Unit In b.units
                     For Each rSub As SubForm In u.subforms
