@@ -52,8 +52,6 @@ Class MainWindow
             DialogFactory.MsgError(Me, Me.Title, ErrMsg)
             Me.Close()
         End If
-
-        CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
     End Sub
 
     Private Sub HandleHelpExecuted(sender As Object, e As ExecutedRoutedEventArgs)
@@ -282,16 +280,16 @@ Class MainWindow
     End Sub
 
     Private Sub updateGroupCount()
-        Dim newText As String = "Daten geladen: " + vbNewLine
-        newText += "Volldaten-Store:  " + globalOutputStore.personDataFull.Count.ToString + " Testpersonen" + vbNewLine
-        newText += "BigData (z. B. GeoGebra) Extradateien: " + globalOutputStore.bigData.Count.ToString + vbNewLine
-        newText += "Nur-Antworten-Store: " + globalOutputStore.personResponses.Count.ToString + " Fälle Testperson + Booklet" + vbNewLine
-        newText += "Größeninfo für " + globalOutputStore.bookletSizes.Count.ToString + " Booklets"
-        Me.TBMerge.Text = newText
+        TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
+
+        TBStoreCountBlobs.Text = globalOutputStore.bigData.Count.ToString
+        TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
+        'TBStoreCountLogs.Text = globalOutputStore.personLogs.Count.ToString
+        TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
+        If globalOutputStore.personDataFull.Count Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
@@ -305,7 +303,7 @@ Class MainWindow
                 ActionDlg.ShowDialog()
             End If
         Else
-            DialogFactory.MsgError(Me, "DataMerge", "Keine Daten")
+            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
         End If
     End Sub
 End Class

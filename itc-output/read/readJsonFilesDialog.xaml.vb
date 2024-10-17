@@ -81,4 +81,18 @@
             MBUC.AddMessage("Weder Antworten noch Logs ausgewählt.")
         End If
     End Sub
+
+    Private Sub UpdateTarget(sender As Object, e As RoutedEventArgs)
+        If ChBResponses.IsChecked Then
+            If ChBLogs.IsChecked Then
+                TBTarget.Text = "Ziel: Volldaten-Store"
+            Else
+                TBTarget.Text = "Ziel: Nur-Antworten-Store"
+            End If
+        ElseIf ChBLogs.IsChecked Then
+            TBTarget.Text = "Ziel: Nur-Logs-Store"
+        Else
+            TBTarget.Text = ""
+        End If
+    End Sub
 End Class
