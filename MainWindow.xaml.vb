@@ -241,9 +241,8 @@ Class MainWindow
             My.Settings.Save()
 
             Dim ActionDlg As New readJsonFilesDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen TC-JSON"}
-            If ActionDlg.ShowDialog() Then
-                updateGroupCount()
-            End If
+            ActionDlg.ShowDialog()
+            updateGroupCount()
         End If
     End Sub
     Private Sub BtnMergeDataClear_Click(sender As Object, e As RoutedEventArgs)
@@ -252,7 +251,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count > 0 Then
+        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
@@ -270,7 +269,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
-        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
+        Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
                                                         .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
         If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
             My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
@@ -284,9 +283,9 @@ Class MainWindow
 
     Private Sub updateGroupCount()
         Dim newText As String = "Daten geladen: " + vbNewLine
-        newText += globalOutputStore.personDataFull.Count.ToString + " Testpersonen (volle Daten)" + vbNewLine
-        newText += globalOutputStore.personResponses.Count.ToString + " Fälle Testperson + Booklet (nur Antworten)" + vbNewLine
-        newText += globalOutputStore.bigData.Count.ToString + " BigData" + vbNewLine
+        newText += "Volldaten-Store:  " + globalOutputStore.personDataFull.Count.ToString + " Testpersonen" + vbNewLine
+        newText += "BigData (z. B. GeoGebra) Extradateien: " + globalOutputStore.bigData.Count.ToString + vbNewLine
+        newText += "Nur-Antworten-Store: " + globalOutputStore.personResponses.Count.ToString + " Fälle Testperson + Booklet" + vbNewLine
         newText += "Größeninfo für " + globalOutputStore.bookletSizes.Count.ToString + " Booklets"
         Me.TBMerge.Text = newText
     End Sub

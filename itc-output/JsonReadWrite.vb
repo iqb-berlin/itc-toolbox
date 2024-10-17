@@ -7,6 +7,9 @@ Public Class JsonReadWrite
             js.Serialize(file,
                          From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
                          Select p.Value)
+            js.Serialize(file,
+                         From p As PersonResponses In globalOutputStore.personResponses
+                         Select p)
         End Using
     End Sub
 
