@@ -240,7 +240,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
+        If globalOutputStore.personDataFull.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
@@ -253,20 +253,24 @@ Class MainWindow
                 DialogFactory.Msg(Me, "DataMerge", "fertig")
             End If
         Else
-            DialogFactory.MsgError(Me, "DataMerge", "Keine Daten")
+            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
         End If
     End Sub
 
     Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
-        Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
-                                                        .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
-        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
-            My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
-            My.Settings.Save()
+        If globalOutputStore.personDataFull.Count > 0 Then
+            Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
+                                                            .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
+            If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+                My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
+                My.Settings.Save()
 
-            JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
-            JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
-            DialogFactory.Msg(Me, "DataMerge", "fertig")
+                JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
+                JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
+                DialogFactory.Msg(Me, "DataMerge", "fertig")
+            End If
+        Else
+            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
         End If
     End Sub
 
@@ -280,7 +284,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count Then
+        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
             Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
@@ -294,7 +298,7 @@ Class MainWindow
                 ActionDlg.ShowDialog()
             End If
         Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
+            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
         End If
     End Sub
 End Class

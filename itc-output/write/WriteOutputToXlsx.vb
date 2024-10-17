@@ -279,25 +279,30 @@ Class WriteOutputToXlsx
         Dim AllVariables As New List(Of String)
         worker.ReportProgress(0.0#, "Ermittle Variablen")
 
-        For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
-            For Each b As Booklet In p.Value.booklets
-                For Each u As Unit In b.units
-                    For Each rSub As SubForm In u.subforms
-                        Dim varPrefix As String = u.alias
-                        For Each r As ResponseData In rSub.responses
-                            If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(varPrefix + r.id) Then AllVariables.Add(varPrefix + r.id)
+        If globalOutputStore.personDataFull.Count > 0 Then
+            For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
+                For Each b As Booklet In p.Value.booklets
+                    For Each u As Unit In b.units
+                        For Each rSub As SubForm In u.subforms
+                            Dim varPrefix As String = u.alias
+                            For Each r As ResponseData In rSub.responses
+                                If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(varPrefix + r.id) Then AllVariables.Add(varPrefix + r.id)
+                            Next
                         Next
                     Next
                 Next
             Next
-        Next
-        For Each p As PersonResponses In globalOutputStore.personResponses
-            For Each sf As SubForm In p.subforms
-                For Each r In sf.responses
-                    If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(r.id) Then AllVariables.Add(r.id)
+        Else
+            If globalOutputStore.personResponses.Count > 0 Then
+                For Each p As PersonResponses In globalOutputStore.personResponses
+                    For Each sf As SubForm In p.subforms
+                        For Each r In sf.responses
+                            If r.status = "VALUE_CHANGED" AndAlso Not AllVariables.Contains(r.id) Then AllVariables.Add(r.id)
+                        Next
+                    Next
                 Next
-            Next
-        Next
+            End If
+        End If
         worker.ReportProgress(0.0#, AllVariables.Count.ToString + " Variablen gefunden.")
 
         If AllVariables.Count > 0 Then
@@ -309,7 +314,6 @@ Class WriteOutputToXlsx
                     'Responses
                     '########################################################
                     Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Responses")
-                    Dim TableStatus As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Status")
                     worker.ReportProgress(0.0#, "Schreibe Daten")
 
                     Dim myRow As Integer = 1
@@ -322,14 +326,6 @@ Class WriteOutputToXlsx
                     xlsxFactory.SetCellValueString("D", myRow, TableResponses, "Booklet", CellFormatting.RowHeader2, myStyles)
                     xlsxFactory.SetColumnWidth("D", TableResponses, 10)
 
-                    xlsxFactory.SetCellValueString("A", myRow, TableStatus, "ID", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("A", TableStatus, 20)
-                    xlsxFactory.SetCellValueString("B", myRow, TableStatus, "Group", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("B", TableStatus, 10)
-                    xlsxFactory.SetCellValueString("C", myRow, TableStatus, "Login+Code", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("C", TableStatus, 10)
-                    xlsxFactory.SetCellValueString("D", myRow, TableStatus, "Booklet", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("D", TableStatus, 10)
                     Dim myColumn As String = "E"
                     Dim Columns As New Dictionary(Of String, String)
 
@@ -345,43 +341,81 @@ Class WriteOutputToXlsx
                         progressCount += 1
                         xlsxFactory.SetCellValueString(myColumn, myRow, TableResponses, s, CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth(myColumn, TableResponses, 10)
-                        xlsxFactory.SetCellValueString(myColumn, myRow, TableStatus, s, CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth(myColumn, TableStatus, 10)
                         Columns.Add(s, myColumn)
                         myColumn = xlsxFactory.GetNextColumn(myColumn)
                     Next
 
-                    progressMax = globalOutputStore.personResponses.Count
+                    progressMax = IIf(globalOutputStore.personDataFull.Count > 0, globalOutputStore.personDataFull.Count, globalOutputStore.personResponses.Count)
                     progressCount = 1
                     stepCount += 1
-                    For Each person As PersonResponses In
-                        From p As PersonResponses In globalOutputStore.personResponses
-                        Let key = p.group + p.login + p.code + p.booklet
-                        Order By key
-                        Select p
-                        If worker.CancellationPending Then
-                            e.Cancel = True
-                            Exit For
-                        End If
-                        progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
-                        worker.ReportProgress(progressValue, "")
-                        progressCount += 1
-                        For Each sf As SubForm In person.subforms
-                            Dim myRowDataResponses As New List(Of RowData)
-                            Dim personKey As String = person.group + person.login + person.code + sf.id
-                            myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + person.booklet, .CellType = CellTypes.str})
-                            myRowDataResponses.Add(New RowData With {.Column = "B", .Value = person.group, .CellType = CellTypes.str})
-                            myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code + sf.id, .CellType = CellTypes.str})
-                            myRowDataResponses.Add(New RowData With {.Column = "D", .Value = person.booklet, .CellType = CellTypes.str})
-                            For Each r As ResponseData In sf.responses
-                                If AllVariables.Contains(r.id) Then
-                                    myRowDataResponses.Add(New RowData With {.Column = Columns.Item(r.id), .Value = r.value, .CellType = CellTypes.str})
-                                End If
+
+                    If globalOutputStore.personDataFull.Count > 0 Then
+                        For Each person As Person In
+                            From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
+                            Order By kvp.Key Select kvp.Value
+                            If worker.CancellationPending Then
+                                e.Cancel = True
+                                Exit For
+                            End If
+                            progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
+                            worker.ReportProgress(progressValue, "")
+                            progressCount += 1
+                            For Each booklet As Booklet In From b As Booklet In person.booklets Order By b.id
+                                Dim allSubForms As List(Of String) = (From u As Unit In booklet.units From sf As SubForm In u.subforms Select sf.id).Distinct.ToList
+                                For Each subFormId As String In From sf As String In allSubForms Order By sf
+                                    Dim myRowDataResponses As New List(Of RowData)
+                                    Dim personKey As String = person.group + person.login + person.code + subFormId
+                                    myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + booklet.id, .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "B", .Value = person.group, .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code + IIf(String.IsNullOrEmpty(subFormId), "", "_" + subFormId), .CellType = CellTypes.str})
+                                    myRowDataResponses.Add(New RowData With {.Column = "D", .Value = booklet.id, .CellType = CellTypes.str})
+                                    For Each unit As Unit In booklet.units
+                                        Dim varPrefix As String = unit.alias
+                                        Dim mySubForm As SubForm = (From sf As SubForm In unit.subforms Where sf.id = subFormId).FirstOrDefault
+                                        If mySubForm IsNot Nothing Then
+                                            For Each response As ResponseData In mySubForm.responses
+                                                If response.status = "VALUE_CHANGED" AndAlso AllVariables.Contains(varPrefix + response.id) Then
+                                                    myRowDataResponses.Add(New RowData With {.Column = Columns.Item(varPrefix + response.id), .Value = response.value, .CellType = CellTypes.str})
+                                                End If
+                                            Next
+                                        End If
+                                    Next
+                                    myRow += 1
+                                    xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses, myStyles)
+                                Next
                             Next
-                            myRow += 1
-                            xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses)
                         Next
-                    Next
+                    Else
+                        For Each person As PersonResponses In
+                            From p As PersonResponses In globalOutputStore.personResponses
+                            Let key = p.group + p.login + p.code + p.booklet
+                            Order By key
+                            Select p
+                            If worker.CancellationPending Then
+                                e.Cancel = True
+                                Exit For
+                            End If
+                            progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
+                            worker.ReportProgress(progressValue, "")
+                            progressCount += 1
+                            For Each sf As SubForm In person.subforms
+                                Dim myRowDataResponses As New List(Of RowData)
+                                Dim personKey As String = person.group + person.login + person.code + sf.id
+                                myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey + person.booklet, .CellType = CellTypes.str})
+                                myRowDataResponses.Add(New RowData With {.Column = "B", .Value = person.group, .CellType = CellTypes.str})
+                                myRowDataResponses.Add(New RowData With {.Column = "C", .Value = person.login + person.code + sf.id, .CellType = CellTypes.str})
+                                myRowDataResponses.Add(New RowData With {.Column = "D", .Value = person.booklet, .CellType = CellTypes.str})
+                                For Each r As ResponseData In sf.responses
+                                    If AllVariables.Contains(r.id) Then
+                                        myRowDataResponses.Add(New RowData With {.Column = Columns.Item(r.id), .Value = r.value, .CellType = CellTypes.str})
+                                    End If
+                                Next
+                                myRow += 1
+                                xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses, myStyles)
+                            Next
+                        Next
+                    End If
+
                 End Using
                 worker.ReportProgress(100.0#, "Speichern Datei")
                 Try
