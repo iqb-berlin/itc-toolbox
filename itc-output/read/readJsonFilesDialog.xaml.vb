@@ -1,29 +1,16 @@
 ﻿Public Class readJsonFilesDialog
-    Private files As String()
+    Private files As String() = Nothing
     Private Shared readResponses As Boolean = True
     Private Shared ignoreDisplayed As Boolean = True
     Private Shared ignoreNotReached As Boolean = True
     Private Shared readLogs As Boolean = False
 
-
-
 #Region "Vorspann"
-    Public Sub New(fileNames As String())
-        InitializeComponent()
-        files = fileNames
-    End Sub
-
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         ChBResponses.IsChecked = readResponses
         ChBResponsesIgnoreDisplayed.IsChecked = ignoreDisplayed
         ChBResponsesIgnoreNotReached.IsChecked = ignoreNotReached
         ChBLogs.IsChecked = readLogs
-
-        If files.Length <= 0 Then
-            BtnContinue.Visibility = Windows.Visibility.Collapsed
-            BtnCancel.Content = "Schließen"
-            MBUC.AddMessage("Keine Dateien ausgewählt.")
-        End If
     End Sub
 
     Private WithEvents Process1_bw As ComponentModel.BackgroundWorker = Nothing
@@ -38,15 +25,27 @@
     End Sub
 
     Private Sub BtnContinue_Click() Handles BtnContinue.Click
-        If files.Length > 0 AndAlso Process1_bw Is Nothing Then
-            BtnContinue.Visibility = Windows.Visibility.Collapsed
-            readResponses = ChBResponses.IsChecked
-            ignoreDisplayed = ChBResponsesIgnoreDisplayed.IsChecked
-            ignoreNotReached = ChBResponsesIgnoreNotReached.IsChecked
-            readLogs = ChBLogs.IsChecked
+        If Process1_bw Is Nothing Then
+            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+            If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
+            Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
+                .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = True, .Title = "JSON Daten einlesen - Wähle Datei(en)"}
+            If filepicker.ShowDialog Then
+                My.Settings.lastfile_InputTargetJson = filepicker.FileName
+                My.Settings.Save()
 
-            Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
-            Process1_bw.RunWorkerAsync()
+                files = filepicker.FileNames
+                If files.Length > 0 Then
+                    BtnContinue.Visibility = Windows.Visibility.Collapsed
+                    readResponses = ChBResponses.IsChecked
+                    ignoreDisplayed = ChBResponsesIgnoreDisplayed.IsChecked
+                    ignoreNotReached = ChBResponsesIgnoreNotReached.IsChecked
+                    readLogs = ChBLogs.IsChecked
+
+                    Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
+                    Process1_bw.RunWorkerAsync()
+                End If
+            End If
         Else
             DialogResult = False
         End If

@@ -230,18 +230,9 @@ Class MainWindow
     End Sub
 
     Private Sub BtnDataLoadJson_Click(sender As Object, e As RoutedEventArgs)
-        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-        If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
-        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
-            .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = True, .Title = "JSON Daten einlesen - Wähle Datei(en)"}
-        If filepicker.ShowDialog Then
-            My.Settings.lastfile_InputTargetJson = filepicker.FileName
-            My.Settings.Save()
-
-            Dim ActionDlg As New readJsonFilesDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen TC-JSON"}
-            ActionDlg.ShowDialog()
-            updateGroupCount()
-        End If
+        Dim ActionDlg As New readJsonFilesDialog() With {.Owner = Me, .Title = "Einlesen TC-JSON"}
+        ActionDlg.ShowDialog()
+        updateGroupCount()
     End Sub
     Private Sub BtnMergeDataClear_Click(sender As Object, e As RoutedEventArgs)
         globalOutputStore.clear()
