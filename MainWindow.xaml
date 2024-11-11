@@ -218,6 +218,13 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
+                    <Button DockPanel.Dock="Left" Click="BtnWriteSqlite_Click">
+                        <Button.Content>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                Schreiben SQLite
+                            </TextBlock>
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
                 <StackPanel>
                     <DockPanel>

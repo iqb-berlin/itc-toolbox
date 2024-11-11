@@ -50,5 +50,8 @@
     <Setting Name="lastfolder_OutputTarget" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="lastfile_OutputTargetSqlite" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

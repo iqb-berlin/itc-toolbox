@@ -167,6 +167,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-output\write\ToSqliteDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\write\ToXlsxDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -213,6 +217,9 @@
     </Compile>
     <Compile Include="itc-output\read\readJsonFilesDialog.xaml.vb">
       <DependentUpon>readJsonFilesDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\write\ToSqliteDialog.xaml.vb">
+      <DependentUpon>ToSqliteDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\write\ToXlsxDialog.xaml.vb">
       <DependentUpon>ToXlsxDialog.xaml</DependentUpon>
@@ -312,6 +319,15 @@
     </PackageReference>
     <PackageReference Include="QRCoder">
       <Version>1.4.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Data.SQLite">
+      <Version>1.0.119</Version>
+    </PackageReference>
+    <PackageReference Include="System.Data.SQLite.EF6">
+      <Version>1.0.119</Version>
+    </PackageReference>
+    <PackageReference Include="System.Data.SQLite.Linq">
+      <Version>1.0.119</Version>
     </PackageReference>
     <PackageReference Include="YamlDotNet">
       <Version>11.2.1</Version>

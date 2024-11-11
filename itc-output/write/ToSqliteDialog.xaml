@@ -1,0 +1,28 @@
+﻿<Window x:Class="ToSqliteDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lib="clr-namespace:iqb.lib.components;assembly=iqblib-components"
+
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Icon="pack://application:,,,/iqblib-components;component/Resources/iqbGrau.ico"
+        lib:HelpProvider.HelpTopicId="1027"
+        Title="Title" Height="524" Width="506">
+    <Window.Resources>
+        <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
+    </Window.Resources>
+    <DockPanel>
+        <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="20">
+            <Button Name="BtnContinue">Weiter</Button>
+            <Button Name="BtnClose">Schließen</Button>
+            <Button Name="BtnCancel">Abbrechen</Button>
+        </ItemsControl>
+        <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
+        <DockPanel DockPanel.Dock="Bottom" Background="#eee" Name="DPParameters">
+            <CheckBox x:Name="ChBResonses" DockPanel.Dock="Top" Margin="4">Antworten</CheckBox>
+
+        </DockPanel>
+        <lib:MessageBoxUserControl Name="MBUC" />
+
+    </DockPanel>
+</Window>
