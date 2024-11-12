@@ -95,10 +95,10 @@ Public Class ToSqliteDialog
         worker.ReportProgress(0.0#, AllVariables.Count.ToString + " Variablen gefunden.")
 
         If AllVariables.Count > 0 Then
-            Dim fact As DbProviderFactory = DbProviderFactories.GetFactory("System.Data.SQLite")
-            Using sqliteConnection As DbConnection = fact.CreateConnection()
-                sqliteConnection.ConnectionString = "Data Source=" + targetSqliteFilename
-                sqliteConnection.Open()
+            Dim sqliteConnector As New SQLiteConnector(targetSqliteFilename, True)
+            Using sqliteConnection As DbConnection = sqliteConnector.GetOpenConnection()
+                worker.ReportProgress(0.0#, "Version: " + sqliteConnector.dbVersion.ToString +
+                                      "; " + sqliteConnector.dbCreatedDateTime + " - " + sqliteConnector.dbCreator)
                 For Each person As Person In
                             From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By kvp.Key Select kvp.Value
                     If worker.CancellationPending Then

@@ -306,8 +306,9 @@ Class MainWindow
         If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
             Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
             If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetSqlite) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetSqlite)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetSqlite, .Filter = "SQLite-Dateien|*.sqlite",
-                                                            .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .CheckFileExists = True, .Title = "SQLite Zieldatei wählen"}
+            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {
+                .FileName = My.Settings.lastfile_OutputTargetSqlite, .Filter = "SQLite-Dateien|*.sqlite",
+                .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "SQLite Zieldatei wählen"}
             If filepicker.ShowDialog Then
                 My.Settings.lastfile_OutputTargetSqlite = filepicker.FileName
                 My.Settings.Save()
