@@ -28,10 +28,10 @@
                 <DataTemplate x:Key="MainTabControlHeader">
                     <TextBlock Text="{Binding}" 
                                Foreground="DarkBlue" 
-                               FontSize="16" 
+                               FontSize="14" 
                                Padding="4 0"
                                FontWeight="Normal"
-                               MaxWidth="120"
+                               MaxWidth="100"
                                TextWrapping="Wrap"/>
                 </DataTemplate>
                 <Style TargetType="{x:Type TabItem}">
@@ -161,7 +161,7 @@
                 </StackPanel>
             </TabItem>
             <TabItem Name="TITestees" Foreground="Navy">
-                <TabItem.Header>Antworten, Logs</TabItem.Header>
+                <TabItem.Header>(Antworten, Logs alt)</TabItem.Header>
                 <StackPanel Margin="10">
                     <StackPanel.Resources>
                         <Style TargetType="Button">
@@ -278,6 +278,31 @@
                                 <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountBooklets">0</TextBlock>
                             </DockPanel>
                         </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>Antworten, Logs</TabItem.Header>
+                <StackPanel Margin="10">
+                    <Menu>
+                        <MenuItem Header="_Datenbank">
+                            <MenuItem Command="local:AppCommands.DBNew"/>
+                            <MenuItem Command="local:AppCommands.DBOpen"/>
+                            <MenuItem Command="local:AppCommands.DBCopyTo"/>
+                            <Separator/>
+                            <MenuItem Command="local:AppCommands.AppExit"/>
+                        </MenuItem>
+                        <MenuItem Header="_Hinzufügen">
+                            <MenuItem Command="local:AppCommands.ImportFromTestcenter"/>
+                            <MenuItem Command="local:AppCommands.ImportFromCsv"/>
+                            <Separator/>
+                            <MenuItem Command="local:AppCommands.AppExit"/>
+                        </MenuItem>
+                    </Menu>
+                    <DockPanel>
+                        <TextBlock TextWrapping="Wrap" Name="TBDBInfo">
+                            Manche sagen so, manche so.
+                        </TextBlock>
                     </DockPanel>
                 </StackPanel>
             </TabItem>

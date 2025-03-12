@@ -1,5 +1,7 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
+    Private SqliteDB As SQLiteConnector = Nothing
+
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
 
@@ -38,7 +40,14 @@ Class MainWindow
             End If
         End Try
 
-        If Not ContinueStart Then
+        If ContinueStart Then
+            CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBCopyToCanExecute))
+        Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
                 IO.File.Exists(UserConfigFilename) Then
@@ -320,4 +329,66 @@ Class MainWindow
             DialogFactory.MsgError(Me, "SQLite", "SQLite-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
         End If
     End Sub
+
+    Private Sub HandleAppExitExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Me.Close()
+    End Sub
+
+    ' ################################################################################################
+    Private Sub UpdateSqliteDBInfo()
+        If Me.SqliteDB Is Nothing Then
+            TBDBInfo.Text = "Keine Daten"
+        Else
+            TBDBInfo.Text = Me.SqliteDB.dbCreator + ": " + Me.SqliteDB.dbCreatedDateTime
+        End If
+    End Sub
+
+    Private Sub HandleImportFromTestcenterExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        DialogFactory.Msg(Me, "yoyo", "HandleImportFromTestcenterExecuted")
+    End Sub
+
+    Private Sub HandleImportFromCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        DialogFactory.Msg(Me, "yoyo", "HandleImportFromCsvExecuted")
+    End Sub
+
+    Private Sub HandleDBNewExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        DBNewOrOpen(True)
+    End Sub
+
+    Private Sub HandleDBOpenExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        DBNewOrOpen(False)
+    End Sub
+
+    Private Sub DBNewOrOpen(create As Boolean)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_SqliteDB), .Filter = "Sqlite-Dateien|*.sqlite",
+            .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Datenbank-Datei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            UpdateSqliteDBInfo()
+        End If
+    End Sub
+    Private Sub HandleDBCopyToExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_SqliteDB, .Filter = "Sqlite-Dateien|*.sqlite",
+            .CheckFileExists = True, .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Datenbank-Datei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            DialogFactory.Msg(Me, "yoyo", "HandleDBCopyToExecuted")
+            UpdateSqliteDBInfo()
+        End If
+    End Sub
+
+    Private Function HandleDBCopyToCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+        Dim myreturn As Boolean = Me.SqliteDB IsNot Nothing
+        e.CanExecute = myreturn
+        Return myreturn
+    End Function
 End Class

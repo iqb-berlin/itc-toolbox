@@ -7,7 +7,7 @@ Public Class SQLiteConnector
     Public ReadOnly dbVersion As Integer
     Public ReadOnly dbCreator As String
     Public ReadOnly dbCreatedDateTime As String
-    Public Sub New(dbFileName As String, updateIfOldVersion As Boolean)
+    Public Sub New(dbFileName As String)
         fileName = dbFileName
         Dim addFullSchema As Boolean = Not IO.File.Exists(fileName)
         Using sqliteConnection As DbConnection = GetOpenConnection()
@@ -28,7 +28,7 @@ Public Class SQLiteConnector
                         INSERT INTO [db_info] ([key],[value]) VALUES ('name', 'IQB-Testcenter-Output');
                         INSERT INTO [db_info] ([key],[value]) VALUES ('dbVersion', '" + dbVersion.ToString + "');
                         INSERT INTO [db_info] ([key],[value]) VALUES ('dbCreator', '" + dbCreator + "');
-                        INSERT INTO [db_info] ([key],[value]) VALUES ('dbCreatedDateTime', '" + +"');
+                        INSERT INTO [db_info] ([key],[value]) VALUES ('dbCreatedDateTime', '" + dbCreatedDateTime + "');
                     "
                     cmd.ExecuteNonQuery()
                 End Using
