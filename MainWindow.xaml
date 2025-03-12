@@ -7,253 +7,280 @@
         xmlns:local="clr-namespace:iqb.testcenter.toolbox"
         SizeToContent="Height"
         mc:Ignorable="d"
-        Title="MainWindow" Width="800" Icon="Resources/IQB-Testcenter.ico">
+        Title="MainWindow" Width="600" Icon="Resources/IQB-Testcenter.ico" MinHeight="500">
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
     </Window.Resources>
-    <DockPanel>
+    <DockPanel Background="#142952">
         <DockPanel.Resources>
-            <VisualBrush
-                        x:Key="HatchBrush1"
-                        TileMode="Tile" Viewport="0,0,20,20"
-                        ViewportUnits="Absolute" Viewbox="0,0,20,20"   
-                        ViewboxUnits="Absolute">
-                <VisualBrush.Visual>
-                    <Canvas>
-                        <Rectangle Fill="#FFEAEAEA" Width="20" Height="20" />
-
-                        <Path Stroke="White" Data="M 0 10 l 10 10" />
-                        <Path Stroke="White" Data="M 10 0 l 7 3" />
-                        <Path Stroke="White" Data="M 17 3 l 3 7" />
-
-                        <Path Stroke="White" Data="M 6 0 l -6 20" />
-                        <Path Stroke="White" Data="M 20 0 l -14 20" />
-                    </Canvas>
-                </VisualBrush.Visual>
-            </VisualBrush>
             <libco:IntegerBooleanGreaterThen0Converter x:Key="IntegerBooleanGreaterThen0Converter"/>
         </DockPanel.Resources>
         <DockPanel DockPanel.Dock="Top" Margin="10">
             <libco:ButtonHelp DockPanel.Dock="Right" Height="26" Width="26" Margin="10 0 0 10" VerticalAlignment="Top"/>
-            <TextBlock TextWrapping="Wrap" Margin="0 0 10 0" DockPanel.Dock="Top">
+            <TextBlock TextWrapping="Wrap" Margin="0 0 10 0" DockPanel.Dock="Top" Foreground="white">
                 Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
                 dienen können oder ein Zwischenschritt dafür darstellen. Im unteren Abschnitt werden Ergebnisdaten aus dem IQB-Testcenter
                 in das Excel-Format übertragen.
             </TextBlock>
         </DockPanel>
-        <StackPanel Margin="10">
-            <StackPanel.Resources>
-                <Style TargetType="Button">
-                    <Setter Property="Padding" Value="10 4 10 4"/>
-                    <Setter Property="Margin" Value="0 1 5 1"/>
-                    <Setter Property="VerticalAlignment" Value="Top"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="Width" Value="180"/>
+        <TabControl TabStripPlacement="Left" Name="TCScanSelect">
+            <TabControl.Resources>
+                <DataTemplate x:Key="MainTabControlHeader">
+                    <TextBlock Text="{Binding}" 
+                               Foreground="DarkBlue" 
+                               FontSize="16" 
+                               Padding="4 0"
+                               FontWeight="Normal"
+                               MaxWidth="120"
+                               TextWrapping="Wrap"/>
+                </DataTemplate>
+                <Style TargetType="{x:Type TabItem}">
+                    <Setter Property="HeaderTemplate" Value="{StaticResource MainTabControlHeader}"/>
                 </Style>
-            </StackPanel.Resources>
-            <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 0 0 10">
-                <Run Text="Testmaterial" FontSize="16"/></TextBlock>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
-                <StackPanel DockPanel.Dock="Right" Width="110">
-                    <TextBlock>
+            </TabControl.Resources>
+            <TabItem Name="TIBooklets">
+                <TabItem.Header>Input</TabItem.Header>
+                <StackPanel Margin="10" Background="Transparent">
+                    <StackPanel.Resources>
+                        <Style TargetType="Button">
+                            <Setter Property="Padding" Value="10 4 10 4"/>
+                            <Setter Property="Margin" Value="0 1 5 1"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Width" Value="120"/>
+                            <Setter Property="Height" Value="40"/>
+                        </Style>
+                    </StackPanel.Resources>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnBookletXlsx_Click">Booklet-Xlsx</Button>
+                        <StackPanel DockPanel.Dock="Right" Width="110">
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-booklet.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                    <TextBlock>
+                            </TextBlock>
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Booklet-Template.xlsx">
                             <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-                <TextBlock TextWrapping="Wrap">
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap">
                         Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von XML-Booklets.
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Codes-Xlsx</Button>
-                <TextBlock DockPanel.Dock="Right" Width="110">
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnLoginPoolXlsx_Click">Codes-Xlsx</Button>
+                        <TextBlock DockPanel.Dock="Right" Width="110">
                     <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-codes.md">
                         <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                     </Hyperlink>
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
                         Erzeugen einer großen Menge an Codes, die für Logins, Personencodes und Kennwörtern verwendet werden können.
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnLoginXlsxTemplate_Click">Logins aus Vorlage</Button>
-                <StackPanel DockPanel.Dock="Right" Width="110">
-                    <TextBlock>
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnLoginXlsxTemplate_Click">Logins aus Vorlage</Button>
+                        <StackPanel DockPanel.Dock="Right" Width="110">
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins-template.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                    <TextBlock>
+                            </TextBlock>
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage.xlsx">
                             <Run Text="Vorlage" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-                <TextBlock TextWrapping="Wrap">
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap">
                         Einlesen einer speziell vorbereiteten Excel-Tabelle, Prüfen und Erzeugen von Logins und dann der Testtaker-XML.
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnLoginXlsxToDocx_Click">Logins in Docx</Button>
-                <StackPanel DockPanel.Dock="Right" Width="110">
-                    <TextBlock>
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnLoginXlsxToDocx_Click">Logins in Docx</Button>
+                        <StackPanel DockPanel.Dock="Right" Width="110">
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/docs/manual-logins-docx.md">
                             <Run Text="Dokumentation" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                    <TextBlock>
+                            </TextBlock>
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage1.docx">
                             <Run Text="Vorlage 1" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                    <TextBlock>
+                            </TextBlock>
+                            <TextBlock>
                         <Hyperlink Click="HyperlinkClick" NavigateUri="https://github.com/iqb-berlin/itc-toolbox/blob/master/Logins-Vorlage2.docx">
                             <Run Text="Vorlage 2" ToolTip="Link zu GitHub"/>
                         </Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-                <TextBlock TextWrapping="Wrap">
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap">
                         Einlesen einer speziell vorbereiteten Excel-Tabelle und Erzeugen von Docx-Dateien zum Ausdruck für Testpersonen.
-                </TextBlock>
-            </DockPanel>
-            <TextBlock Padding="4 10 0 5" Background="{StaticResource HatchBrush1}" Margin="0 10 0 10">
-                <Run Text="Testergebnisse" FontSize="16"/></TextBlock>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv</Button>
-                <TextBlock DockPanel.Dock="Right" Width="100">
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap">
+                        </TextBlock>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Name="TIVariables">
+                <TabItem.Header>Reviews, System-Check</TabItem.Header>
+                <StackPanel Margin="10">
+                    <StackPanel.Resources>
+                        <Style TargetType="Button">
+                            <Setter Property="Padding" Value="10 4 10 4"/>
+                            <Setter Property="Margin" Value="0 1 5 1"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Width" Value="120"/>
+                            <Setter Property="Height" Value="40"/>
+                        </Style>
+                    </StackPanel.Resources>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv</Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
                         Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnGetTestcenterReviewsData_Click">
-                    <Button.Content>
-                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnGetTestcenterReviewsData_Click">
+                            <Button.Content>
+                                <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Reviews Testcenter
+                                </TextBlock>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
                         </TextBlock>
-                    </Button.Content>
-                </Button>
-                <TextBlock DockPanel.Dock="Right" Width="100">
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap">
+                        <TextBlock TextWrapping="Wrap">
                         Verbinden mit einem Testcenter und Abrufen aller Reviews, Speichern als Xlsx
-                </TextBlock>
-            </DockPanel>
-            <DockPanel>
-                <Button DockPanel.Dock="Left" Click="BtnTestcenterToJson_Click">
-                    <Button.Content>
-                        <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Testcenter -> JSON
                         </TextBlock>
-                    </Button.Content>
-                </Button>
-                <TextBlock DockPanel.Dock="Right" Width="100">
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap">
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Name="TITestees" Foreground="Navy">
+                <TabItem.Header>Antworten, Logs</TabItem.Header>
+                <StackPanel Margin="10">
+                    <StackPanel.Resources>
+                        <Style TargetType="Button">
+                            <Setter Property="Padding" Value="10 4 10 4"/>
+                            <Setter Property="Margin" Value="0 1 5 1"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Width" Value="180"/>
+                        </Style>
+                    </StackPanel.Resources>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnTestcenterToJson_Click">
+                            <Button.Content>
+                                <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                            Testcenter -> JSON
+                                </TextBlock>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
                     Verbinden mit einem Testcenter und Abrufen aller Antworten und Logs;
                     Speichern sofort als JSON; eine Datei pro Testtaker-Gruppe
-                </TextBlock>
-            </DockPanel>
-            <TextBlock Padding="4 5 0 5" Background="#FFEAEAEA" Margin="0 10 0 5">
-                <Run Text="Antworten und Logs über Zwischenspeicher (Store)" FontSize="14"/></TextBlock>
-            <DockPanel>
-                <StackPanel>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadTC_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                        </TextBlock>
+                    </DockPanel>
+                    <TextBlock Padding="4 5 0 5" Background="#FFEAEAEA" Margin="0 10 0 5">
+                        <Run Text="Antworten und Logs über Zwischenspeicher (Store)" FontSize="14"/></TextBlock>
+                    <DockPanel>
+                        <StackPanel>
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadTC_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Abrufen Testcenter
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadCsv_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadCsv_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Laden CSV
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnDataLoadJson_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnDataLoadJson_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Laden JSON
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataClear_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataClear_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                             Clear
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
 
-                <StackPanel Margin="10 0 0 0" DockPanel.Dock="Right">
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJson_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                        <StackPanel Margin="10 0 0 0" DockPanel.Dock="Right">
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJson_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                                 Schreiben Json ohne BigData
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJsonByGroup_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJsonByGroup_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                                 Schreiben Json gruppenweise mit BigData
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveXlsx_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveXlsx_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                                 Schreiben Antworten Xlsx
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
-                    <Button DockPanel.Dock="Left" Click="BtnWriteSqlite_Click">
-                        <Button.Content>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center">
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button DockPanel.Dock="Left" Click="BtnWriteSqlite_Click">
+                                <Button.Content>
+                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
                                 Schreiben SQLite
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Volldaten-Store:</TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Testpersonen</TextBlock>
+                                <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountFull">0</TextBlock>
+                            </DockPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap" TextAlignment="Right">BigData (z. B. GeoGebra):</TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Extradateien</TextBlock>
+                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountBlobs">0</TextBlock>
+                            </DockPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Antworten-Store:</TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
+                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountResponses">0</TextBlock>
+                            </DockPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Logs-Store:</TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
+                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountLogs">0</TextBlock>
+                            </DockPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Booklet-Größeninfo:</TextBlock>
+                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Booklets</TextBlock>
+                                <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountBooklets">0</TextBlock>
+                            </DockPanel>
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
-                <StackPanel>
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Volldaten-Store:</TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Testpersonen</TextBlock>
-                        <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountFull">0</TextBlock>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap" TextAlignment="Right">BigData (z. B. GeoGebra):</TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Extradateien</TextBlock>
-                        <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountBlobs">0</TextBlock>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Antworten-Store:</TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
-                        <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountResponses">0</TextBlock>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Logs-Store:</TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
-                        <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountLogs">0</TextBlock>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Booklet-Größeninfo:</TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Booklets</TextBlock>
-                        <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountBooklets">0</TextBlock>
-                    </DockPanel>
-                </StackPanel>
-            </DockPanel>
-        </StackPanel>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>
