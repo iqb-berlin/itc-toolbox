@@ -46,7 +46,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBCopyToCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBOperationCanExecute))
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
@@ -352,14 +352,20 @@ Class MainWindow
     End Sub
 
     Private Sub HandleDBNewExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
-        DBNewOrOpen(True)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_SqliteDB, .Filter = "Sqlite-Dateien|*.sqlite",
+            .CheckFileExists = False, .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Neue Datenbank-Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            UpdateSqliteDBInfo()
+        End If
     End Sub
 
     Private Sub HandleDBOpenExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
-        DBNewOrOpen(False)
-    End Sub
-
-    Private Sub DBNewOrOpen(create As Boolean)
         Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
         If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
         Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_SqliteDB), .Filter = "Sqlite-Dateien|*.sqlite",
@@ -386,7 +392,7 @@ Class MainWindow
         End If
     End Sub
 
-    Private Function HandleDBCopyToCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+    Private Function HandleDBOperationCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
         Dim myreturn As Boolean = Me.SqliteDB IsNot Nothing
         e.CanExecute = myreturn
         Return myreturn
