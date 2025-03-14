@@ -42,8 +42,9 @@ Class MainWindow
 
         If ContinueStart Then
             CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBOperationCanExecute))
@@ -349,6 +350,12 @@ Class MainWindow
 
     Private Sub HandleImportFromCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
         DialogFactory.Msg(Me, "yoyo", "HandleImportFromCsvExecuted")
+    End Sub
+
+    Private Sub HandleImportFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim ActionDlg As New readJsonFilesToDbDialog() With {.Owner = Me, .Title = "Einlesen TC-JSON", .SqliteDB = Me.SqliteDB}
+        ActionDlg.ShowDialog()
+        updateGroupCount()
     End Sub
 
     Private Sub HandleDBNewExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)

@@ -167,6 +167,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-output\sqlite\readJsonFilesToDbDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\write\ToSqliteDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -218,6 +222,9 @@
     </Compile>
     <Compile Include="itc-output\read\readJsonFilesDialog.xaml.vb">
       <DependentUpon>readJsonFilesDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\sqlite\readJsonFilesToDbDialog.xaml.vb">
+      <DependentUpon>readJsonFilesToDbDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\sqlite\SQLiteConnector.vb" />
     <Compile Include="itc-output\write\ToSqliteDialog.xaml.vb">
