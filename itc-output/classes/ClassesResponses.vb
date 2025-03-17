@@ -30,6 +30,8 @@ Public Class ResponseData
     Public id As String
     Public status As String
     Public value As String
+    Public code As Integer = 0
+    Public score As Integer = 0
     Public Sub New(id As String, v As String, st As String)
         Me.id = id
         value = v

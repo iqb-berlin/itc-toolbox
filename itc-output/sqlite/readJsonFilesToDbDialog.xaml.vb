@@ -5,26 +5,19 @@ Public Class readJsonFilesToDbDialog
     Public SqliteDB As SQLiteConnector = Nothing
 
 #Region "Vorspann"
+    Public Sub New(fileNameList As String())
+        InitializeComponent()
+        Me.files = fileNameList
+    End Sub
+
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
-        If SqliteDB Is Nothing Then
+        If files.Length > 0 Then
+            Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
+            Process1_bw.RunWorkerAsync()
+        Else
             APBUC.Value = 0.0#
             MBUC.AddMessage("Keine Datenbank zugewiesen")
             BtnCancel.Content = "Schließen"
-        Else
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
-            Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
-                .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = True, .Title = "JSON Daten einlesen - Wähle Datei(en)"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_InputTargetJson = filepicker.FileName
-                My.Settings.Save()
-
-                files = filepicker.FileNames
-                If files.Length > 0 Then Me.DialogResult = False
-
-                Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
-                Process1_bw.RunWorkerAsync()
-            End If
         End If
     End Sub
 
@@ -34,6 +27,7 @@ Public Class readJsonFilesToDbDialog
         If Process1_bw IsNot Nothing AndAlso Process1_bw.IsBusy Then
             Process1_bw.CancelAsync()
             BtnCancel.IsEnabled = False
+            MBUC.AddMessage("Abbruch - bitte warten")
         Else
             DialogResult = False
         End If
@@ -48,6 +42,7 @@ Public Class readJsonFilesToDbDialog
         APBUC.Value = 0.0#
         MBUC.AddMessage("beendet")
         BtnCancel.Content = "Schließen"
+        BtnCancel.IsEnabled = True
         If e.Cancelled Then MBUC.AddMessage("durch Nutzer abgebrochen.")
     End Sub
 #End Region
@@ -57,23 +52,30 @@ Public Class readJsonFilesToDbDialog
     Private Sub Process1_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process1_bw.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
         Dim progressMax As Integer = files.Length
-        Dim progressCount As Integer = 1
+        Dim progressCount As Integer = 0
         Dim progressValue As Double
         For Each fn In files
-            progressValue = progressCount * (100 / progressMax)
-            progressCount += 1
-            myworker.ReportProgress(progressValue, IO.Path.GetFileName(fn))
+            myworker.ReportProgress(progressValue, "Lese " + IO.Path.GetFileName(fn))
             Try
                 Using file As New IO.StreamReader(fn)
                     Dim js As New JsonSerializer()
                     Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
+                    Dim plusValuePerPerson As Double = 100 / progressMax
+                    Dim fileMax As Integer = groupData.Count
+                    Dim fileCount As Integer = 0
                     For Each p As Person In groupData
+                        fileCount += 1
+                        If myworker.CancellationPending Then Exit For
+                        progressValue = progressCount * plusValuePerPerson + fileCount * (plusValuePerPerson / fileMax)
+                        myworker.ReportProgress(progressValue)
                         SqliteDB.addPerson(p)
                     Next
                 End Using
             Catch ex As Exception
                 myworker.ReportProgress(progressValue, "Fehler " + IO.Path.GetFileName(fn) + ": " + ex.Message)
             End Try
+            progressCount += 1
+            If myworker.CancellationPending Then Exit For
         Next
     End Sub
 End Class

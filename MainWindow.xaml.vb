@@ -353,9 +353,20 @@ Class MainWindow
     End Sub
 
     Private Sub HandleImportFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
-        Dim ActionDlg As New readJsonFilesToDbDialog() With {.Owner = Me, .Title = "Einlesen TC-JSON", .SqliteDB = Me.SqliteDB}
-        ActionDlg.ShowDialog()
-        updateGroupCount()
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
+            .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = True, .Title = "JSON Daten einlesen - Wähle Datei(en)"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_InputTargetJson = filepicker.FileName
+            My.Settings.Save()
+
+            If filepicker.FileNames.Length > 0 Then
+                Dim ActionDlg As New readJsonFilesToDbDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen TC-JSON", .SqliteDB = Me.SqliteDB}
+                ActionDlg.ShowDialog()
+                updateGroupCount()
+            End If
+        End If
     End Sub
 
     Private Sub HandleDBNewExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)

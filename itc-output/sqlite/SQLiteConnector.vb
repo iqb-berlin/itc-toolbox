@@ -17,15 +17,15 @@ Public Class SQLiteConnector
 SELECT 1;
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
+CREATE TABLE [db_info] (
+  [key] text NOT NULL
+, [value] text NOT NULL
+);
 CREATE TABLE [person] (
   [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
 , [group] text NOT NULL
 , [login]  NOT NULL
 , [code]  NULL
-);
-CREATE TABLE [db_info] (
-  [key] text NOT NULL
-, [value] text NOT NULL
 );
 CREATE TABLE [booklet] (
   [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
@@ -45,7 +45,7 @@ CREATE TABLE [session] (
 CREATE TABLE [bookletLog] (
   [bookletId] bigint NOT NULL
 , [key] text NOT NULL
-, [paremeter] text NULL
+, [parameter] text NULL
 , [ts] bigint NULL
 , CONSTRAINT [FK_bookletLog_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -59,7 +59,7 @@ CREATE TABLE [unit] (
 CREATE TABLE [unitLog] (
   [unitId] bigint NOT NULL
 , [key] text NOT NULL
-, [paremeter] text NULL
+, [parameter] text NULL
 , [ts] bigint NULL
 , CONSTRAINT [FK_unitLog_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -88,8 +88,8 @@ CREATE TABLE [response] (
 , [variableId] text NOT NULL
 , [value] text NULL
 , [status] text NOT NULL
-, [code] bigint DEFAULT (0) NOT NULL
-, [score] bigint DEFAULT (0) NOT NULL
+, [code] integer DEFAULT (0) NOT NULL
+, [score] integer DEFAULT (0) NOT NULL
 , CONSTRAINT [FK_response_0_0] FOREIGN KEY ([subformId]) REFERENCES [subform] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 CREATE TRIGGER [fki_booklet_personId_person_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
@@ -160,12 +160,79 @@ BEGIN TRANSACTION;
 INSERT INTO [person] ([group],[login],[code]) VALUES ('" + p.group + "', '" + p.login + "', '" + p.code + "');
 SELECT last_insert_rowid();
 COMMIT;"
-                Dim lastInsertId As Long = cmd.ExecuteScalar()
+                Dim lastInsert_PersonId As Long = cmd.ExecuteScalar()
                 For Each b As Booklet In p.booklets
                     cmd.CommandText = "
-                        INSERT INTO [booklet] ([personId],[name]) VALUES (" + lastInsertId.ToString + ", '" + b.id + "');
-                    "
-                    cmd.ExecuteNonQuery()
+BEGIN TRANSACTION;
+INSERT INTO [booklet] ([personId],[name]) VALUES (" + lastInsert_PersonId.ToString + ", '" + b.id + "');
+SELECT last_insert_rowid();
+COMMIT;"
+                    Dim lastInsert_BookletId As Long = cmd.ExecuteScalar()
+                    cmd.CommandText = ""
+                    For Each bLog As LogEntry In b.logs
+                        cmd.CommandText += "
+INSERT INTO [bookletLog] ([bookletId],[key],[parameter],[ts]) VALUES (" +
+lastInsert_BookletId.ToString + ", '" + bLog.key + "','" + bLog.parameter + "'," + bLog.ts.ToString + ");"
+                    Next
+                    For Each s As Session In b.sessions
+                        cmd.CommandText += "
+INSERT INTO [session] ([bookletId],[browser],[os],[ts],[screen],[loadCompleteMS]) VALUES (" +
+lastInsert_BookletId.ToString + ", '" + s.browser + "','" + s.os + "'," + s.ts.ToString + ",'" + s.screen + "'," + s.loadCompleteMS.ToString + ");"
+                    Next
+                    If Not String.IsNullOrEmpty(cmd.CommandText) Then
+                        cmd.CommandText = "BEGIN TRANSACTION;" + cmd.CommandText + "COMMIT;"
+                        cmd.ExecuteNonQuery()
+                    End If
+
+                    For Each u As Unit In b.units
+                        cmd.CommandText = "
+BEGIN TRANSACTION;
+INSERT INTO [unit] ([bookletId],[name],[alias]) VALUES (" + lastInsert_BookletId.ToString + ", '" + u.id + "', '" + u.alias + "');
+SELECT last_insert_rowid();
+COMMIT;"
+                        Dim lastInsert_UnitId As Long = cmd.ExecuteScalar()
+
+                        cmd.CommandText = ""
+                        For Each ls As LastStateEntry In u.laststate
+                            cmd.CommandText += "
+INSERT INTO [unitLastState] ([unitId],[key],[value]) VALUES (" +
+lastInsert_UnitId.ToString + ", '" + ls.key + "','" + ls.value + "');"
+                        Next
+                        For Each l As LogEntry In u.logs
+                            cmd.CommandText += "
+INSERT INTO [unitLog] ([unitId],[key],[parameter],[ts]) VALUES (" +
+lastInsert_UnitId.ToString + ", '" + l.key + "','" + l.parameter + "'," + l.ts.ToString + ");"
+                        Next
+                        For Each r As ResponseChunkData In u.chunks
+                            cmd.CommandText += "
+INSERT INTO [chunk] ([unitId],[key],[type],[variables],[ts]) VALUES (" +
+lastInsert_UnitId.ToString + ", '" + r.id + "','" + r.type + "','" + String.Join(" ", r.variables) + "'," + r.ts.ToString + ");"
+                        Next
+                        If Not String.IsNullOrEmpty(cmd.CommandText) Then
+                            cmd.CommandText = "BEGIN TRANSACTION;" + cmd.CommandText + "COMMIT;"
+                            cmd.ExecuteNonQuery()
+                        End If
+
+                        For Each sf As SubForm In u.subforms
+                            cmd.CommandText = "
+BEGIN TRANSACTION;
+INSERT INTO [subform] ([unitId],[key]) VALUES (" + lastInsert_UnitId.ToString + ", '" + sf.id + "');
+SELECT last_insert_rowid();
+COMMIT;"
+                            Dim lastInsert_SubformId As Long = cmd.ExecuteScalar()
+                            cmd.CommandText = ""
+                            For Each resp As ResponseData In sf.responses
+                                cmd.CommandText += "
+INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]) VALUES (" +
+lastInsert_SubformId.ToString + ", '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" + resp.status + "'," +
+                                resp.code.ToString + "," + resp.score.ToString + ");"
+                            Next
+                            If Not String.IsNullOrEmpty(cmd.CommandText) Then
+                                cmd.CommandText = "BEGIN TRANSACTION;" + cmd.CommandText + "COMMIT;"
+                                cmd.ExecuteNonQuery()
+                            End If
+                        Next
+                    Next
                 Next
             End Using
         End Using
