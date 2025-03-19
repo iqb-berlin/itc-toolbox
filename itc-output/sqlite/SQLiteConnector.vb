@@ -1,4 +1,5 @@
 ﻿Imports System.Data.Common
+Imports System.Globalization
 Imports iqb.lib.windows
 
 Public Class SQLiteConnector
@@ -10,7 +11,7 @@ Public Class SQLiteConnector
     Public Sub New(dbFileName As String)
         fileName = dbFileName
         Dim addFullSchema As Boolean = Not IO.File.Exists(fileName)
-        Using sqliteConnection As DbConnection = GetOpenConnection()
+        Using sqliteConnection As DbConnection = GetOpenConnection(False)
             If addFullSchema Then
                 Using cmd As DbCommand = sqliteConnection.CreateCommand()
                     cmd.CommandText = "
@@ -144,16 +145,36 @@ COMMIT;"
         End Using
     End Sub
 
-    Public Function GetOpenConnection() As DbConnection
+    Public Function GetOpenConnection(ReadOnlyMode As Boolean) As DbConnection
         Dim fact As DbProviderFactory = DbProviderFactories.GetFactory("System.Data.SQLite")
         Dim sqliteConnection As DbConnection = fact.CreateConnection()
-        sqliteConnection.ConnectionString = "Data Source=" + fileName
+        sqliteConnection.ConnectionString = "Data Source=" + fileName + IIf(ReadOnlyMode, ";Read Only=True;", "")
         sqliteConnection.Open()
         Return sqliteConnection
     End Function
 
+    Public Function GetCoreData(closeConnection As Boolean) As String
+        Dim returnText As String = ""
+        Using sqliteConnection As DbConnection = GetOpenConnection(True)
+            Using cmd As DbCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "SELECT COUNT(*) FROM [person];"
+                Dim personCount As Long = cmd.ExecuteScalar()
+                cmd.CommandText = "SELECT COUNT(*) FROM [response];"
+                Dim responseCount As Long = cmd.ExecuteScalar()
+                Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
+                returnText = "Anzahl Personen: " + personCount.ToString("N0", deCulture) +
+                    ", Anzahl Antwortdaten: " + responseCount.ToString("N0", deCulture)
+            End Using
+        End Using
+        If closeConnection Then
+            GC.Collect()
+            GC.WaitForPendingFinalizers()
+        End If
+        Return returnText
+    End Function
+
     Public Sub addPerson(p As Person)
-        Using sqliteConnection As DbConnection = GetOpenConnection()
+        Using sqliteConnection As DbConnection = GetOpenConnection(False)
             Using cmd As DbCommand = sqliteConnection.CreateCommand()
                 cmd.CommandText = "
 BEGIN TRANSACTION;

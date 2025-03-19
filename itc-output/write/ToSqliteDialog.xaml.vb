@@ -96,7 +96,7 @@ Public Class ToSqliteDialog
 
         If AllVariables.Count > 0 Then
             Dim sqliteConnector As New SQLiteConnector(targetSqliteFilename)
-            Using sqliteConnection As DbConnection = sqliteConnector.GetOpenConnection()
+            Using sqliteConnection As DbConnection = sqliteConnector.GetOpenConnection(False)
                 worker.ReportProgress(0.0#, "Version: " + sqliteConnector.dbVersion.ToString +
                                       "; " + sqliteConnector.dbCreatedDateTime + " - " + sqliteConnector.dbCreator)
                 For Each person As Person In

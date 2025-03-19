@@ -56,25 +56,25 @@ Public Class readJsonFilesToDbDialog
         Dim progressValue As Double
         For Each fn In files
             myworker.ReportProgress(progressValue, "Lese " + IO.Path.GetFileName(fn))
-            Try
-                Using file As New IO.StreamReader(fn)
-                    Dim js As New JsonSerializer()
-                    Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
-                    Dim plusValuePerPerson As Double = 100 / progressMax
-                    Dim fileMax As Integer = groupData.Count
-                    Dim fileCount As Integer = 0
-                    For Each p As Person In groupData
-                        fileCount += 1
-                        If myworker.CancellationPending Then Exit For
-                        progressValue = progressCount * plusValuePerPerson + fileCount * (plusValuePerPerson / fileMax)
-                        myworker.ReportProgress(progressValue)
-                        SqliteDB.addPerson(p)
-                    Next
-                End Using
-            Catch ex As Exception
-                myworker.ReportProgress(progressValue, "Fehler " + IO.Path.GetFileName(fn) + ": " + ex.Message)
-            End Try
+            Using file As New IO.StreamReader(fn)
+                Dim js As New JsonSerializer()
+                Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
+                Dim plusValuePerPerson As Double = 100 / progressMax
+                Dim fileMax As Integer = groupData.Count
+                Dim fileCount As Integer = 0
+                For Each p As Person In groupData
+                    fileCount += 1
+                    If myworker.CancellationPending Then Exit For
+                    progressValue = progressCount * plusValuePerPerson + fileCount * (plusValuePerPerson / fileMax)
+                    myworker.ReportProgress(progressValue)
+                    SqliteDB.addPerson(p)
+                Next
+            End Using
             progressCount += 1
+            If progressCount = progressMax Then
+                Dim statusText As String = SqliteDB.GetCoreData(True)
+                myworker.ReportProgress(0.0#, statusText)
+            End If
             If myworker.CancellationPending Then Exit For
         Next
     End Sub
