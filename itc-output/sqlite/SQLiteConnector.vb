@@ -32,6 +32,8 @@ CREATE TABLE [booklet] (
   [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
 , [name] text NOT NULL
 , [personId] bigint NOT NULL
+, [lastTs] bigint DEFAULT (0) NOT NULL
+, [firstTs] bigint DEFAULT (0) NOT NULL
 , CONSTRAINT [FK_booklet_0_0] FOREIGN KEY ([personId]) REFERENCES [person] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 CREATE TABLE [session] (
@@ -176,6 +178,8 @@ COMMIT;"
     Public Sub addPerson(p As Person)
         Using sqliteConnection As DbConnection = GetOpenConnection(False)
             Using cmd As DbCommand = sqliteConnection.CreateCommand()
+                'Dim personDbId As Long = sqliteConnection.
+
                 cmd.CommandText = "
 BEGIN TRANSACTION;
 INSERT INTO [person] ([group],[login],[code]) VALUES ('" + p.group + "', '" + p.login + "', '" + p.code + "');
@@ -183,6 +187,13 @@ SELECT last_insert_rowid();
 COMMIT;"
                 Dim lastInsert_PersonId As Long = cmd.ExecuteScalar()
                 For Each b As Booklet In p.booklets
+                    'If b.lastTS = 0 OrElse b.firstTS = 0 Then b.setTimestamps()
+                    'cmd.CommandText = "select * from booklet where personId = @personId AND name = @bookletName"
+                    'cmd.Parameters.Add("@personId", lastInsert_PersonId)
+
+                    '" + lastInsert_PersonId.ToString + "' "
+
+
                     cmd.CommandText = "
 BEGIN TRANSACTION;
 INSERT INTO [booklet] ([personId],[name]) VALUES (" + lastInsert_PersonId.ToString + ", '" + b.id + "');

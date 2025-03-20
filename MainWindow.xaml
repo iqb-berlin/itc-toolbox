@@ -23,7 +23,7 @@
                 in das Excel-Format übertragen.
             </TextBlock>
         </DockPanel>
-        <TabControl TabStripPlacement="Left" Name="TCScanSelect">
+        <TabControl TabStripPlacement="Top" Name="TCScanSelect">
             <TabControl.Resources>
                 <DataTemplate x:Key="MainTabControlHeader">
                     <TextBlock Text="{Binding}" 
@@ -31,7 +31,7 @@
                                FontSize="14" 
                                Padding="4 0"
                                FontWeight="Normal"
-                               MaxWidth="100"
+                               MaxWidth="200"
                                TextWrapping="Wrap"/>
                 </DataTemplate>
                 <Style TargetType="{x:Type TabItem}">
