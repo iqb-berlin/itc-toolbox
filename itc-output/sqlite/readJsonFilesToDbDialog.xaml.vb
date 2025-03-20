@@ -62,6 +62,7 @@ Public Class readJsonFilesToDbDialog
                 Dim plusValuePerPerson As Double = 100 / progressMax
                 Dim fileMax As Integer = groupData.Count
                 Dim fileCount As Integer = 0
+                Debug.Print("file: " + fn)
                 For Each p As Person In groupData
                     fileCount += 1
                     If myworker.CancellationPending Then Exit For

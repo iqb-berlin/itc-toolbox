@@ -184,21 +184,21 @@ Public Class Booklet
 
     Public Sub setTimestamps()
         For Each s As Session In sessions
-            If s.ts < lastTS Then lastTS = s.ts
-            If s.ts = 0 OrElse s.ts > firstTS Then firstTS = s.ts
+            If s.ts > lastTS Then lastTS = s.ts
+            If firstTS = 0 OrElse s.ts < firstTS Then firstTS = s.ts
         Next
         For Each l As LogEntry In logs
-            If l.ts < lastTS Then lastTS = l.ts
-            If l.ts = 0 OrElse l.ts > firstTS Then firstTS = l.ts
+            If l.ts > lastTS Then lastTS = l.ts
+            If firstTS = 0 OrElse l.ts < firstTS Then firstTS = l.ts
         Next
         For Each u As Unit In units
             For Each l As LogEntry In u.logs
-                If l.ts < lastTS Then lastTS = l.ts
-                If l.ts = 0 OrElse l.ts > firstTS Then firstTS = l.ts
+                If l.ts > lastTS Then lastTS = l.ts
+                If firstTS = 0 OrElse l.ts < firstTS Then firstTS = l.ts
             Next
             For Each ch As ResponseChunkData In u.chunks
-                If ch.ts < lastTS Then lastTS = ch.ts
-                If ch.ts = 0 OrElse ch.ts > firstTS Then firstTS = ch.ts
+                If ch.ts > lastTS Then lastTS = ch.ts
+                If firstTS = 0 OrElse ch.ts < firstTS Then firstTS = ch.ts
             Next
         Next
     End Sub
