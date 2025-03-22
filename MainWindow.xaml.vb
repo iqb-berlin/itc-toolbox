@@ -44,6 +44,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
@@ -367,6 +368,20 @@ Class MainWindow
                 ActionDlg.ShowDialog()
                 updateGroupCount()
             End If
+        End If
+    End Sub
+
+    Private Sub HandleImportBookletsFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
+            .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = False, .Title = "JSON Booklet-Daten einlesen - Wähle Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_InputTargetJson = filepicker.FileName
+            My.Settings.Save()
+
+            Dim ActionDlg As New readJsonBookletFilesToDbDialog(filepicker.FileName) With {.Owner = Me, .Title = "Einlesen TC-JSON Booklets", .SqliteDB = Me.SqliteDB}
+            ActionDlg.ShowDialog()
         End If
     End Sub
 

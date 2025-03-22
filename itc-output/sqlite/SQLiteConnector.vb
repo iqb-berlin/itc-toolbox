@@ -199,12 +199,14 @@ COMMIT;"
                     ", Anzahl Antwortdaten: " + responseCount.ToString("N0", deCulture)
             End Using
         End Using
-        If closeConnection Then
-            GC.Collect()
-            GC.WaitForPendingFinalizers()
-        End If
+        If closeConnection Then Me.CloseConnection()
         Return returnText
     End Function
+
+    Public Sub CloseConnection()
+        GC.Collect()
+        GC.WaitForPendingFinalizers()
+    End Sub
 
     Public Sub addPerson(p As Person)
         Dim addedBookletCount As Integer = 0
@@ -355,6 +357,37 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
             End Using
         End Using
     End Sub
+
+    Public Function addBooklets(bookletSizes As Dictionary(Of String, Long)) As Integer
+        Dim addedBookletCount As Integer = 0
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(False)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                Dim dbReader As SQLiteDataReader
+                For Each b As KeyValuePair(Of String, Long) In bookletSizes
+                    Dim infoId As Long = -1
+                    cmd.CommandText = "select id from [bookletInfo] where name = @bookletName LIMIT 1"
+                    cmd.Parameters.AddWithValue("@bookletName", b.Key)
+                    dbReader = cmd.ExecuteReader()
+                    While dbReader.Read()
+                        infoId = dbReader.GetInt64(0)
+                    End While
+                    dbReader.Close()
+                    cmd.Parameters.AddWithValue("@bookletSize", b.Value)
+                    If infoId < 0 Then
+                        cmd.CommandText = "INSERT INTO [bookletInfo] ([name],[size]) VALUES (@bookletName,@bookletSize);"
+                        cmd.ExecuteScalar()
+                        addedBookletCount += 1
+                    Else
+                        cmd.CommandText = "UPDATE [bookletInfo] SET [size]= @bookletSize where id = @bookletId"
+                        cmd.Parameters.AddWithValue("@bookletId", infoId)
+                        cmd.ExecuteScalar()
+                    End If
+                Next
+            End Using
+            Me.CloseConnection()
+            Return addedBookletCount
+        End Using
+    End Function
 
     Function hasSubforms() As Boolean
         Dim firstSubformResponseDbId As Long = -1

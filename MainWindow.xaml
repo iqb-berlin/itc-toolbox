@@ -295,6 +295,7 @@
                         <MenuItem Header="_Hinzufügen">
                             <MenuItem Command="local:AppCommands.ImportFromTestcenter"/>
                             <MenuItem Command="local:AppCommands.ImportFromJson"/>
+                            <MenuItem Command="local:AppCommands.ImportBookletsFromJson"/>
                             <MenuItem Command="local:AppCommands.ImportFromCsv"/>
                             <Separator/>
                             <MenuItem Command="local:AppCommands.AppExit"/>
