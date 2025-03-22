@@ -58,18 +58,26 @@ Public Class readJsonFilesToDbDialog
             myworker.ReportProgress(progressValue, "Lese " + IO.Path.GetFileName(fn))
             Using file As New IO.StreamReader(fn)
                 Dim js As New JsonSerializer()
-                Dim groupData As List(Of Person) = js.Deserialize(file, GetType(List(Of Person)))
-                Dim plusValuePerPerson As Double = 100 / progressMax
-                Dim fileMax As Integer = groupData.Count
-                Dim fileCount As Integer = 0
-                Debug.Print("file: " + fn)
-                For Each p As Person In groupData
-                    fileCount += 1
-                    If myworker.CancellationPending Then Exit For
-                    progressValue = progressCount * plusValuePerPerson + fileCount * (plusValuePerPerson / fileMax)
-                    myworker.ReportProgress(progressValue)
-                    SqliteDB.addPerson(p)
-                Next
+                Dim groupData As List(Of Person) = Nothing
+                Try
+                    groupData = js.Deserialize(file, GetType(List(Of Person)))
+                Catch ex As Exception
+                    myworker.ReportProgress(progressValue, "Datenfehler: " + ex.Message)
+                    groupData = Nothing
+                End Try
+                If groupData IsNot Nothing Then
+                    Dim plusValuePerPerson As Double = 100 / progressMax
+                    Dim fileMax As Integer = groupData.Count
+                    Dim fileCount As Integer = 0
+                    Debug.Print("file: " + fn)
+                    For Each p As Person In groupData
+                        fileCount += 1
+                        If myworker.CancellationPending Then Exit For
+                        progressValue = progressCount * plusValuePerPerson + fileCount * (plusValuePerPerson / fileMax)
+                        myworker.ReportProgress(progressValue)
+                        SqliteDB.addPerson(p)
+                    Next
+                End If
             End Using
             progressCount += 1
             If progressCount = progressMax Then

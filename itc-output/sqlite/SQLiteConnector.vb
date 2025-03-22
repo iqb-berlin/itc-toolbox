@@ -354,9 +354,20 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
                 Next
             End Using
         End Using
-        Debug.Print("person: " + p.group + " / " + p.login + " / " + p.code)
-        Debug.Print("ignoredBookletCount: " + ignoredBookletCount.ToString)
-        Debug.Print("updatedBookletCount: " + updatedBookletCount.ToString)
-        Debug.Print("addedBookletCount: " + addedBookletCount.ToString)
     End Sub
+
+    Function hasSubforms() As Boolean
+        Dim firstSubformResponseDbId As Long = -1
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "SELECT [id],[key] FROM [subform] where key not in ('') limit 1;"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    firstSubformResponseDbId = dbReader.GetInt64(0)
+                End While
+                dbReader.Close()
+            End Using
+        End Using
+        Return firstSubformResponseDbId >= 0
+    End Function
 End Class

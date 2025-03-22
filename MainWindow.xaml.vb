@@ -341,6 +341,7 @@ Class MainWindow
             TBDBInfo.Text = "Keine Daten"
         Else
             TBDBInfo.Text = Me.SqliteDB.dbCreator + ": " + Me.SqliteDB.dbCreatedDateTime
+            If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "; subforms"
         End If
     End Sub
 
