@@ -1,13 +1,11 @@
 ﻿Public Class OutputDialog
-    Friend outputConfig As New OutputConfig With {.bookletSizes = Nothing, .omitUnits = Nothing, .variables = Nothing}
-
     Public WriteToXls As Boolean
-    Public bookletSizes As Dictionary(Of String, Long)
     Public AllVariables As List(Of String)
-    Public segregateBigdata As Boolean
+    Public sqliteConnection As SQLiteConnector
 
-    Public Sub New(Optional writeToXls As Boolean = True)
+    Public Sub New(writeToXls As Boolean, Optional sqliteConnection As SQLiteConnector = Nothing)
         InitializeComponent()
         Me.WriteToXls = writeToXls
+        Me.sqliteConnection = sqliteConnection
     End Sub
 End Class

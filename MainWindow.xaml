@@ -31,7 +31,6 @@
                                FontSize="14" 
                                Padding="4 0"
                                FontWeight="Normal"
-                               MaxWidth="200"
                                TextWrapping="Wrap"/>
                 </DataTemplate>
                 <Style TargetType="{x:Type TabItem}">
@@ -124,7 +123,7 @@
                 </StackPanel>
             </TabItem>
             <TabItem Name="TIVariables">
-                <TabItem.Header>Reviews, System-Check</TabItem.Header>
+                <TabItem.Header>Output direkt</TabItem.Header>
                 <StackPanel Margin="10">
                     <StackPanel.Resources>
                         <Style TargetType="Button">
@@ -132,36 +131,76 @@
                             <Setter Property="Margin" Value="0 1 5 1"/>
                             <Setter Property="VerticalAlignment" Value="Top"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="Width" Value="120"/>
+                            <Setter Property="Width" Value="130"/>
                             <Setter Property="Height" Value="40"/>
                         </Style>
                     </StackPanel.Resources>
                     <DockPanel>
-                        <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">SysCheck csv</Button>
-                        <TextBlock DockPanel.Dock="Right" Width="100">
-                        </TextBlock>
-                        <TextBlock TextWrapping="Wrap">
-                        Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
-                        </TextBlock>
-                    </DockPanel>
-                    <DockPanel>
-                        <Button DockPanel.Dock="Left" Click="BtnGetTestcenterReviewsData_Click">
+                        <Button DockPanel.Dock="Left" Click="BtnSysCheck_Click">
                             <Button.Content>
-                                <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Reviews Testcenter
-                                </TextBlock>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">SysCheck</TextBlock>
+                                    <TextBlock TextAlignment="Center">CSV -> Xlsx</TextBlock>
+                                </StackPanel>
                             </Button.Content>
                         </Button>
                         <TextBlock DockPanel.Dock="Right" Width="100">
                         </TextBlock>
                         <TextBlock TextWrapping="Wrap">
-                        Verbinden mit einem Testcenter und Abrufen aller Reviews, Speichern als Xlsx
+                            Einlesen einer CSV aus den System-Check-Ergebnissen, Speichern als Xlsx (Umlaute korrigiert)
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnGetTestcenterReviewsData_Click">
+                            <Button.Content>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">Reviews</TextBlock>
+                                    <TextBlock TextAlignment="Center">Testcenter -> Xlsx</TextBlock>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
+                            Verbinden mit einem Testcenter und Abrufen aller Reviews, Speichern als Xlsx
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnTestcenterToJson_Click">
+                            <Button.Content>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">Antworten+Logs</TextBlock>
+                                    <TextBlock TextAlignment="Center">Testcenter -> JSON</TextBlock>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
+                            Verbinden mit einem Testcenter und Abrufen aller Antworten und Logs;
+                            Speichern sofort als JSON; eine Datei pro Testtaker-Gruppe
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnTestcenterToXlsx_Click">
+                            <Button.Content>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">Antworten</TextBlock>
+                                    <TextBlock TextAlignment="Center">Testcenter -> Xlsx</TextBlock>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
+                            Verbinden mit einem Testcenter und Abrufen aller Antworten;
+                            Speichern sofort als Excel-Datei (nur Antworten)
                         </TextBlock>
                     </DockPanel>
                 </StackPanel>
             </TabItem>
             <TabItem Name="TITestees" Foreground="Navy">
-                <TabItem.Header>(Antworten, Logs alt)</TabItem.Header>
+                <TabItem.Header>Antworten + Logs über Datenbank</TabItem.Header>
                 <StackPanel Margin="10">
                     <StackPanel.Resources>
                         <Style TargetType="Button">
@@ -172,118 +211,10 @@
                             <Setter Property="Width" Value="180"/>
                         </Style>
                     </StackPanel.Resources>
-                    <DockPanel>
-                        <Button DockPanel.Dock="Left" Click="BtnTestcenterToJson_Click">
-                            <Button.Content>
-                                <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Testcenter -> JSON
-                                </TextBlock>
-                            </Button.Content>
-                        </Button>
-                        <TextBlock DockPanel.Dock="Right" Width="100">
-                        </TextBlock>
-                        <TextBlock TextWrapping="Wrap">
-                    Verbinden mit einem Testcenter und Abrufen aller Antworten und Logs;
-                    Speichern sofort als JSON; eine Datei pro Testtaker-Gruppe
-                        </TextBlock>
-                    </DockPanel>
-                    <TextBlock Padding="4 5 0 5" Background="#FFEAEAEA" Margin="0 10 0 5">
-                        <Run Text="Antworten und Logs über Zwischenspeicher (Store)" FontSize="14"/></TextBlock>
-                    <DockPanel>
-                        <StackPanel>
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadTC_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Abrufen Testcenter
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataLoadCsv_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Laden CSV
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnDataLoadJson_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Laden JSON
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataClear_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                            Clear
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
-
-                        <StackPanel Margin="10 0 0 0" DockPanel.Dock="Right">
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJson_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben Json ohne BigData
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveJsonByGroup_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben Json gruppenweise mit BigData
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnMergeDataSaveXlsx_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben Antworten Xlsx
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                            <Button DockPanel.Dock="Left" Click="BtnWriteSqlite_Click">
-                                <Button.Content>
-                                    <TextBlock TextWrapping="Wrap" TextAlignment="Center">
-                                Schreiben SQLite
-                                    </TextBlock>
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
-                        <StackPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Volldaten-Store:</TextBlock>
-                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Testpersonen</TextBlock>
-                                <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountFull">0</TextBlock>
-                            </DockPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap" TextAlignment="Right">BigData (z. B. GeoGebra):</TextBlock>
-                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Extradateien</TextBlock>
-                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountBlobs">0</TextBlock>
-                            </DockPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Antworten-Store:</TextBlock>
-                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
-                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountResponses">0</TextBlock>
-                            </DockPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Nur-Logs-Store:</TextBlock>
-                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Fälle Testperson + Booklet</TextBlock>
-                                <TextBlock Margin="5 0 5 0" TextAlignment="Right"  Name="TBStoreCountLogs">0</TextBlock>
-                            </DockPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Width="200" TextWrapping="Wrap">Booklet-Größeninfo:</TextBlock>
-                                <TextBlock DockPanel.Dock="Right" Width="150" TextWrapping="Wrap">Booklets</TextBlock>
-                                <TextBlock Margin="5 0 5 0" TextAlignment="Right" Name="TBStoreCountBooklets">0</TextBlock>
-                            </DockPanel>
-                        </StackPanel>
-                    </DockPanel>
-                </StackPanel>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>Antworten, Logs</TabItem.Header>
-                <StackPanel Margin="10">
+                    <TextBlock TextWrapping="Wrap" Margin="0 10">
+                        Anlegen einer Datenbank-Datei im Format SQLite. Diese Datenbank-Datei kann dann flexibel ausgewertet werden.
+                        Achtung: Das Schreiben in die Datenbank dauert mitunter längere Zeit.
+                    </TextBlock>
                     <Menu>
                         <MenuItem Header="_Datenbank">
                             <MenuItem Command="local:AppCommands.DBNew"/>
@@ -297,13 +228,15 @@
                             <MenuItem Command="local:AppCommands.ImportFromJson"/>
                             <MenuItem Command="local:AppCommands.ImportBookletsFromJson"/>
                             <MenuItem Command="local:AppCommands.ImportFromCsv"/>
-                            <Separator/>
-                            <MenuItem Command="local:AppCommands.AppExit"/>
                         </MenuItem>
                     </Menu>
+                    <TextBlock TextWrapping="Wrap" Margin="0 10" Name="TBDBNoDbInfo">
+                        Keine Datenbank-Datei gewählt. Bitte wählen Sie über das Menü "Datenbank" den Punkt "Neu" oder öffnen Sie eine 
+                        vorhandene Datenbank-Datei!
+                    </TextBlock>
                     <DockPanel>
                         <TextBlock TextWrapping="Wrap" Name="TBDBInfo">
-                            Manche sagen so, manche so.
+                            
                         </TextBlock>
                     </DockPanel>
                 </StackPanel>

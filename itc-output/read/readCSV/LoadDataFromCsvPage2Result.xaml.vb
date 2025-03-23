@@ -42,7 +42,13 @@ Public Class LoadDataFromCsvPage2Result
     End Sub
 
     Private Sub myBackgroundWorker_ProgressChanged(ByVal sender As Object, ByVal e As ProgressChangedEventArgs) Handles myBackgroundWorker.ProgressChanged
-        Me.TBInfo.Text = IIf(e.ProgressPercentage > 0, "Zeile " + e.ProgressPercentage.ToString("N0"), "-")
+        If e.ProgressPercentage > 0 Then
+            Me.TBInfo.Text = "Zeile " + e.ProgressPercentage.ToString("N0")
+        Else
+            Me.TBInfo.Text = "-"
+            If e.ProgressPercentage < 0 Then Me.APBUC.UpdateProgressState(-e.ProgressPercentage)
+        End If
+
         If Not String.IsNullOrEmpty(e.UserState) Then Me.MBUC.AddMessage(e.UserState)
     End Sub
 
@@ -72,9 +78,10 @@ Public Class LoadDataFromCsvPage2Result
             Dim AllUnitsWithResponses As New List(Of String)
             Dim LogEntryCount As Long = 0
 
-            'Dim LogData As New Dictionary(Of String, Dictionary(Of String, Long))
             Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
             Dim csvSeparator As String = ";"
+            globalOutputStore.clear()
+
             For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
                 If myworker.CancellationPending Then
                     e.Cancel = True
@@ -93,18 +100,20 @@ Public Class LoadDataFromCsvPage2Result
                 If readFile IsNot Nothing Then
                     myworker.ReportProgress(0.0#, "Lese " + fi.Name)
                     If line = LogSymbols.LogFileFirstLine2024 OrElse line = LogSymbols.LogFileFirstLineLegacy Then
-                        LogEntryCount += 1
-                        Dim fileType As CsvLogFileType = CsvLogFileType.Legacy
-                        If line = LogSymbols.LogFileFirstLine2024 Then fileType = CsvLogFileType.v2024
-                        Dim lineNumber As Long = 0
-                        While readFile.Peek() >= 0 AndAlso Not myworker.CancellationPending
-                            line = readFile.ReadLine()
-                            lineNumber += 1
-                            myworker.ReportProgress(lineNumber)
-                            Dim logData As UnitLineDataLog = UnitLineDataLog.fromCsvLine(line, fileType)
-                            If logData IsNot Nothing Then globalOutputStore.personDataFull.AddLogEntry(logData)
-                        End While
-                        If myworker.CancellationPending Then e.Cancel = True
+                        If parentDlg.WriteToXls Then
+                            LogEntryCount += 1
+                            Dim fileType As CsvLogFileType = CsvLogFileType.Legacy
+                            If line = LogSymbols.LogFileFirstLine2024 Then fileType = CsvLogFileType.v2024
+                            Dim lineNumber As Long = 0
+                            While readFile.Peek() >= 0 AndAlso Not myworker.CancellationPending
+                                line = readFile.ReadLine()
+                                lineNumber += 1
+                                myworker.ReportProgress(lineNumber)
+                                Dim logData As UnitLineDataLog = UnitLineDataLog.fromCsvLine(line, fileType)
+                                If logData IsNot Nothing Then globalOutputStore.personDataFull.AddLogEntry(logData)
+                            End While
+                            If myworker.CancellationPending Then e.Cancel = True
+                        End If
                     Else
                         '#########################
                         Dim lineNumber As Long = 0
@@ -118,10 +127,8 @@ Public Class LoadDataFromCsvPage2Result
                             line = readFile.ReadLine()
                             lineNumber += 1
                             myworker.ReportProgress(lineNumber)
-                            Dim unitData As UnitLineDataResponses = UnitLineDataResponses.fromCsvLine(line, parentDlg.outputConfig.variables,
-                                                                                    csvSeparator, parentDlg.segregateBigdata, csvType)
-                            If unitData.subforms IsNot Nothing AndAlso unitData.subforms.Count > 0 AndAlso unitData.subforms.First.responses.Count > 0 AndAlso
-                                    (parentDlg.outputConfig.omitUnits Is Nothing OrElse Not parentDlg.outputConfig.omitUnits.Contains(unitData.unitname)) Then
+                            Dim unitData As UnitLineDataResponses = UnitLineDataResponses.fromCsvLine(line, csvSeparator, csvType)
+                            If unitData.subforms IsNot Nothing AndAlso unitData.subforms.Count > 0 AndAlso unitData.subforms.First.responses.Count > 0 Then
                                 If Not AllUnitsWithResponses.Contains(unitData.unitname) Then AllUnitsWithResponses.Add(unitData.unitname)
                                 For Each entry As SubForm In unitData.subforms
                                     For Each respData As ResponseData In entry.responses
@@ -138,7 +145,21 @@ Public Class LoadDataFromCsvPage2Result
             myworker.ReportProgress(0.0#, "beendet.")
 
 
-            If Not myworker.CancellationPending AndAlso parentDlg.WriteToXls Then WriteOutputToXlsx.Write(myTemplate, myworker, e, targetXlsxFilename)
+            If Not myworker.CancellationPending Then
+                If parentDlg.WriteToXls Then
+                    WriteOutputToXlsx.Write(myTemplate, myworker, e, targetXlsxFilename)
+                Else
+                    Dim maxProgressValue As Integer = globalOutputStore.personDataFull.Count
+                    Dim progressValue As Integer = 1
+                    For Each p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
+                        If myworker.CancellationPending Then Exit For
+                        myworker.ReportProgress(progressValue * -100 / maxProgressValue, p.Key)
+                        progressValue += 1
+                        parentDlg.sqliteConnection.addPerson(p.Value)
+                    Next
+                    parentDlg.sqliteConnection.CloseConnection()
+                End If
+            End If
         End If
     End Sub
 

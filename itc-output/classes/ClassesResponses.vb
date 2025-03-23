@@ -81,8 +81,7 @@ Public Class UnitLineDataResponses
     Public chunks As List(Of ResponseChunkData)
 
     Public Shared Function fromCsvLine(line As String,
-                                       renameVariables As Dictionary(Of String, Dictionary(Of String, List(Of String))),
-                                       csvSeparator As String, segregateBigdata As Boolean,
+                                       csvSeparator As String,
                                        fileType As CsvResponseFileType) As UnitLineDataResponses
         Dim returnUnitData As New UnitLineDataResponses
         Dim responseChunks As New List(Of ResponseChunk)
@@ -94,7 +93,6 @@ Public Class UnitLineDataResponses
             returnUnitData.groupname = lineSplits(0).Substring(1)
             returnUnitData.loginname = lineSplits(1)
             returnUnitData.code = lineSplits(2)
-            Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
             returnUnitData.bookletname = lineSplits(3)
             returnUnitData.unitname = lineSplits(4)
             returnUnitData.unitId = lineSplits(4)
@@ -149,7 +147,6 @@ Public Class UnitLineDataResponses
             returnUnitData.chunks = New List(Of ResponseChunkData)
             If responseChunks.Count > 0 Then
                 Dim varRenameDef As Dictionary(Of String, List(Of String)) = Nothing
-                If renameVariables IsNot Nothing AndAlso renameVariables.ContainsKey(returnUnitData.unitname) Then varRenameDef = renameVariables.Item(returnUnitData.unitname)
                 For Each responseChunk As ResponseChunk In responseChunks
                     Dim dataToAdd As List(Of SubForm) = Nothing
                     Select Case responseChunk.type

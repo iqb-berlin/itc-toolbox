@@ -1,7 +1,7 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
     Private itcConnection As ITCConnection = Nothing
-    Private SqliteDB As SQLiteConnector = Nothing
+    Public SqliteDB As SQLiteConnector = Nothing
 
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
@@ -42,15 +42,15 @@ Class MainWindow
         End Try
 
         If ContinueStart Then
+            CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDummyFalseCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
-            CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBOperationCanExecute))
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
@@ -150,7 +150,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim myDlg As New OutputDialog With {.Owner = Me}
+            Dim myDlg As New OutputDialog(True) With {.Owner = Me}
             myDlg.ShowDialog()
         End If
     End Sub
@@ -292,12 +292,12 @@ Class MainWindow
     End Sub
 
     Private Sub updateGroupCount()
-        TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
+        'TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
 
-        TBStoreCountBlobs.Text = ""
-        TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
+        'TBStoreCountBlobs.Text = ""
+        'TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
         'TBStoreCountLogs.Text = globalOutputStore.personLogs.Count.ToString
-        TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
+        'TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
@@ -360,7 +360,15 @@ Class MainWindow
     End Sub
 
     Private Sub HandleImportFromCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
-        DialogFactory.Msg(Me, "yoyo", "HandleImportFromCsvExecuted")
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim myDlg As New OutputDialog(False, SqliteDB) With {.Owner = Me}
+            myDlg.ShowDialog()
+        End If
     End Sub
 
     Private Sub HandleImportFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
@@ -404,6 +412,8 @@ Class MainWindow
             My.Settings.Save()
 
             Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            TBDBNoDbInfo.Visibility = Visibility.Collapsed
+            Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()
         End If
     End Sub
@@ -418,6 +428,8 @@ Class MainWindow
             My.Settings.Save()
 
             Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            TBDBNoDbInfo.Visibility = Visibility.Collapsed
+            Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()
         End If
     End Sub
@@ -444,4 +456,14 @@ Class MainWindow
     Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
         DialogFactory.Msg(Me, "tbd", "BtnMergeDataSaveJson_Click")
     End Sub
+
+    Private Sub BtnTestcenterToXlsx_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "tbd", "BtnTestcenterToXlsx_Click")
+    End Sub
+
+    Private Function HandleDummyFalseCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+        e.CanExecute = False
+        Return False
+    End Function
+
 End Class
