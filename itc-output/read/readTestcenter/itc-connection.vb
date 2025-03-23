@@ -1,5 +1,7 @@
-﻿Imports Newtonsoft.Json
+﻿Imports System.Net
+Imports Newtonsoft.Json
 Public Class ITCConnection
+    Public Shared ReadOnly validBookletDependencies() As String = {"containsUnit", "usesPlayer", "isDefinedBy"}
     Public selectedWorkspace As Integer = 0
     Private _url As String
     Public ReadOnly Property url() As String
@@ -131,8 +133,8 @@ Public Class ITCConnection
         Return myReturn
     End Function
 
-    Public Function getBooklets() As List(Of BookletDTO)
-        Dim myReturn As New List(Of BookletDTO)
+    Private Function getFullFileList() As List(Of WorkspaceFileDTO)
+        Dim myReturn As New List(Of WorkspaceFileDTO)
         Dim resp As Net.WebResponse
         _lastErrorMsgText = ""
         Try
@@ -152,7 +154,9 @@ Public Class ITCConnection
                 Try
                     _response_string = WebReader.ReadToEnd()
                     Dim allFiles As Dictionary(Of String, Linq.JToken) = JsonConvert.DeserializeObject(_response_string, GetType(Dictionary(Of String, Linq.JToken)))
-                    If allFiles.ContainsKey("Booklet") Then myReturn = allFiles.Item("Booklet").ToObject(Of List(Of BookletDTO))
+                    For Each f As KeyValuePair(Of String, Linq.JToken) In allFiles
+                        myReturn.AddRange(f.Value.ToObject(Of List(Of WorkspaceFileDTO)))
+                    Next
                     Me._lastErrorMsgText = ""
                 Catch ex As Exception
                     _lastErrorMsgText = ex.Message
@@ -161,6 +165,74 @@ Public Class ITCConnection
             End Using
         End If
         Return myReturn
+    End Function
+
+    Public Function getBookletSizes() As Dictionary(Of String, Long)
+        Dim bookletSizes As New Dictionary(Of String, Long)
+        Dim allFilesEmptyDependency As List(Of WorkspaceFileDTO) = getFullFileList()
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/files-dependencies")
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "POST"
+            requ.ContentType = "application/json"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+
+            Dim fileList As List(Of String) = (From f As WorkspaceFileDTO In allFilesEmptyDependency Where f.type = "Booklet" Select f.name).ToList
+            Dim bodyContent As String = "{""body"":" + JsonConvert.SerializeObject(fileList) + "}"
+
+            requ.Method = "POST"
+            requ.ContentType = "application/json"
+            Dim enc As New Text.UTF8Encoding
+            Dim dataBin As Byte() = enc.GetBytes(bodyContent)
+            requ.ContentLength = dataBin.Length
+            Dim s As IO.Stream = requ.GetRequestStream()
+            s.Write(dataBin, 0, dataBin.Length)
+            s.Close()
+
+            resp = requ.GetResponse
+
+        Catch ex As Net.WebException
+            Dim rep As Net.HttpWebResponse = ex.Response
+            Using rdr As New IO.StreamReader(rep.GetResponseStream())
+                Dim errorMsg As String = rdr.ReadToEnd()
+                Debug.Print(errorMsg)
+                _lastErrorMsgText = errorMsg
+            End Using
+            resp = Nothing
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Dim bookletsWithDependency As New List(Of WorkspaceFileDTO)
+            Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
+                Try
+                    _response_string = WebReader.ReadToEnd()
+                    Dim allFiles As Dictionary(Of String, Linq.JToken) = JsonConvert.DeserializeObject(_response_string, GetType(Dictionary(Of String, Linq.JToken)))
+                    For Each f As KeyValuePair(Of String, Linq.JToken) In allFiles
+                        bookletsWithDependency.AddRange(f.Value.ToObject(Of List(Of WorkspaceFileDTO)))
+                    Next
+                    Me._lastErrorMsgText = ""
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+            Dim flatFileSizes As Dictionary(Of String, Long) = (From f As WorkspaceFileDTO In allFilesEmptyDependency).ToDictionary(Function(a) a.name, Function(a) a.size)
+
+            For Each booklet As WorkspaceFileDTO In bookletsWithDependency
+                Dim bookletSize As Long = booklet.size
+                For Each d As FileDependencyDTO In booklet.dependencies
+                    If validBookletDependencies.Contains(d.relationship_type) Then bookletSize += flatFileSizes.Item(d.object_name)
+                Next
+                bookletSizes.Add(booklet.id, bookletSize)
+            Next
+        End If
+
+        Return bookletSizes
     End Function
 
     Public Function getLogs(dataGroupId As String) As List(Of LogEntryDTO)

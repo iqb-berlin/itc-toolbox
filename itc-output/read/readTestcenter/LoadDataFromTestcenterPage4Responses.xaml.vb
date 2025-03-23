@@ -37,8 +37,7 @@ Public Class LoadDataFromTestcenterPage4Responses
         If ParentDlg.write Then globalOutputStore.clear()
 
         myBW.ReportProgress(3.0#, "Lese Booklets")
-        Dim booklets As List(Of BookletDTO) = globalOutputStore.itcConnection.getBooklets()
-        globalOutputStore.bookletSizes = (From b As BookletDTO In booklets).ToDictionary(Of String, Long)(Function(b) b.id, Function(b) b.info.totalSize)
+        globalOutputStore.bookletSizes = globalOutputStore.itcConnection.getBookletSizes()
         If ParentDlg.write Then
             myBW.ReportProgress(3.0#, "Schreibe Booklets.JSON")
             Try
