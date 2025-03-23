@@ -52,10 +52,10 @@ Public Class LoadDataFromTestcenterPage4ReviewsXlsx
             Dim progressValue As Integer = 0
             For Each dataGroupId As String In ParentDlg.selectedDataGroups
                 myBW.ReportProgress(progressValue * 100 / maxProgressValue, "Lese '" + dataGroupId + "': ")
-                Dim reviewData As List(Of ReviewDTO) = globalOutputStore.itcConnection.getReviews(dataGroupId)
-                If Not String.IsNullOrEmpty(globalOutputStore.itcConnection.lastErrorMsgText) Then
+                Dim reviewData As List(Of ReviewDTO) = ParentDlg.itcConnection.getReviews(dataGroupId)
+                If Not String.IsNullOrEmpty(ParentDlg.itcConnection.lastErrorMsgText) Then
                     myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e: Problem bei Logingruppe '" + dataGroupId + "': " +
-                        globalOutputStore.itcConnection.lastErrorMsgText + " (Logs)")
+                        ParentDlg.itcConnection.lastErrorMsgText + " (Logs)")
                 Else
                     reviewEntryCount += 1
                     allReviews.AddRange(reviewData)

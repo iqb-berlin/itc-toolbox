@@ -160,7 +160,7 @@ Public Class UnitLineDataResponses
                         Case "iqb-simple-player@1.0.0"
                             dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                         Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                            dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataFilenamePrefix)
+                            dataToAdd = setResponsesIqbStandard(responseChunk.content)
                         Case Else
                             dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                     End Select
@@ -181,7 +181,7 @@ Public Class UnitLineDataResponses
         Return returnUnitData
     End Function
 
-    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO, segregateBigdata As Boolean) As UnitLineDataResponses
+    Public Shared Function fromTestcenterAPI(responseData As ResponseDTO) As UnitLineDataResponses
         Dim returnUnitData As New UnitLineDataResponses With {
             .groupname = responseData.groupname, .bookletname = responseData.bookletname, .code = responseData.code,
             .loginname = responseData.loginname, .unitname = responseData.unitname, .unitId = responseData.unitname, .laststate = New List(Of LastStateEntry),
@@ -189,7 +189,6 @@ Public Class UnitLineDataResponses
             }
         If Not String.IsNullOrEmpty(responseData.originalUnitId) Then returnUnitData.unitId = responseData.originalUnitId
         Dim tmpLastState As String = responseData.laststate
-        Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
         If Not String.IsNullOrEmpty(tmpLastState) Then
             tmpLastState = tmpLastState.Replace("""""", """")
             Try
@@ -214,7 +213,7 @@ Public Class UnitLineDataResponses
                     Case "iqb-simple-player@1.0.0"
                         dataToAdd = setResponsesSimplePlayerLegacy(responseChunk.content, varRenameDef)
                     Case "iqb-aspect-player@0.1.1", "iqb-standard@1.0.0", "iqb-standard@1.0", "iqb-standard@1.1"
-                        dataToAdd = setResponsesIqbStandard(responseChunk.content, bigDataFilenamePrefix)
+                        dataToAdd = setResponsesIqbStandard(responseChunk.content)
                     Case Else
                         dataToAdd = setResponsesKeyValue(responseChunk.content, varRenameDef)
                 End Select
@@ -233,6 +232,7 @@ Public Class UnitLineDataResponses
         End If
         Return returnUnitData
     End Function
+    'Dim bigDataFilenamePrefix As String = IIf(segregateBigdata, returnUnitData.groupname + returnUnitData.loginname + returnUnitData.code, Nothing)
 
     Private Shared Function setResponsesDan(responseString As String, varRenameDef As Dictionary(Of String, List(Of String))) As List(Of SubForm)
         Dim myreturn As New SubForm With {.id = "", .responses = New List(Of ResponseData)}
@@ -389,7 +389,7 @@ Public Class UnitLineDataResponses
         End If
     End Function
 
-    Private Shared Function setResponsesIqbStandard(responseString As String, bigdataFilenamePrefix As String) As List(Of SubForm)
+    Private Shared Function setResponsesIqbStandard(responseString As String) As List(Of SubForm)
         Dim myreturn As New Dictionary(Of String, List(Of ResponseData))
         Dim localdata As New List(Of Dictionary(Of String, Linq.JToken))
         Dim conversionErrorMessage As String = ""
@@ -413,24 +413,16 @@ Public Class UnitLineDataResponses
                     Dim newValue As String = "#null#"
                     If myJToken.Type <> Linq.JTokenType.Null Then
                         newValue = entry.Item("value").ToString
-                        If newValue.Length > 500 AndAlso Not String.IsNullOrEmpty(bigdataFilenamePrefix) AndAlso
-                            (newValue.IndexOf(ResponseData.bigDataMarker) = 0 OrElse newValue.IndexOf(ResponseData.geoGebraFixMarker) = 0) Then
-                            If newValue.IndexOf(ResponseData.geoGebraFixMarker) = 0 Then newValue = ResponseData.bigDataMarker + "," + newValue
-                            Dim bigDataFileName As String = bigdataFilenamePrefix + "_" + newValue.GetHashCode().ToString + ".base64"
-                            If Not globalOutputStore.bigData.ContainsKey(bigDataFileName) Then globalOutputStore.bigData.Add(bigDataFileName, newValue)
-                            newValue = ResponseData.bigDataMarker + " Filename: '" + bigDataFileName + "'"
-                        Else
-                            newValue = newValue.Replace(vbNewLine, "")
-                        End If
+                        newValue = newValue.Replace(vbNewLine, "")
                     End If
                     Dim subform As String = ""
                     If entry.ContainsKey("subform") Then subform = entry.Item("subform")
                     If Not myreturn.ContainsKey(subform) Then myreturn.Add(subform, New List(Of ResponseData))
-                    If entry.ContainsKey("status") Then
-                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, entry.Item("status").ToString))
-                    Else
-                        myreturn.Item(subform).Add(New ResponseData(entry.Item("id").ToString, newValue, ResponseSymbols.STATUS_UNSET))
-                    End If
+                    Dim newResponse As New ResponseData(entry.Item("id").ToString, newValue, ResponseSymbols.STATUS_UNSET)
+                    If entry.ContainsKey("status") Then newResponse.status = entry.Item("status").ToString
+                    If entry.ContainsKey("code") Then newResponse.code = entry.Item("code")
+                    If entry.ContainsKey("score") Then newResponse.score = entry.Item("score")
+                    myreturn.Item(subform).Add(newResponse)
                 End If
             Next
         End If

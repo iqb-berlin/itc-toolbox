@@ -1,5 +1,6 @@
 ﻿Public Class GroupDataDTO
     Public groupName As String
+    Public groupLabel As String
     Public bookletsStarted As Integer
     Public numUnitsMin As Integer
     Public numUnitsMax As Integer

@@ -28,8 +28,11 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <DockPanel LastChildFill="False">
-                            <CheckBox IsChecked="{Binding Attribute[checked].Value}" Content="{Binding Value}" Margin="30 2 0 0"/>
-                            <TextBlock Foreground="LightGray" DockPanel.Dock="Right" Text="{Binding Attribute[number].Value}" Margin="0 0 10 0"></TextBlock>
+                            <CheckBox IsChecked="{Binding Attribute[checked].Value}" Margin="30 2 5 0"/>
+                            <TextBlock Text="{Binding Value}"/>
+                            <TextBlock Text="{Binding Attribute[label].Value}" Margin="5 2 0 0"/>
+                            <TextBlock Foreground="LightGray" DockPanel.Dock="Right"
+                                       Text="{Binding Attribute[number].Value}" Margin="0 0 10 0"></TextBlock>
                         </DockPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

@@ -1,5 +1,4 @@
-﻿Imports System.Net
-Imports Newtonsoft.Json
+﻿Imports Newtonsoft.Json
 Public Class ITCConnection
     Public Shared ReadOnly validBookletDependencies() As String = {"containsUnit", "usesPlayer", "isDefinedBy"}
     Public selectedWorkspace As Integer = 0
@@ -198,7 +197,7 @@ Public Class ITCConnection
             Using rdr As New IO.StreamReader(rep.GetResponseStream())
                 Dim errorMsg As String = rdr.ReadToEnd()
                 Debug.Print(errorMsg)
-                _lastErrorMsgText = errorMsg
+                _lastErrorMsgText = ex.Message + " / " + errorMsg
             End Using
             resp = Nothing
         Catch ex As Exception

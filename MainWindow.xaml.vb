@@ -1,5 +1,6 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
+    Private itcConnection As ITCConnection = Nothing
     Private SqliteDB As SQLiteConnector = Nothing
 
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
@@ -46,6 +47,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDBOperationCanExecute))
@@ -210,19 +212,21 @@ Class MainWindow
     End Sub
 
     Private Sub BtnGetTestcenterReviewsData_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Reviews) With {.Owner = Me, .Title = "Reviews aus Testcenter laden und speichern"}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Reviews, DataTarget.Standard) With {
+            .Owner = Me, .Title = "Reviews aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
     End Sub
 
     Private Sub BtnTestcenterToJson_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, True) With {
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.JsonFiles) With {
             .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
         updateGroupCount()
     End Sub
 
     Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, False) With {.Owner = Me, .Title = "Antworten und Logs aus Testcenter laden"}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Datastore) With {
+            .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden"}
         If ActionDlg.ShowDialog() Then updateGroupCount()
     End Sub
 
@@ -250,45 +254,47 @@ Class MainWindow
         updateGroupCount()
     End Sub
 
-    Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count > 0 Then
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
-                                                            .InitialDirectory = defaultDir, .DefaultExt = "json", .Title = "JSON Zieldatei wählen"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_OutputTargetJson = filepicker.FileName
-                My.Settings.Save()
+    Private Sub HandleExportToJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        'If globalOutputStore.personDataFull.Count > 0 Then
+        '    Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        '    If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
+        '    Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
+        '                                                    .InitialDirectory = defaultDir, .DefaultExt = "json", .Title = "JSON Zieldatei wählen"}
+        '    If filepicker.ShowDialog Then
+        '        My.Settings.lastfile_OutputTargetJson = filepicker.FileName
+        '        My.Settings.Save()
 
-                JsonReadWrite.Write(filepicker.FileName)
-                DialogFactory.Msg(Me, "DataMerge", "fertig")
-            End If
-        Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
-        End If
+        '        JsonReadWrite.Write(filepicker.FileName)
+        '        DialogFactory.Msg(Me, "DataMerge", "fertig")
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
+        'End If
+        DialogFactory.Msg(Me, "tbd", "HandleExportToJsonExecuted()")
     End Sub
 
     Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count > 0 Then
-            Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
-                                                            .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
-            If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
-                My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
-                My.Settings.Save()
+        'If globalOutputStore.personDataFull.Count > 0 Then
+        '    Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
+        '                                                    .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
+        '    If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+        '        My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
+        '        My.Settings.Save()
 
-                JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
-                JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
-                DialogFactory.Msg(Me, "DataMerge", "fertig")
-            End If
-        Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
-        End If
+        '        JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
+        '        JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
+        '        DialogFactory.Msg(Me, "DataMerge", "fertig")
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
+        'End If
+        DialogFactory.Msg(Me, "tbd", "BtnMergeDataSaveJsonByGroup_Click")
     End Sub
 
     Private Sub updateGroupCount()
         TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
 
-        TBStoreCountBlobs.Text = globalOutputStore.bigData.Count.ToString
+        TBStoreCountBlobs.Text = ""
         TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
         'TBStoreCountLogs.Text = globalOutputStore.personLogs.Count.ToString
         TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
@@ -347,7 +353,10 @@ Class MainWindow
     End Sub
 
     Private Sub HandleImportFromTestcenterExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
-        DialogFactory.Msg(Me, "yoyo", "HandleImportFromTestcenterExecuted")
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Sqlite, SqliteDB) With {
+            .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und in DB speichern"}
+        ActionDlg.ShowDialog()
+        UpdateSqliteDBInfo()
     End Sub
 
     Private Sub HandleImportFromCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
@@ -421,7 +430,7 @@ Class MainWindow
             My.Settings.lastfile_SqliteDB = filepicker.FileName
             My.Settings.Save()
 
-            DialogFactory.Msg(Me, "yoyo", "HandleDBCopyToExecuted")
+            DialogFactory.Msg(Me, "tbd", "HandleDBCopyToExecuted")
             UpdateSqliteDBInfo()
         End If
     End Sub
@@ -431,4 +440,8 @@ Class MainWindow
         e.CanExecute = myreturn
         Return myreturn
     End Function
+
+    Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "tbd", "BtnMergeDataSaveJson_Click")
+    End Sub
 End Class
