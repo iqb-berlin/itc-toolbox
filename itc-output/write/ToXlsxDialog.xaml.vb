@@ -1,18 +1,13 @@
 ﻿Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
-Imports DocumentFormat.OpenXml.Wordprocessing
-Imports iqb.lib.openxml
-Imports iqb.lib.components
-Imports WordRun = DocumentFormat.OpenXml.Wordprocessing.Run
-Imports WordText = DocumentFormat.OpenXml.Wordprocessing.Text
-Imports QRCoder
 
 Public Class ToXlsxDialog
-
+    Public sqliteConnection As SQLiteConnector
 #Region "Vorspann"
-    Public Sub New()
+    Public Sub New(sqliteConnection As SQLiteConnector)
         InitializeComponent()
+        Me.sqliteConnection = sqliteConnection
     End Sub
 
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
@@ -28,14 +23,10 @@ Public Class ToXlsxDialog
     End Sub
 
     Private WithEvents Process1_bw As ComponentModel.BackgroundWorker = Nothing
-    Private WithEvents Process2_bw As ComponentModel.BackgroundWorker = Nothing
 
     Private Sub BtnCancel_Click() Handles BtnCancel.Click
         If Process1_bw IsNot Nothing AndAlso Process1_bw.IsBusy Then
             Process1_bw.CancelAsync()
-            BtnCancel.IsEnabled = False
-        ElseIf Process2_bw IsNot Nothing AndAlso Process2_bw.IsBusy Then
-            Process2_bw.CancelAsync()
             BtnCancel.IsEnabled = False
         Else
             DialogResult = False
@@ -46,7 +37,7 @@ Public Class ToXlsxDialog
         DialogResult = True
     End Sub
 
-    Private Sub bw_ProgressChanged(ByVal sender As Object, ByVal e As ComponentModel.ProgressChangedEventArgs) Handles Process1_bw.ProgressChanged, Process2_bw.ProgressChanged
+    Private Sub bw_ProgressChanged(ByVal sender As Object, ByVal e As ComponentModel.ProgressChangedEventArgs) Handles Process1_bw.ProgressChanged
         Me.APBUC.UpdateProgressState(e.ProgressPercentage)
         If Not String.IsNullOrEmpty(e.UserState) Then MBUC.AddMessage(e.UserState)
     End Sub
@@ -95,7 +86,11 @@ Public Class ToXlsxDialog
         End Try
 
         If myTemplate IsNot Nothing Then
-            If Not myworker.CancellationPending Then WriteOutputToXlsx.WriteLite(myTemplate, myworker, e, targetXlsxFilename)
+            If Not myworker.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myworker, e, New WriteXlsxConfig With {
+                    .targetXlsxFilename = targetXlsxFilename,
+                    .sourceDatabase = sqliteConnection,
+                    .subformMode = SubformMode.None
+                })
         End If
     End Sub
 End Class

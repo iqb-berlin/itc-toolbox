@@ -16,28 +16,6 @@ Public Class SQLiteConnector
             If addFullSchema Then
                 Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
                     cmd.CommandText = "
--- Script Date: 21.03.2025 09:59  - ErikEJ.SqlCeScripting version 3.5.2.95
--- Database information:
--- Database: D:\Testdaten\sqlite\e2.sqlite
--- ServerVersion: 3.24.0
--- DatabaseSize: 2,125 MB
--- Created: 20.03.2025 18:51
-
--- User Table information:
--- Number of tables: 12
--- booklet: -1 row(s)
--- bookletInfo: -1 row(s)
--- bookletLog: -1 row(s)
--- chunk: -1 row(s)
--- db_info: -1 row(s)
--- person: -1 row(s)
--- response: -1 row(s)
--- session: -1 row(s)
--- subform: -1 row(s)
--- unit: -1 row(s)
--- unitLastState: -1 row(s)
--- unitLog: -1 row(s)
-
 SELECT 1;
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
@@ -402,5 +380,90 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
             End Using
         End Using
         Return firstSubformResponseDbId >= 0
+    End Function
+
+    Public Function getVariableList(addSubformSuffix As Boolean) As List(Of String)
+        Dim returnList As New List(Of String)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "
+select response.variableId,subform.key,response.subformId,subform.unitId,unit.id,unit.name,unit.alias from [response]
+join [subform] on subform.id = response.subformId
+join [unit] on unit.id = subform.unitId;"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim unitName As String = dbReader.GetString(5)
+                    Dim unitAlias As String = dbReader.GetString(6)
+                    Dim variableId As String = IIf(String.IsNullOrEmpty(unitAlias), unitName, unitAlias) + dbReader.GetString(0)
+                    Dim subformKey As String = dbReader.GetString(1)
+                    If Not String.IsNullOrEmpty(subformKey) AndAlso addSubformSuffix Then variableId += "##" + subformKey
+                    If Not returnList.Contains(variableId) Then returnList.Add(variableId)
+                End While
+                dbReader.Close()
+            End Using
+        End Using
+        Return returnList
+    End Function
+
+    Public Function getPeopleList() As Dictionary(Of String, String)
+        Dim returnList As New Dictionary(Of String, String)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "select [id],[group],[login],[code] from [person];"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim personDbId As Long = dbReader.GetInt64(0)
+                    Dim personKey As String = dbReader.GetString(1) + dbReader.GetString(2) + dbReader.GetString(3)
+                    If Not returnList.ContainsKey(personKey) Then returnList.Add(personKey, personDbId.ToString)
+                End While
+            End Using
+        End Using
+        Return returnList
+    End Function
+
+    Public Function getPersonResponses(dbIdString As String) As Person
+        Dim dbPerson As Person = Nothing
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "select [group],[login],[code] from [person] where [id]=" + dbIdString + " LIMIT 1;"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    dbPerson = New Person(dbReader.GetString(0), dbReader.GetString(1), dbReader.GetString(2))
+                End While
+                dbReader.close()
+                cmd.CommandText = "
+select booklet.id,booklet.personId,unit.id,unit.bookletId,unit.name,unit.alias from [unit]
+join [booklet] on booklet.id = unit.bookletId where booklet.personId = " + dbIdString + ";"
+                dbReader = cmd.ExecuteReader()
+                Dim dummyBooklet As New Booklet("XYZ")
+                dbPerson.booklets.Add(dummyBooklet)
+                Dim unitList As New Dictionary(Of String, Unit)
+                While dbReader.Read()
+                    Dim unitDbId As Long = dbReader.GetInt64(2)
+                    unitList.Add(unitDbId.ToString, New Unit(dbReader.GetString(4), dbReader.GetString(5)))
+                End While
+                dbReader.Close()
+                For Each dbUnit As KeyValuePair(Of String, Unit) In unitList
+                    cmd.CommandText = "
+select subform.id,subform.unitId,subform.key,response.variableId,response.value,response.status,response.code,response.score from [response]
+join [subform] on subform.id = response.subformId where subform.unitId = " + dbUnit.Key + ";"
+                    dbReader = cmd.ExecuteReader()
+                    Dim subformList As New Dictionary(Of String, List(Of ResponseData))
+                    While dbReader.Read()
+                        Dim subformKey As String = dbReader.GetString(2)
+                        If Not subformList.ContainsKey(subformKey) Then subformList.Add(subformKey, New List(Of ResponseData))
+                        subformList.Item(subformKey).Add(New ResponseData(
+                                                         dbReader.GetString(3), dbReader.GetString(4), dbReader.GetString(5)) With {
+                                                         .code = dbReader.GetInt64(6), .score = dbReader.GetInt64(7)})
+                    End While
+                    dbReader.Close()
+                    For Each sf As KeyValuePair(Of String, List(Of ResponseData)) In subformList
+                        dbUnit.Value.subforms.Add(New SubForm() With {.id = sf.Key, .responses = sf.Value})
+                    Next
+                    dummyBooklet.units.Add(dbUnit.Value)
+                Next
+            End Using
+        End Using
+        Return dbPerson
     End Function
 End Class

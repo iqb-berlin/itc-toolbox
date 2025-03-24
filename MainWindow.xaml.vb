@@ -51,6 +51,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
@@ -301,22 +302,22 @@ Class MainWindow
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
-                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
-                My.Settings.Save()
+        'If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
+        '    Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        '    If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        '    Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+        '                                                    .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        '    If filepicker.ShowDialog Then
+        '        My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+        '        My.Settings.Save()
 
 
-                Dim ActionDlg As New ToXlsxDialog() With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
-                ActionDlg.ShowDialog()
-            End If
-        Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
-        End If
+        '        Dim ActionDlg As New ToXlsxDialog() With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+        '        ActionDlg.ShowDialog()
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
+        'End If
     End Sub
 
     Private Sub BtnWriteSqlite_Click(sender As Object, e As RoutedEventArgs)
@@ -466,4 +467,18 @@ Class MainWindow
         Return False
     End Function
 
+    Private Sub HandleExportToXlsxExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+            My.Settings.Save()
+
+
+            Dim ActionDlg As New ToXlsxDialog(SqliteDB) With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
 End Class

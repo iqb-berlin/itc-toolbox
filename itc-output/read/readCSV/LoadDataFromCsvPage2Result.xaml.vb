@@ -1,8 +1,6 @@
-﻿Imports Newtonsoft.Json
-Imports DocumentFormat.OpenXml
+﻿Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
-Imports iqb.lib.openxml
 Imports System.ComponentModel
 
 Public Class LoadDataFromCsvPage2Result
@@ -147,7 +145,15 @@ Public Class LoadDataFromCsvPage2Result
 
             If Not myworker.CancellationPending Then
                 If parentDlg.WriteToXls Then
-                    WriteOutputToXlsx.Write(myTemplate, myworker, e, targetXlsxFilename)
+                    Dim config As New WriteXlsxConfig With {
+                        .targetXlsxFilename = targetXlsxFilename,
+                        .writeResponsesCodes = False,
+                        .writeResponsesScores = False,
+                        .writeResponsesStatus = False,
+                        .writeResponsesValues = True,
+                        .writeSessions = False
+                        }
+                    WriteOutputToXlsx.Write(myTemplate, myworker, e, config)
                 Else
                     Dim maxProgressValue As Integer = globalOutputStore.personDataFull.Count
                     Dim progressValue As Integer = 1
