@@ -1,6 +1,4 @@
-﻿Imports Newtonsoft.Json
-Imports DocumentFormat.OpenXml
-Imports DocumentFormat.OpenXml.Spreadsheet
+﻿Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Packaging
 Imports iqb.lib.openxml
 Imports System.ComponentModel
@@ -54,24 +52,51 @@ Class WriteOutputToXlsx
                     '########################################################
                     'Responses
                     '########################################################
-                    Dim TableResponses As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Responses")
-                    Dim TableStatus As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Status")
+                    Dim TableValues As WorksheetPart = Nothing
+                    If config.writeResponsesValues Then TableValues = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Antworten")
+                    Dim TableStatus As WorksheetPart = Nothing
+                    If config.writeResponsesStatus Then TableStatus = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Status")
+                    Dim TableCodes As WorksheetPart = Nothing
+                    If config.writeResponsesCodes Then TableCodes = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Codes")
+                    Dim TableScores As WorksheetPart = Nothing
+                    If config.writeResponsesScores Then TableScores = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Scores")
+
                     worker.ReportProgress(0.0#, "Schreibe Daten")
 
                     Dim myRow As Integer = 1
-                    xlsxFactory.SetCellValueString("A", myRow, TableResponses, "ID", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("A", TableResponses, 20)
-                    xlsxFactory.SetCellValueString("B", myRow, TableResponses, "Group", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("B", TableResponses, 10)
-                    xlsxFactory.SetCellValueString("C", myRow, TableResponses, "Login+Code", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("C", TableResponses, 10)
+                    If TableValues IsNot Nothing Then
+                        xlsxFactory.SetCellValueString("A", myRow, TableValues, "ID", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("A", TableValues, 20)
+                        xlsxFactory.SetCellValueString("B", myRow, TableValues, "Group", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("B", TableValues, 10)
+                        xlsxFactory.SetCellValueString("C", myRow, TableValues, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("C", TableValues, 10)
+                    End If
+                    If TableStatus IsNot Nothing Then
+                        xlsxFactory.SetCellValueString("A", myRow, TableStatus, "ID", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("A", TableStatus, 20)
+                        xlsxFactory.SetCellValueString("B", myRow, TableStatus, "Group", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("B", TableStatus, 10)
+                        xlsxFactory.SetCellValueString("C", myRow, TableStatus, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("C", TableStatus, 10)
+                    End If
+                    If TableScores IsNot Nothing Then
+                        xlsxFactory.SetCellValueString("A", myRow, TableScores, "ID", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("A", TableScores, 20)
+                        xlsxFactory.SetCellValueString("B", myRow, TableScores, "Group", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("B", TableScores, 10)
+                        xlsxFactory.SetCellValueString("C", myRow, TableScores, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("C", TableScores, 10)
+                    End If
+                    If TableCodes IsNot Nothing Then
+                        xlsxFactory.SetCellValueString("A", myRow, TableCodes, "ID", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("A", TableCodes, 20)
+                        xlsxFactory.SetCellValueString("B", myRow, TableCodes, "Group", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("B", TableCodes, 10)
+                        xlsxFactory.SetCellValueString("C", myRow, TableCodes, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("C", TableCodes, 10)
+                    End If
 
-                    xlsxFactory.SetCellValueString("A", myRow, TableStatus, "ID", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("A", TableStatus, 20)
-                    xlsxFactory.SetCellValueString("B", myRow, TableStatus, "Group", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("B", TableStatus, 10)
-                    xlsxFactory.SetCellValueString("C", myRow, TableStatus, "Login+Code", CellFormatting.RowHeader2, myStyles)
-                    xlsxFactory.SetColumnWidth("C", TableStatus, 10)
                     Dim myColumn As String = "D"
                     Dim Columns As New Dictionary(Of String, String)
 
@@ -85,10 +110,22 @@ Class WriteOutputToXlsx
                         progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
                         worker.ReportProgress(progressValue, "")
                         progressCount += 1
-                        xlsxFactory.SetCellValueString(myColumn, myRow, TableResponses, s, CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth(myColumn, TableResponses, 10)
-                        xlsxFactory.SetCellValueString(myColumn, myRow, TableStatus, s, CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth(myColumn, TableStatus, 10)
+                        If TableValues IsNot Nothing Then
+                            xlsxFactory.SetCellValueString(myColumn, myRow, TableValues, s, CellFormatting.RowHeader2, myStyles)
+                            xlsxFactory.SetColumnWidth(myColumn, TableValues, 10)
+                        End If
+                        If TableStatus IsNot Nothing Then
+                            xlsxFactory.SetCellValueString(myColumn, myRow, TableStatus, s, CellFormatting.RowHeader2, myStyles)
+                            xlsxFactory.SetColumnWidth(myColumn, TableStatus, 10)
+                        End If
+                        If TableScores IsNot Nothing Then
+                            xlsxFactory.SetCellValueString(myColumn, myRow, TableScores, s, CellFormatting.RowHeader2, myStyles)
+                            xlsxFactory.SetColumnWidth(myColumn, TableScores, 10)
+                        End If
+                        If TableCodes IsNot Nothing Then
+                            xlsxFactory.SetCellValueString(myColumn, myRow, TableCodes, s, CellFormatting.RowHeader2, myStyles)
+                            xlsxFactory.SetColumnWidth(myColumn, TableCodes, 10)
+                        End If
                         Columns.Add(s, myColumn)
                         myColumn = xlsxFactory.GetNextColumn(myColumn)
                     Next
@@ -125,29 +162,38 @@ Class WriteOutputToXlsx
                         End If
 
                         For Each subformKey As String In From sf As String In subforms Order By sf
-                            Dim myRowDataResponses As New List(Of RowData)
+                            Dim myRowDataValues As New List(Of RowData)
                             Dim myRowDataStatus As New List(Of RowData)
-                            myRowDataResponses.Add(New RowData With {.Column = "A", .Value = personKey.Key, .CellType = CellTypes.str})
-                            myRowDataResponses.Add(New RowData With {.Column = "B", .Value = personData.group, .CellType = CellTypes.str})
-                            myRowDataResponses.Add(New RowData With {.Column = "C",
+                            Dim myRowDataScores As New List(Of RowData)
+                            Dim myRowDataCodes As New List(Of RowData)
+                            Dim hasData As Boolean = False
+                            myRowDataValues.Add(New RowData With {.Column = "A", .Value = personKey.Key, .CellType = CellTypes.str})
+                            myRowDataValues.Add(New RowData With {.Column = "B", .Value = personData.group, .CellType = CellTypes.str})
+                            myRowDataValues.Add(New RowData With {.Column = "C",
                                                    .Value = personData.login + personData.code + IIf(String.IsNullOrEmpty(subformKey), "", "_" + subformKey),
                                                    .CellType = CellTypes.str})
-                            myRowDataStatus.Add(New RowData With {.Column = "A", .Value = personKey.Key, .CellType = CellTypes.str})
-                            myRowDataStatus.Add(New RowData With {.Column = "B", .Value = personData.group, .CellType = CellTypes.str})
-                            myRowDataStatus.Add(New RowData With {.Column = "C",
-                                                   .Value = personData.login + personData.code + IIf(String.IsNullOrEmpty(subformKey), "", "_" + subformKey),
-                                                   .CellType = CellTypes.str})
+                            For Each rd As RowData In myRowDataValues
+                                myRowDataStatus.Add(New RowData With {.Column = rd.Column, .Value = rd.Value, .CellType = rd.CellType})
+                                myRowDataScores.Add(New RowData With {.Column = rd.Column, .Value = rd.Value, .CellType = rd.CellType})
+                                myRowDataCodes.Add(New RowData With {.Column = rd.Column, .Value = rd.Value, .CellType = rd.CellType})
+                            Next
+
                             If config.subformMode = SubformMode.Columns Then
                                 For Each unit As Unit In
                                     From b As Booklet In personData.booklets
                                     From u As Unit In b.units Select u
                                     For Each subform As SubForm In unit.subforms
                                         For Each r As ResponseData In subform.responses
-                                            Dim columnKey As String = WriteOutputToXlsx.getVariableKey(unit, r.id, subform.id)
-                                            myRowDataResponses.Add(
-                                                New RowData With {.Column = Columns.Item(columnKey), .Value = r.value, .CellType = CellTypes.str})
+                                            hasData = True
+                                            Dim columnKey As String = Columns.Item(WriteOutputToXlsx.getColumnKey(unit, r.id, subform.id))
+                                            myRowDataValues.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.value, .CellType = CellTypes.str})
                                             myRowDataStatus.Add(
-                                                New RowData With {.Column = Columns.Item(columnKey), .Value = r.status, .CellType = CellTypes.str})
+                                                New RowData With {.Column = columnKey, .Value = r.status, .CellType = CellTypes.str})
+                                            myRowDataScores.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.score, .CellType = CellTypes.str})
+                                            myRowDataCodes.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.code, .CellType = CellTypes.str})
                                         Next
                                     Next
                                 Next
@@ -158,20 +204,36 @@ Class WriteOutputToXlsx
                                     Dim subform As SubForm = (From sf As SubForm In unit.subforms Where sf.id = subformKey).FirstOrDefault
                                     If subform IsNot Nothing Then
                                         For Each r As ResponseData In subform.responses
-                                            Dim columnKey As String = WriteOutputToXlsx.getVariableKey(unit, r.id, subform.id)
-                                            myRowDataResponses.Add(
-                                            New RowData With {.Column = Columns.Item(columnKey), .Value = r.value, .CellType = CellTypes.str})
+                                            hasData = True
+                                            Dim columnKey As String = Columns.Item(IIf(String.IsNullOrEmpty(unit.alias), unit.id, unit.alias) + r.id)
+                                            myRowDataValues.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.value, .CellType = CellTypes.str})
                                             myRowDataStatus.Add(
-                                            New RowData With {.Column = Columns.Item(columnKey), .Value = r.status, .CellType = CellTypes.str})
+                                                New RowData With {.Column = columnKey, .Value = r.status, .CellType = CellTypes.str})
+                                            myRowDataScores.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.score, .CellType = CellTypes.str})
+                                            myRowDataCodes.Add(
+                                                New RowData With {.Column = columnKey, .Value = r.code, .CellType = CellTypes.str})
                                         Next
                                     End If
                                 Next
                             End If
-                            myRow += 1
-                            xlsxFactory.AppendRow(myRow, myRowDataResponses, TableResponses)
-                            xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
+                            If hasData Then
+                                myRow += 1
+                                If TableValues IsNot Nothing Then xlsxFactory.AppendRow(myRow, myRowDataValues, TableValues)
+                                If TableStatus IsNot Nothing Then xlsxFactory.AppendRow(myRow, myRowDataStatus, TableStatus)
+                                If TableScores IsNot Nothing Then xlsxFactory.AppendRow(myRow, myRowDataScores, TableScores)
+                                If TableCodes IsNot Nothing Then xlsxFactory.AppendRow(myRow, myRowDataCodes, TableCodes)
+                            End If
                         Next
                     Next
+
+                    '########################################################
+                    If config.writeSessions Then
+                        Dim TableSessions As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Sessions")
+                        xlsxFactory.SetCellValueString("A", 1, TableSessions, "coming soon", CellFormatting.RowHeader2, myStyles)
+
+                    End If
 
                     ''########################################################
                     ''TimeOnPage
@@ -478,12 +540,9 @@ Class WriteOutputToXlsx
             For Each b As Booklet In p.Value.booklets
                 For Each u As Unit In b.units
                     For Each rSub As SubForm In u.subforms
-                        Dim varPrefix As String = u.alias
-                        If Not String.IsNullOrEmpty(rSub.id) AndAlso addSubformSuffix Then varPrefix += "##" + rSub.id
                         For Each r As ResponseData In rSub.responses
-                            Dim varId As String = varPrefix + "##" + r.id
-                            If Not returnList.Contains(varId) Then returnList.Add(
-                                WriteOutputToXlsx.getVariableKey(u, r.id, rSub.id))
+                            Dim varId As String = WriteOutputToXlsx.getColumnKey(u, r.id, IIf(addSubformSuffix, rSub.id, ""))
+                            If Not returnList.Contains(varId) Then returnList.Add(varId)
                         Next
                     Next
                 Next
@@ -492,7 +551,7 @@ Class WriteOutputToXlsx
         Return returnList
     End Function
 
-    Public Shared Function getVariableKey(unit As Unit, variableId As String, subformKey As String) As String
+    Public Shared Function getColumnKey(unit As Unit, variableId As String, subformKey As String) As String
         Return IIf(String.IsNullOrEmpty(unit.alias), unit.id, unit.alias) + variableId + IIf(String.IsNullOrEmpty(subformKey), "", "##" + subformKey)
     End Function
 End Class

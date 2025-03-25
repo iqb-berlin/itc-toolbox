@@ -4,6 +4,7 @@ Imports DocumentFormat.OpenXml.Packaging
 
 Public Class ToXlsxDialog
     Public sqliteConnection As SQLiteConnector
+    Public Shared writeConfig As WriteXlsxConfig = Nothing
 #Region "Vorspann"
     Public Sub New(sqliteConnection As SQLiteConnector)
         InitializeComponent()
@@ -19,6 +20,34 @@ Public Class ToXlsxDialog
         Else
             MBUC.AddMessage("Zieldatei: " + IO.Path.GetFileName(My.Settings.lastfile_OutputTargetXlsx))
             MBUC.AddMessage("Bitte Optionen wählen")
+
+            If writeConfig Is Nothing Then
+                writeConfig = New WriteXlsxConfig With {
+                    .subformMode = SubformMode.None,
+                    .writeResponsesCodes = False,
+                    .writeResponsesValues = True,
+                    .writeResponsesScores = False,
+                    .writeResponsesStatus = False,
+                    .writeSessions = True
+                }
+            End If
+            With writeConfig
+                .targetXlsxFilename = My.Settings.lastfile_OutputTargetXlsx
+                .sourceDatabase = sqliteConnection
+                ChBCode.IsChecked = .writeResponsesCodes
+                ChBValues.IsChecked = .writeResponsesValues
+                ChBScore.IsChecked = .writeResponsesScores
+                ChBStatus.IsChecked = .writeResponsesStatus
+                ChBSessions.IsChecked = .writeSessions
+                RBSubformColumn.IsChecked = .subformMode = SubformMode.Columns
+                RBSubformRow.IsChecked = .subformMode = SubformMode.Rows
+                RBSubformNone.IsChecked = .subformMode = SubformMode.None
+                Dim subformOptionsEnabled As Boolean = sqliteConnection.hasSubforms
+                RBSubformColumn.IsEnabled = subformOptionsEnabled
+                RBSubformRow.IsEnabled = subformOptionsEnabled
+                RBSubformNone.IsEnabled = subformOptionsEnabled
+            End With
+
         End If
     End Sub
 
@@ -52,7 +81,22 @@ Public Class ToXlsxDialog
     End Sub
 
     Private Sub BtnContinue_Click() Handles BtnContinue.Click
-        If ChBResonses.IsChecked Then
+        With writeConfig
+            .writeResponsesCodes = ChBCode.IsChecked
+            .writeResponsesValues = ChBValues.IsChecked
+            .writeResponsesScores = ChBScore.IsChecked
+            .writeResponsesStatus = ChBStatus.IsChecked
+            .writeSessions = ChBSessions.IsChecked
+            If RBSubformColumn.IsChecked Then
+                .subformMode = SubformMode.Columns
+            ElseIf RBSubformRow.IsChecked Then
+                .subformMode = SubformMode.Rows
+            Else
+                .subformMode = SubformMode.None
+            End If
+        End With
+        If writeConfig.writeResponsesCodes OrElse writeConfig.writeResponsesScores OrElse writeConfig.writeResponsesValues OrElse
+            writeConfig.writeResponsesStatus OrElse writeConfig.writeSessions Then
             DPParameters.IsEnabled = False
             BtnClose.Visibility = Windows.Visibility.Collapsed
             BtnContinue.Visibility = Windows.Visibility.Collapsed
@@ -86,11 +130,7 @@ Public Class ToXlsxDialog
         End Try
 
         If myTemplate IsNot Nothing Then
-            If Not myworker.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myworker, e, New WriteXlsxConfig With {
-                    .targetXlsxFilename = targetXlsxFilename,
-                    .sourceDatabase = sqliteConnection,
-                    .subformMode = SubformMode.None
-                })
+            If Not myworker.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myworker, e, writeConfig)
         End If
     End Sub
 End Class

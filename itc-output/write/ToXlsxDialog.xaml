@@ -19,7 +19,20 @@
         </ItemsControl>
         <lib:AsynchProgressBarUserControl Name="APBUC" DockPanel.Dock="Bottom"/>
         <DockPanel DockPanel.Dock="Bottom" Background="#eee" Name="DPParameters">
-            <CheckBox x:Name="ChBResonses" DockPanel.Dock="Top" Margin="4">Antworten</CheckBox>
+            <StackPanel Margin="5">
+                <TextBlock>Modus Unterformulare</TextBlock>
+                <RadioButton x:Name="RBSubformNone" GroupName="subformMode" Margin="5 0">Daten ignorieren</RadioButton>
+                <RadioButton x:Name="RBSubformRow" GroupName="subformMode" Margin="5 0">zeilenweise</RadioButton>
+                <RadioButton x:Name="RBSubformColumn" GroupName="subformMode" Margin="5 0">spaltenweise</RadioButton>
+            </StackPanel>
+            <StackPanel Margin="5">
+                <TextBlock>Tabellen erzeugen</TextBlock>
+                <CheckBox x:Name="ChBValues" DockPanel.Dock="Top" Margin="5 0">Antwortwerte</CheckBox>
+                <CheckBox x:Name="ChBStatus" DockPanel.Dock="Top" Margin="5 0">Status</CheckBox>
+                <CheckBox x:Name="ChBCode" DockPanel.Dock="Top" Margin="5 0">Codes</CheckBox>
+                <CheckBox x:Name="ChBScore" DockPanel.Dock="Top" Margin="5 0">Scores</CheckBox>
+                <CheckBox x:Name="ChBSessions" DockPanel.Dock="Top" Margin="5 0">Sessions</CheckBox>
+            </StackPanel>
 
         </DockPanel>
         <lib:MessageBoxUserControl Name="MBUC" />
