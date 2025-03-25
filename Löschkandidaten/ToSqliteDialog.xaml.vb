@@ -95,22 +95,22 @@ Public Class ToSqliteDialog
         worker.ReportProgress(0.0#, AllVariables.Count.ToString + " Variablen gefunden.")
 
         If AllVariables.Count > 0 Then
-            Dim sqliteConnector As New SQLiteConnector(targetSqliteFilename)
-            Using sqliteConnection As DbConnection = sqliteConnector.GetOpenConnection(False)
-                worker.ReportProgress(0.0#, "Version: " + sqliteConnector.dbVersion.ToString +
-                                      "; " + sqliteConnector.dbCreatedDateTime + " - " + sqliteConnector.dbCreator)
-                For Each person As Person In
-                            From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By kvp.Key Select kvp.Value
-                    If worker.CancellationPending Then
-                        e.Cancel = True
-                        Exit For
-                    End If
-                    Using cmd As DbCommand = sqliteConnection.CreateCommand()
-                        cmd.CommandText = "INSERT INTO person ([group], [login], [code]) VALUES ('" + person.group + "', '" + person.login + "', '" + person.code + "');"
-                        cmd.ExecuteNonQuery()
-                    End Using
-                Next
-            End Using
+            'Dim sqliteConnector As New SQLiteConnector(targetSqliteFilename)
+            'Using sqliteConnection As DbConnection = sqliteConnector.GetOpenConnection(False)
+            '    worker.ReportProgress(0.0#, "Version: " + sqliteConnector.dbVersion.ToString +
+            '                          "; " + sqliteConnector.dbCreatedDateTime + " - " + sqliteConnector.dbCreator)
+            '    For Each person As Person In
+            '                From kvp As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By kvp.Key Select kvp.Value
+            '        If worker.CancellationPending Then
+            '            e.Cancel = True
+            '            Exit For
+            '        End If
+            '        Using cmd As DbCommand = sqliteConnection.CreateCommand()
+            '            cmd.CommandText = "INSERT INTO person ([group], [login], [code]) VALUES ('" + person.group + "', '" + person.login + "', '" + person.code + "');"
+            '            cmd.ExecuteNonQuery()
+            '        End Using
+            '    Next
+            'End Using
         End If
 
     End Sub

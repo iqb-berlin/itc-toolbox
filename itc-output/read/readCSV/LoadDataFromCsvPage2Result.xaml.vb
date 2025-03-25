@@ -163,7 +163,7 @@ Public Class LoadDataFromCsvPage2Result
                         progressValue += 1
                         parentDlg.sqliteConnection.addPerson(p.Value)
                     Next
-                    parentDlg.sqliteConnection.CloseConnection()
+                    parentDlg.sqliteConnection.WriteDbInfoData(True)
                 End If
             End If
         End If

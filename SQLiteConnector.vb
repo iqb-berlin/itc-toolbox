@@ -9,11 +9,17 @@ Public Class SQLiteConnector
     Public ReadOnly dbVersion As Integer
     Public ReadOnly dbCreator As String
     Public ReadOnly dbCreatedDateTime As String
-    Public Sub New(dbFileName As String)
+    Public ReadOnly dbLastChanger As String
+    Public ReadOnly dbLastChangedDateTime As String
+    Public Sub New(dbFileName As String, create As Boolean)
         fileName = dbFileName
-        Dim addFullSchema As Boolean = Not IO.File.Exists(fileName)
+        Dim fileExists As Boolean = IO.File.Exists(fileName)
+        If create AndAlso fileExists Then
+            IO.File.Delete(fileName)
+            fileExists = False
+        End If
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(False)
-            If addFullSchema Then
+            If Not fileExists Then
                 Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
                     cmd.CommandText = "
 SELECT 1;
@@ -40,58 +46,8 @@ CREATE TABLE [booklet] (
 , [personId] bigint NOT NULL
 , [lastTs] bigint DEFAULT (0) NOT NULL
 , [firstTs] bigint DEFAULT (0) NOT NULL
-, CONSTRAINT [FK_booklet_0_0] FOREIGN KEY ([infoId]) REFERENCES [bookletInfo] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-, CONSTRAINT [FK_booklet_1_0] FOREIGN KEY ([personId]) REFERENCES [person] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [unit] (
-  [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
-, [bookletId] bigint NOT NULL
-, [name] text NOT NULL
-, [alias] text NULL
-, CONSTRAINT [FK_unit_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [subform] (
-  [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
-, [unitId] bigint NOT NULL
-, [key] text NULL
-, CONSTRAINT [FK_subform_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [response] (
-  [subformId] bigint NOT NULL
-, [variableId] text NOT NULL
-, [value] text NULL
-, [status] text NOT NULL
-, [code] bigint DEFAULT (0) NOT NULL
-, [score] bigint DEFAULT (0) NOT NULL
-, CONSTRAINT [FK_response_0_0] FOREIGN KEY ([subformId]) REFERENCES [subform] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [chunk] (
-  [unitId] bigint NOT NULL
-, [key] text NOT NULL
-, [type] text NULL
-, [variables] text NULL
-, [ts] bigint NULL
-, CONSTRAINT [FK_chunk_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [unitLastState] (
-  [unitId] bigint NOT NULL
-, [key] text NOT NULL
-, [value] text NULL
-, CONSTRAINT [FK_unitLastState_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [unitLog] (
-  [unitId] bigint NOT NULL
-, [key] text NOT NULL
-, [parameter] text NULL
-, [ts] bigint NULL
-, CONSTRAINT [FK_unitLog_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-CREATE TABLE [bookletLog] (
-  [bookletId] bigint NOT NULL
-, [key] text NOT NULL
-, [parameter] text NULL
-, [ts] bigint NULL
-, CONSTRAINT [FK_bookletLog_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+, CONSTRAINT [FK_booklet_0_0] FOREIGN KEY ([personId]) REFERENCES [person] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+, CONSTRAINT [FK_booklet_1_0] FOREIGN KEY ([infoId]) REFERENCES [bookletInfo] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 CREATE TABLE [session] (
   [bookletId] bigint NOT NULL
@@ -102,26 +58,69 @@ CREATE TABLE [session] (
 , [loadCompleteMS] bigint NULL
 , CONSTRAINT [FK_session_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
-CREATE TRIGGER [fki_bookletLog_bookletId_booklet_id] BEFORE Insert ON [bookletLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table bookletLog violates foreign key constraint FK_bookletLog_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
-CREATE TRIGGER [fki_booklet_infoId_bookletInfo_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM bookletInfo WHERE  id = NEW.infoId) IS NULL; END;
-CREATE TRIGGER [fki_booklet_personId_person_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_1_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
-CREATE TRIGGER [fki_chunk_unitId_unit_id] BEFORE Insert ON [chunk] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table chunk violates foreign key constraint FK_chunk_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fki_response_subformId_subform_id] BEFORE Insert ON [response] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table response violates foreign key constraint FK_response_0_0') WHERE (SELECT id FROM subform WHERE  id = NEW.subformId) IS NULL; END;
+CREATE TABLE [bookletLog] (
+  [bookletId] bigint NOT NULL
+, [key] text NOT NULL
+, [parameter] text NULL
+, [ts] bigint NULL
+, CONSTRAINT [FK_bookletLog_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TABLE [unit] (
+  [id] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
+, [bookletId] bigint NOT NULL
+, [name] text NOT NULL
+, [alias] text NULL
+, CONSTRAINT [FK_unit_0_0] FOREIGN KEY ([bookletId]) REFERENCES [booklet] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TABLE [unitLog] (
+  [unitId] bigint NOT NULL
+, [key] text NOT NULL
+, [parameter] text NULL
+, [ts] bigint NULL
+, CONSTRAINT [FK_unitLog_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TABLE [unitLastState] (
+  [unitId] bigint NOT NULL
+, [key] text NOT NULL
+, [value] text NULL
+, CONSTRAINT [FK_unitLastState_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TABLE [chunk] (
+  [unitId] bigint NOT NULL
+, [key] text NOT NULL
+, [type] text NULL
+, [variables] text NULL
+, [ts] bigint NULL
+, CONSTRAINT [FK_chunk_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TABLE [response] (
+  [unitId] bigint NOT NULL
+, [variableId] text NOT NULL
+, [status] text NOT NULL
+, [value] text NULL
+, [subform] text NULL
+, [code] bigint DEFAULT (0) NOT NULL
+, [score] bigint DEFAULT (0) NOT NULL
+, CONSTRAINT [FK_response_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+CREATE TRIGGER [fki_booklet_personId_person_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
+CREATE TRIGGER [fku_booklet_personId_person_id] BEFORE Update ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
+CREATE TRIGGER [fki_booklet_infoId_bookletInfo_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_1_0') WHERE (SELECT id FROM bookletInfo WHERE  id = NEW.infoId) IS NULL; END;
+CREATE TRIGGER [fku_booklet_infoId_bookletInfo_id] BEFORE Update ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table booklet violates foreign key constraint FK_booklet_1_0') WHERE (SELECT id FROM bookletInfo WHERE  id = NEW.infoId) IS NULL; END;
 CREATE TRIGGER [fki_session_bookletId_booklet_id] BEFORE Insert ON [session] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table session violates foreign key constraint FK_session_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
-CREATE TRIGGER [fki_subform_unitId_unit_id] BEFORE Insert ON [subform] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table subform violates foreign key constraint FK_subform_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fki_unitLastState_unitId_unit_id] BEFORE Insert ON [unitLastState] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unitLastState violates foreign key constraint FK_unitLastState_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fki_unitLog_unitId_unit_id] BEFORE Insert ON [unitLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unitLog violates foreign key constraint FK_unitLog_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fki_unit_bookletId_booklet_id] BEFORE Insert ON [unit] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unit violates foreign key constraint FK_unit_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
-CREATE TRIGGER [fku_bookletLog_bookletId_booklet_id] BEFORE Update ON [bookletLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table bookletLog violates foreign key constraint FK_bookletLog_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
-CREATE TRIGGER [fku_booklet_infoId_bookletInfo_id] BEFORE Update ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM bookletInfo WHERE  id = NEW.infoId) IS NULL; END;
-CREATE TRIGGER [fku_booklet_personId_person_id] BEFORE Update ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table booklet violates foreign key constraint FK_booklet_1_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
-CREATE TRIGGER [fku_chunk_unitId_unit_id] BEFORE Update ON [chunk] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table chunk violates foreign key constraint FK_chunk_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fku_response_subformId_subform_id] BEFORE Update ON [response] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table response violates foreign key constraint FK_response_0_0') WHERE (SELECT id FROM subform WHERE  id = NEW.subformId) IS NULL; END;
 CREATE TRIGGER [fku_session_bookletId_booklet_id] BEFORE Update ON [session] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table session violates foreign key constraint FK_session_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
-CREATE TRIGGER [fku_subform_unitId_unit_id] BEFORE Update ON [subform] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table subform violates foreign key constraint FK_subform_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fku_unitLastState_unitId_unit_id] BEFORE Update ON [unitLastState] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table unitLastState violates foreign key constraint FK_unitLastState_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
-CREATE TRIGGER [fku_unitLog_unitId_unit_id] BEFORE Update ON [unitLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table unitLog violates foreign key constraint FK_unitLog_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fki_bookletLog_bookletId_booklet_id] BEFORE Insert ON [bookletLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table bookletLog violates foreign key constraint FK_bookletLog_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
+CREATE TRIGGER [fku_bookletLog_bookletId_booklet_id] BEFORE Update ON [bookletLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table bookletLog violates foreign key constraint FK_bookletLog_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
+CREATE TRIGGER [fki_unit_bookletId_booklet_id] BEFORE Insert ON [unit] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unit violates foreign key constraint FK_unit_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
 CREATE TRIGGER [fku_unit_bookletId_booklet_id] BEFORE Update ON [unit] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table unit violates foreign key constraint FK_unit_0_0') WHERE (SELECT id FROM booklet WHERE  id = NEW.bookletId) IS NULL; END;
+CREATE TRIGGER [fki_unitLog_unitId_unit_id] BEFORE Insert ON [unitLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unitLog violates foreign key constraint FK_unitLog_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fku_unitLog_unitId_unit_id] BEFORE Update ON [unitLog] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table unitLog violates foreign key constraint FK_unitLog_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fki_unitLastState_unitId_unit_id] BEFORE Insert ON [unitLastState] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table unitLastState violates foreign key constraint FK_unitLastState_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fku_unitLastState_unitId_unit_id] BEFORE Update ON [unitLastState] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table unitLastState violates foreign key constraint FK_unitLastState_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fki_chunk_unitId_unit_id] BEFORE Insert ON [chunk] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table chunk violates foreign key constraint FK_chunk_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fku_chunk_unitId_unit_id] BEFORE Update ON [chunk] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table chunk violates foreign key constraint FK_chunk_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fki_response_unitId_unit_id] BEFORE Insert ON [response] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table response violates foreign key constraint FK_response_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
+CREATE TRIGGER [fku_response_unitId_unit_id] BEFORE Update ON [response] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Update on table response violates foreign key constraint FK_response_0_0') WHERE (SELECT id FROM unit WHERE  id = NEW.unitId) IS NULL; END;
 COMMIT;"
                     cmd.ExecuteNonQuery()
                 End Using
@@ -129,13 +128,20 @@ COMMIT;"
                 Dim now As DateTime = DateTime.Now
                 dbCreatedDateTime = now.ToShortDateString + " " + now.ToShortTimeString
                 dbCreator = ADFactory.GetMyNameLong
+                dbLastChangedDateTime = dbCreatedDateTime
+                dbLastChanger = dbCreator
                 Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
                     cmd.CommandText = "
-                        INSERT INTO [db_info] ([key],[value]) VALUES ('name', 'IQB-Testcenter-Output');
-                        INSERT INTO [db_info] ([key],[value]) VALUES ('dbVersion', '" + dbVersion.ToString + "');
-                        INSERT INTO [db_info] ([key],[value]) VALUES ('dbCreator', '" + dbCreator + "');
-                        INSERT INTO [db_info] ([key],[value]) VALUES ('dbCreatedDateTime', '" + dbCreatedDateTime + "');
-                    "
+BEGIN TRANSACTION;
+INSERT INTO [db_info] ([key],[value]) VALUES ('name', 'IQB-Testcenter-Output');
+INSERT INTO [db_info] ([key],[value]) VALUES ('version', '" + dbVersion.ToString + "');
+INSERT INTO [db_info] ([key],[value]) VALUES ('created_By', '" + dbCreator + "');
+INSERT INTO [db_info] ([key],[value]) VALUES ('created_DateTime', '" + dbCreatedDateTime + "');
+INSERT INTO [db_info] ([key],[value]) VALUES ('lastchanged_By', '" + dbLastChanger + "');
+INSERT INTO [db_info] ([key],[value]) VALUES ('lastchanged_DateTime', '" + dbLastChangedDateTime + "');
+INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_people', '0');
+INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_responses', '0');
+COMMIT;"
                     cmd.ExecuteNonQuery()
                 End Using
             Else
@@ -146,9 +152,9 @@ COMMIT;"
                         Dim key As String = dbReader.GetString(0)
                         Dim value As String = dbReader.GetString(1)
                         Select Case key
-                            Case "dbVersion" : dbVersion = Long.Parse(value)
-                            Case "dbCreator" : dbCreator = value
-                            Case "dbCreatedDateTime" : dbCreatedDateTime = value
+                            Case "version" : dbVersion = Long.Parse(value)
+                            Case "created_By" : dbCreator = value
+                            Case "created_DateTime" : dbCreatedDateTime = value
                         End Select
                     End While
                 End Using
@@ -181,6 +187,35 @@ COMMIT;"
         Return returnText
     End Function
 
+    Public Function WriteDbInfoData(closeConnection As Boolean) As String
+        Dim returnText As String = ""
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(False)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "
+PRAGMA journal_mode=OFF;
+PRAGMA synchronous=OFF;"
+                cmd.ExecuteNonQuery()
+
+                cmd.CommandText = "SELECT COUNT(*) FROM [person];"
+                Dim personCount As Long = cmd.ExecuteScalar()
+                cmd.CommandText = "SELECT COUNT(*) FROM [response];"
+                Dim responseCount As Long = cmd.ExecuteScalar()
+
+                cmd.CommandText = "BEGIN TRANSACTION;"
+                Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + personCount.ToString("N0", deCulture) + "' where key = 'number_of_people';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + responseCount.ToString("N0", deCulture) + "' where key = 'number_of_responses';"
+                Dim now As DateTime = DateTime.Now
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + now.ToShortDateString + " " + now.ToShortTimeString + "' where key = 'lastchanged_DateTime';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + ADFactory.GetMyNameLong + "' where key = 'lastchanged_By';"
+                cmd.CommandText += "COMMIT;"
+                cmd.ExecuteScalar()
+            End Using
+        End Using
+        If closeConnection Then Me.CloseConnection()
+        Return returnText
+    End Function
+
     Public Sub CloseConnection()
         GC.Collect()
         GC.WaitForPendingFinalizers()
@@ -193,14 +228,18 @@ COMMIT;"
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(False)
             Dim personDbId As Long = -1
             Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
-                cmd.CommandText = "select [id] from [person] where [group]='" + p.group +
+                cmd.CommandText = "
+PRAGMA journal_mode=OFF;
+PRAGMA synchronous=OFF;"
+                cmd.ExecuteNonQuery()
+                cmd.CommandText = "
+select [id] from [person] where [group]='" + p.group +
                     "' and [login]='" + p.login + "' and [code]='" + p.code + "' LIMIT 1;"
                 Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
                 While dbReader.Read()
                     personDbId = dbReader.GetInt64(0)
                 End While
-            End Using
-            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                dbReader.Close()
                 If personDbId < 0 Then
                     cmd.CommandText = "
 BEGIN TRANSACTION;
@@ -218,7 +257,7 @@ join [bookletInfo] on booklet.infoId = bookletInfo.id
 where booklet.personId = @personId AND bookletInfo.name = @bookletName LIMIT 1"
                     cmd.Parameters.AddWithValue("@personId", personDbId)
                     cmd.Parameters.AddWithValue("@bookletName", b.id)
-                    Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                    dbReader = cmd.ExecuteReader()
                     Dim bookletDbId As Long = -1
                     Dim lastTs As Long = -1
                     Dim firstTs As Long = -1
@@ -311,17 +350,11 @@ INSERT INTO [chunk] ([unitId],[key],[type],[variables],[ts]) VALUES (" +
                             End If
 
                             For Each sf As SubForm In u.subforms
-                                cmd.CommandText = "
-BEGIN TRANSACTION;
-INSERT INTO [subform] ([unitId],[key]) VALUES (" + lastInsert_UnitId.ToString + ", '" + sf.id + "');
-SELECT last_insert_rowid();
-COMMIT;"
-                                Dim lastInsert_SubformId As Long = cmd.ExecuteScalar()
                                 cmd.CommandText = ""
                                 For Each resp As ResponseData In sf.responses
                                     cmd.CommandText += "
-INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]) VALUES (" +
-        lastInsert_SubformId.ToString + ", '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" + resp.status + "'," +
+INSERT INTO [response] ([unitId],[subform],[variableId],[value],[status],[code],[score]) VALUES (" + lastInsert_UnitId.ToString + ",'" +
+                                    IIf(String.IsNullOrEmpty(sf.id), "", sf.id) + "', '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" + resp.status + "'," +
                                         resp.code.ToString + "," + resp.score.ToString + ");"
                                 Next
                                 If Not String.IsNullOrEmpty(cmd.CommandText) Then
@@ -342,6 +375,11 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
             Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
                 Dim dbReader As SQLiteDataReader
                 For Each b As KeyValuePair(Of String, Long) In bookletSizes
+                    cmd.CommandText = "
+PRAGMA journal_mode=OFF;
+PRAGMA synchronous=OFF;"
+                    cmd.ExecuteNonQuery()
+
                     Dim infoId As Long = -1
                     cmd.CommandText = "select id from [bookletInfo] where name = @bookletName LIMIT 1"
                     cmd.Parameters.AddWithValue("@bookletName", b.Key)
@@ -371,7 +409,7 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
         Dim firstSubformResponseDbId As Long = -1
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
             Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
-                cmd.CommandText = "SELECT [id],[key] FROM [subform] where key not in ('') limit 1;"
+                cmd.CommandText = "SELECT 1 FROM [response] where subform not in ('') limit 1;"
                 Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
                 While dbReader.Read()
                     firstSubformResponseDbId = dbReader.GetInt64(0)
@@ -387,13 +425,12 @@ INSERT INTO [response] ([subformId],[variableId],[value],[status],[code],[score]
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
             Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
                 cmd.CommandText = "
-select response.variableId,subform.key,response.subformId,subform.unitId,unit.id,unit.name,unit.alias from [response]
-join [subform] on subform.id = response.subformId
-join [unit] on unit.id = subform.unitId;"
+select response.variableId,response.subform,response.unitId,unit.id,unit.name,unit.alias from [response]
+join [unit] on unit.id = response.unitId;"
                 Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
                 While dbReader.Read()
-                    Dim unitName As String = dbReader.GetString(5)
-                    Dim unitAlias As String = dbReader.GetString(6)
+                    Dim unitName As String = dbReader.GetString(4)
+                    Dim unitAlias As String = dbReader.GetString(5)
                     Dim variableId As String = IIf(String.IsNullOrEmpty(unitAlias), unitName, unitAlias) + dbReader.GetString(0)
                     Dim subformKey As String = dbReader.GetString(1)
                     If Not String.IsNullOrEmpty(subformKey) AndAlso addSubformSuffix Then variableId += "##" + subformKey
@@ -445,16 +482,16 @@ join [booklet] on booklet.id = unit.bookletId where booklet.personId = " + dbIdS
                 dbReader.Close()
                 For Each dbUnit As KeyValuePair(Of String, Unit) In unitList
                     cmd.CommandText = "
-select subform.id,subform.unitId,subform.key,response.variableId,response.value,response.status,response.code,response.score from [response]
-join [subform] on subform.id = response.subformId where subform.unitId = " + dbUnit.Key + ";"
+select response.unitId,response.subform,response.variableId,response.value,response.status,response.code,response.score
+from [response] where response.unitId = " + dbUnit.Key + ";"
                     dbReader = cmd.ExecuteReader()
                     Dim subformList As New Dictionary(Of String, List(Of ResponseData))
                     While dbReader.Read()
-                        Dim subformKey As String = dbReader.GetString(2)
+                        Dim subformKey As String = dbReader.GetString(1)
                         If Not subformList.ContainsKey(subformKey) Then subformList.Add(subformKey, New List(Of ResponseData))
                         subformList.Item(subformKey).Add(New ResponseData(
-                                                         dbReader.GetString(3), dbReader.GetString(4), dbReader.GetString(5)) With {
-                                                         .code = dbReader.GetInt64(6), .score = dbReader.GetInt64(7)})
+                                                         dbReader.GetString(2), dbReader.GetString(3), dbReader.GetString(4)) With {
+                                                         .code = dbReader.GetInt64(5), .score = dbReader.GetInt64(6)})
                     End While
                     dbReader.Close()
                     For Each sf As KeyValuePair(Of String, List(Of ResponseData)) In subformList

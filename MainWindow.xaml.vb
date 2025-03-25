@@ -320,25 +320,6 @@ Class MainWindow
         'End If
     End Sub
 
-    Private Sub BtnWriteSqlite_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetSqlite) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetSqlite)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {
-                .FileName = My.Settings.lastfile_OutputTargetSqlite, .Filter = "SQLite-Dateien|*.sqlite",
-                .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "SQLite Zieldatei wählen"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_OutputTargetSqlite = filepicker.FileName
-                My.Settings.Save()
-
-                Dim ActionDlg As New ToSqliteDialog() With {.Owner = Me, .Title = "Schreiben SQLite-Output"}
-                ActionDlg.ShowDialog()
-            End If
-        Else
-            DialogFactory.MsgError(Me, "SQLite", "SQLite-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
-        End If
-    End Sub
-
     Private Sub HandleAppExitExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
         Me.Close()
     End Sub
@@ -350,6 +331,9 @@ Class MainWindow
         Else
             TBDBInfo.Text = Me.SqliteDB.dbCreator + ": " + Me.SqliteDB.dbCreatedDateTime
             If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "; subforms"
+            Dim statusText As String = SqliteDB.GetCoreData(True)
+            TBDBInfo.Text += "; " + statusText
+
         End If
     End Sub
 
@@ -412,7 +396,7 @@ Class MainWindow
             My.Settings.lastfile_SqliteDB = filepicker.FileName
             My.Settings.Save()
 
-            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, True)
             TBDBNoDbInfo.Visibility = Visibility.Collapsed
             Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()
@@ -428,7 +412,7 @@ Class MainWindow
             My.Settings.lastfile_SqliteDB = filepicker.FileName
             My.Settings.Save()
 
-            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB)
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, False)
             TBDBNoDbInfo.Visibility = Visibility.Collapsed
             Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()

@@ -13,7 +13,6 @@ End Enum
 Class LoadDataFromTestcenterDialog
     Public selectedDataGroups As List(Of String)
     Public target As DataTarget
-    Public segregateBigdata As Boolean
     Public readMode As TestcenterReadMode
     Public itcConnection As ITCConnection
     Public sqliteConnection As SQLiteConnector

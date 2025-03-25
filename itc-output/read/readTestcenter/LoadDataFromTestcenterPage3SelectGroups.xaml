@@ -19,7 +19,6 @@
             <Button Click="BtnCancel_Click">Abrechen</Button>
         </ItemsControl>
         <DockPanel DockPanel.Dock="Bottom" Margin="10" LastChildFill="False">
-            <CheckBox x:Name="CBBigData">Separiere Big Data (z. B. GeoGebra) von Antworten</CheckBox>
             <Button x:Name="BtnToggleCheck" Click="BtnToggleCheck_Click" DockPanel.Dock="Right" Padding="10 0 10 0">Toggle</Button>
         </DockPanel>
         <TextBlock Name="TBlPrompt" DockPanel.Dock="Top" Margin="20 0 20 0" TextWrapping="Wrap">Bitte Login-Gruppen wählen</TextBlock>

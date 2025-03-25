@@ -78,6 +78,7 @@ Public Class readJsonFilesToDbDialog
                         SqliteDB.addPerson(p)
                     Next
                 End If
+                SqliteDB.WriteDbInfoData(True)
             End Using
             progressCount += 1
             If progressCount = progressMax Then

@@ -109,15 +109,6 @@ Public Class LoadDataFromTestcenterPage4Responses
                     myBW.ReportProgress(3.0#, "Fehler beim Schreiben von " + dataGroupId + ".JSON: " + ex.Message)
                     fatalError = True
                 End Try
-
-                If ParentDlg.segregateBigdata Then
-                    Try
-
-                    Catch ex As Exception
-                        myBW.ReportProgress(3.0#, "Fehler beim Schreiben von Bigdata: " + ex.Message)
-                        fatalError = True
-                    End Try
-                End If
             ElseIf ParentDlg.target = DataTarget.Sqlite Then
                 For Each p As KeyValuePair(Of String, Person) In personDataList
                     ParentDlg.sqliteConnection.addPerson(p.Value)
@@ -131,6 +122,7 @@ Public Class LoadDataFromTestcenterPage4Responses
 
             progressValue += 1
         Next
+        ParentDlg.sqliteConnection.WriteDbInfoData(False)
         myBW.ReportProgress(0.0#, "beendet.")
     End Sub
 
