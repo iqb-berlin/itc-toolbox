@@ -52,6 +52,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
@@ -329,11 +330,12 @@ Class MainWindow
         If Me.SqliteDB Is Nothing Then
             TBDBInfo.Text = "Keine Daten"
         Else
-            TBDBInfo.Text = Me.SqliteDB.dbCreator + ": " + Me.SqliteDB.dbCreatedDateTime
-            If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "; subforms"
-            Dim statusText As String = SqliteDB.GetCoreData(True)
-            TBDBInfo.Text += "; " + statusText
-
+            TBDBInfo.Text = "Datenbank angelegt durch " + Me.SqliteDB.dbCreator + " " + Me.SqliteDB.dbCreatedDateTime + vbNewLine
+            TBDBInfo.Text += "Datenbank-Version " + Me.SqliteDB.dbVersion.ToString + vbNewLine
+            If Me.SqliteDB.dbLastChangedDateTime <> Me.SqliteDB.dbCreatedDateTime Then TBDBInfo.Text += "Datenbank zuletzt geändert durch " + Me.SqliteDB.dbLastChanger + " " + Me.SqliteDB.dbLastChangedDateTime + vbNewLine
+            If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "Antworten mit Unterformularen vorhanden" + vbNewLine
+            TBDBInfo.Text += "Anzahl Personen: " + Me.SqliteDB.dbPersonCount + vbNewLine
+            TBDBInfo.Text += "Anzahl Antworten: " + Me.SqliteDB.dbResponseCount
         End If
     End Sub
 
@@ -397,7 +399,6 @@ Class MainWindow
             My.Settings.Save()
 
             Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, True)
-            TBDBNoDbInfo.Visibility = Visibility.Collapsed
             Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()
         End If
@@ -413,7 +414,6 @@ Class MainWindow
             My.Settings.Save()
 
             Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, False)
-            TBDBNoDbInfo.Visibility = Visibility.Collapsed
             Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
             UpdateSqliteDBInfo()
         End If

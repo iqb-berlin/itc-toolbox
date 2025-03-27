@@ -9,8 +9,10 @@ Public Class SQLiteConnector
     Public ReadOnly dbVersion As Integer
     Public ReadOnly dbCreator As String
     Public ReadOnly dbCreatedDateTime As String
-    Public ReadOnly dbLastChanger As String
-    Public ReadOnly dbLastChangedDateTime As String
+    Public dbLastChanger As String
+    Public dbLastChangedDateTime As String
+    Public dbPersonCount As String = "0"
+    Public dbResponseCount As String = "0"
     Public Sub New(dbFileName As String, create As Boolean)
         fileName = dbFileName
         Dim fileExists As Boolean = IO.File.Exists(fileName)
@@ -155,6 +157,10 @@ COMMIT;"
                             Case "version" : dbVersion = Long.Parse(value)
                             Case "created_By" : dbCreator = value
                             Case "created_DateTime" : dbCreatedDateTime = value
+                            Case "number_of_people" : dbPersonCount = Long.Parse(value)
+                            Case "number_of_responses" : dbResponseCount = value
+                            Case "lastchanged_DateTime" : dbLastChangedDateTime = value
+                            Case "lastchanged_By" : dbLastChanger = value
                         End Select
                     End While
                 End Using
@@ -170,23 +176,6 @@ COMMIT;"
         Return sqliteConnection
     End Function
 
-    Public Function GetCoreData(closeConnection As Boolean) As String
-        Dim returnText As String = ""
-        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
-            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
-                cmd.CommandText = "SELECT COUNT(*) FROM [person];"
-                Dim personCount As Long = cmd.ExecuteScalar()
-                cmd.CommandText = "SELECT COUNT(*) FROM [response];"
-                Dim responseCount As Long = cmd.ExecuteScalar()
-                Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
-                returnText = "Anzahl Personen: " + personCount.ToString("N0", deCulture) +
-                    ", Anzahl Antwortdaten: " + responseCount.ToString("N0", deCulture)
-            End Using
-        End Using
-        If closeConnection Then Me.CloseConnection()
-        Return returnText
-    End Function
-
     Public Function WriteDbInfoData(closeConnection As Boolean) As String
         Dim returnText As String = ""
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(False)
@@ -197,17 +186,21 @@ PRAGMA synchronous=OFF;"
                 cmd.ExecuteNonQuery()
 
                 cmd.CommandText = "SELECT COUNT(*) FROM [person];"
-                Dim personCount As Long = cmd.ExecuteScalar()
+                Dim tmpLong As Long = cmd.ExecuteScalar()
+                Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
+                dbPersonCount = tmpLong.ToString("N0", deCulture)
                 cmd.CommandText = "SELECT COUNT(*) FROM [response];"
-                Dim responseCount As Long = cmd.ExecuteScalar()
+                tmpLong = cmd.ExecuteScalar()
+                dbResponseCount = tmpLong.ToString("N0", deCulture)
 
                 cmd.CommandText = "BEGIN TRANSACTION;"
-                Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
-                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + personCount.ToString("N0", deCulture) + "' where key = 'number_of_people';"
-                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + responseCount.ToString("N0", deCulture) + "' where key = 'number_of_responses';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbPersonCount + "' where key = 'number_of_people';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbResponseCount + "' where key = 'number_of_responses';"
                 Dim now As DateTime = DateTime.Now
-                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + now.ToShortDateString + " " + now.ToShortTimeString + "' where key = 'lastchanged_DateTime';"
-                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + ADFactory.GetMyNameLong + "' where key = 'lastchanged_By';"
+                dbLastChangedDateTime = now.ToShortDateString + " " + now.ToShortTimeString
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChangedDateTime + "' where key = 'lastchanged_DateTime';"
+                dbLastChanger = ADFactory.GetMyNameLong
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChanger + "' where key = 'lastchanged_By';"
                 cmd.CommandText += "COMMIT;"
                 cmd.ExecuteScalar()
             End Using

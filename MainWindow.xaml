@@ -250,15 +250,10 @@
                             <MenuItem Command="local:AppCommands.ExportToXlsx"/>
                         </MenuItem>
                     </Menu>
-                    <TextBlock TextWrapping="Wrap" Margin="0 10" Name="TBDBNoDbInfo">
+                    <TextBlock TextWrapping="Wrap" Margin="0 15" Name="TBDBInfo">
                         Keine Datenbank-Datei gewählt. Bitte wählen Sie über das Menü "Datenbank" den Punkt "Neu" oder öffnen Sie eine 
                         vorhandene Datenbank-Datei!
                     </TextBlock>
-                    <DockPanel>
-                        <TextBlock TextWrapping="Wrap" Name="TBDBInfo">
-                            
-                        </TextBlock>
-                    </DockPanel>
                 </StackPanel>
             </TabItem>
         </TabControl>

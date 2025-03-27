@@ -82,8 +82,7 @@ Public Class readJsonFilesToDbDialog
             End Using
             progressCount += 1
             If progressCount = progressMax Then
-                Dim statusText As String = SqliteDB.GetCoreData(True)
-                myworker.ReportProgress(0.0#, statusText)
+                myworker.ReportProgress(0.0#, "Personen: " + SqliteDB.dbPersonCount + "; Anzahl Antworten: " + SqliteDB.dbResponseCount)
             End If
             If myworker.CancellationPending Then Exit For
         Next
