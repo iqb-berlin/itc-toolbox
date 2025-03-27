@@ -1,4 +1,5 @@
-﻿Imports Newtonsoft.Json
+﻿Imports System.Net
+Imports Newtonsoft.Json
 Public Class ITCConnection
     Public Shared ReadOnly validBookletDependencies() As String = {"containsUnit", "usesPlayer", "isDefinedBy"}
     Public selectedWorkspace As Integer = 0
@@ -24,6 +25,8 @@ Public Class ITCConnection
     End Property
     Public Sub New(url As String, credentials As Net.NetworkCredential, worker As ComponentModel.BackgroundWorker)
         Me._url = url
+        ServicePointManager.ServerCertificateValidationCallback = New System.Net.Security.RemoteCertificateValidationCallback(
+            AddressOf AcceptAllCertifications)
         Dim resp As Net.WebResponse = Nothing
         If worker IsNot Nothing Then worker.ReportProgress(10.0#)
         Try
@@ -70,6 +73,12 @@ Public Class ITCConnection
         End If
     End Sub
 
+    Public Shared Function AcceptAllCertifications(sender As Object,
+                                                   certification As System.Security.Cryptography.X509Certificates.X509Certificate,
+                                                   chain As System.Security.Cryptography.X509Certificates.X509Chain,
+                                                   sslPolicyErrors As System.Net.Security.SslPolicyErrors) As Boolean
+        Return True
+    End Function
     Private Function GetWorkspaceName(wsId As Integer) As String
         Dim myReturn As String = wsId.ToString
         Dim resp As Net.WebResponse
@@ -225,7 +234,7 @@ Public Class ITCConnection
             For Each booklet As WorkspaceFileDTO In bookletsWithDependency
                 Dim bookletSize As Long = booklet.size
                 For Each d As FileDependencyDTO In booklet.dependencies
-                    If validBookletDependencies.Contains(d.relationship_type) Then bookletSize += flatFileSizes.Item(d.object_name)
+                    If validBookletDependencies.Contains(d.relationship_type) AndAlso flatFileSizes.ContainsKey(d.object_name) Then bookletSize += flatFileSizes.Item(d.object_name)
                 Next
                 bookletSizes.Add(booklet.id, bookletSize)
             Next

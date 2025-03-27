@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:iqb.testcenter.toolbox"
         SizeToContent="Height"
         mc:Ignorable="d"
-        Title="MainWindow" Width="600" Icon="Resources/IQB-Testcenter.ico" MinHeight="500">
+        Title="MainWindow" Width="700" Icon="Resources/IQB-Testcenter.ico" MinHeight="500">
     <Window.Resources>
         <ResourceDictionary Source="pack://application:,,,/iqblib-components;component/GlobalStyles.xaml"/>
     </Window.Resources>
@@ -18,9 +18,10 @@
         <DockPanel DockPanel.Dock="Top" Margin="10">
             <libco:ButtonHelp DockPanel.Dock="Right" Height="26" Width="26" Margin="10 0 0 10" VerticalAlignment="Top"/>
             <TextBlock TextWrapping="Wrap" Margin="0 0 10 0" DockPanel.Dock="Top" Foreground="white">
-                Diese Anwendung transformiert Daten des IQB-Testcenters. Im oberen Abschnitt werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
-                dienen können oder ein Zwischenschritt dafür darstellen. Im unteren Abschnitt werden Ergebnisdaten aus dem IQB-Testcenter
-                in das Excel-Format übertragen.
+                Diese Anwendung transformiert Daten des IQB-Testcenters. Im Abschnitt "Input" werden Dateien erzeugt, die entweder direkt als Xml-Steuerdateien 
+                dienen können oder ein Zwischenschritt dafür darstellen. Im Abschnitt "Output direkt" werden Ergebnisdaten aus dem IQB-Testcenter oder aus CSV-Dateien 
+                direkt in das JSON- oder Excel-Format übertragen. Der Abschnitt "DB Antworten+Logs" ist für große Datenmengen gedacht. Man legt hierbei 
+                eine Datenbank-Datei an und erzeugt dann verschiedene Ausgaben.
             </TextBlock>
         </DockPanel>
         <TabControl TabStripPlacement="Top" Name="TCScanSelect">
@@ -29,8 +30,8 @@
                     <TextBlock Text="{Binding}" 
                                Foreground="DarkBlue" 
                                FontSize="14" 
-                               Padding="4 0"
-                               FontWeight="Normal"
+                               Padding="10 4"
+                               FontWeight="Bold"
                                TextWrapping="Wrap"/>
                 </DataTemplate>
                 <Style TargetType="{x:Type TabItem}">
@@ -195,6 +196,21 @@
                         <TextBlock TextWrapping="Wrap">
                             Verbinden mit einem Testcenter und Abrufen aller Antworten;
                             Speichern sofort als Excel-Datei (nur Antworten)
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnTestCsvToXlsx_Click">
+                            <Button.Content>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">Antworten</TextBlock>
+                                    <TextBlock TextAlignment="Center">CSV -> Xlsx</TextBlock>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock DockPanel.Dock="Right" Width="100">
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap">
+                            Einlesen von CSV-Dateien und Speichern sofort als Excel-Datei (nur Antworten)
                         </TextBlock>
                     </DockPanel>
                 </StackPanel>

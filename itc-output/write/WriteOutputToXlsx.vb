@@ -2,6 +2,7 @@
 Imports DocumentFormat.OpenXml.Packaging
 Imports iqb.lib.openxml
 Imports System.ComponentModel
+Imports System.Globalization
 
 Public Enum SubformMode
     None
@@ -27,6 +28,7 @@ Class WriteOutputToXlsx
                            e As DoWorkEventArgs,
                            config As WriteXlsxConfig
                            )
+        Dim deCulture = CultureInfo.CreateSpecificCulture("de-DE")
         worker.ReportProgress(0.0#, "Ermittle Variablen")
         Dim AllVariables As New List(Of String)
         If config.sourceDatabase Is Nothing Then
@@ -53,7 +55,7 @@ Class WriteOutputToXlsx
                         config.writeResponsesScores OrElse config.writeResponsesCodes
                     Dim stepMax As Integer = 0
                     If writeResponses Then stepMax += 2
-                    If config.writeSessions Then stepMax += 2
+                    If config.writeSessions Then stepMax += 1
 
                     Dim stepCount As Integer = 1
                     Dim progressMax As Integer = 0
@@ -243,30 +245,32 @@ Class WriteOutputToXlsx
                     If config.writeSessions Then
                         Dim TableSessions As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Sessions")
                         Dim myRow As Integer = 1
-                        xlsxFactory.SetCellValueString("A", myRow, TableSessions, "ID", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("A", TableSessions, 20)
-                        xlsxFactory.SetCellValueString("B", myRow, TableSessions, "Group", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("B", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("C", myRow, TableSessions, "Login+Code", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("A", myRow, TableSessions, "Person", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("A", TableSessions, 30)
+                        xlsxFactory.SetCellValueString("B", myRow, TableSessions, "Booklet", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("B", TableSessions, 20)
+                        xlsxFactory.SetCellValueString("C", myRow, TableSessions, "Session No", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("C", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("D", myRow, TableSessions, "Booklet", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("D", myRow, TableSessions, "Sessions Total", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("D", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("E", myRow, TableSessions, "Unit", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("E", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("F", myRow, TableSessions, "Start At", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("E", myRow, TableSessions, "Units w Value", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("E", TableSessions, 30)
+                        xlsxFactory.SetCellValueString("F", myRow, TableSessions, "Start At TS", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("F", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("G", myRow, TableSessions, "Player Load Time", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("G", myRow, TableSessions, "Start At DT", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("G", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("H", myRow, TableSessions, "Stay Time", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("H", myRow, TableSessions, "First Responses After MS", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("H", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("I", myRow, TableSessions, "Was Paused", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("I", myRow, TableSessions, "Last Responses After MS", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("I", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("J", myRow, TableSessions, "Lost Focus", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetCellValueString("J", myRow, TableSessions, "Load Speed", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("J", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("K", myRow, TableSessions, "Responses Some Time", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("K", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("L", myRow, TableSessions, "Responses Complete Time", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("L", TableSessions, 10)
+                        xlsxFactory.SetCellValueString("K", myRow, TableSessions, "Browser", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("K", TableSessions, 20)
+                        xlsxFactory.SetCellValueString("L", myRow, TableSessions, "OS", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("L", TableSessions, 20)
+                        xlsxFactory.SetCellValueString("M", myRow, TableSessions, "Screen", CellFormatting.RowHeader2, myStyles)
+                        xlsxFactory.SetColumnWidth("M", TableSessions, 10)
                         myRow += 1
 
                         If config.sourceDatabase Is Nothing Then
@@ -300,21 +304,22 @@ Class WriteOutputToXlsx
                                     myRowData.Add(New RowData With {.Column = "C", .Value = s.sessionNumber, .CellType = CellTypes.int})
                                     myRowData.Add(New RowData With {.Column = "D", .Value = sessions.Count, .CellType = CellTypes.int})
                                     myRowData.Add(New RowData With {.Column = "E", .Value = String.Join(" ", s.unitsWithResponse), .CellType = CellTypes.str})
-                                    'myRowData.Add(New RowData With {.Column = "F", .Value = topData.navigationStart, .CellType = CellTypes.int})
-                                    'myRowData.Add(New RowData With {.Column = "G", .Value = topData.playerLoadTime, .CellType = CellTypes.int})
-                                    'myRowData.Add(New RowData With {.Column = "H", .Value = topData.stayTime, .CellType = CellTypes.int})
-                                    'myRowData.Add(New RowData With {.Column = "I", .Value = topData.wasPaused.ToString, .CellType = CellTypes.str})
-                                    'myRowData.Add(New RowData With {.Column = "J", .Value = topData.lostFocus.ToString, .CellType = CellTypes.str})
-                                    'myRowData.Add(New RowData With {.Column = "K", .Value = topData.responseProgressTimeSome, .CellType = CellTypes.int})
-                                    'myRowData.Add(New RowData With {.Column = "L", .Value = topData.responseProgressTimeComplete, .CellType = CellTypes.int})
-                                    myRow += 1
+                                    myRowData.Add(New RowData With {.Column = "F", .Value = s.sessionStartTs, .CellType = CellTypes.int})
+                                    Dim sessionStart As New DateTime(1970, 1, 1, 0, 0, 0, 0)
+                                    sessionStart = sessionStart.AddMilliseconds(s.sessionStartTs)
+                                    myRowData.Add(New RowData With {.Column = "G", .Value = sessionStart.ToString(deCulture), .CellType = CellTypes.str})
+                                    myRowData.Add(New RowData With {.Column = "H", .Value = s.firstUnitTS - s.sessionStartTs, .CellType = CellTypes.int})
+                                    myRowData.Add(New RowData With {.Column = "I", .Value = s.lastUnitTS - s.sessionStartTs, .CellType = CellTypes.int})
+                                    myRowData.Add(New RowData With {.Column = "J", .Value = s.contentLoadSpeed.ToString, .CellType = CellTypes.str})
+                                    myRowData.Add(New RowData With {.Column = "K", .Value = s.browser, .CellType = CellTypes.str})
+                                    myRowData.Add(New RowData With {.Column = "L", .Value = s.os, .CellType = CellTypes.str})
+                                    myRowData.Add(New RowData With {.Column = "M", .Value = s.screen, .CellType = CellTypes.str})
                                     xlsxFactory.AppendRow(myRow, myRowData, TableSessions)
                                     myRow += 1
                                 Next
                             Next
-
                         End If
-
+                        stepCount += 1
                     End If
 
                     ''########################################################
@@ -382,67 +387,6 @@ Class WriteOutputToXlsx
                     '    Next
                     'Next
 
-                    ''########################################################
-                    ''TechData
-                    ''########################################################
-                    'Dim TableTechData As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "TechData")
-                    'Dim currentUser As System.Security.Principal.WindowsIdentity = System.Security.Principal.WindowsIdentity.GetCurrent
-                    'Dim currentUserName As String = currentUser.Name.Substring(currentUser.Name.IndexOf("\") + 1)
-
-                    'xlsxFactory.SetCellValueString("A", 1, TableTechData, "Antworten und Log-Daten IQB-Testcenter", CellFormatting.Null, myStyles)
-                    'xlsxFactory.SetCellValueString("A", 2, TableTechData, "konvertiert mit " + My.Application.Info.AssemblyName + " V" +
-                    '                               My.Application.Info.Version.Major.ToString + "." + My.Application.Info.Version.Minor.ToString + "." +
-                    '                               My.Application.Info.Version.Build.ToString + " am " + DateTime.Now.ToShortDateString + " " + DateTime.Now.ToShortTimeString +
-                    '                               " (" + currentUserName + ")", CellFormatting.Null, myStyles)
-
-                    'myRow = 4
-
-                    'xlsxFactory.SetCellValueString("A", myRow, TableTechData, "ID", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("A", TableTechData, 30)
-                    'xlsxFactory.SetCellValueString("B", myRow, TableTechData, "Start at", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("B", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("C", myRow, TableTechData, "loadcomplete after", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("C", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("D", myRow, TableTechData, "loadspeed", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("D", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("E", myRow, TableTechData, "firstUnitRunning after", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("E", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("F", myRow, TableTechData, "os", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("F", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("G", myRow, TableTechData, "browser", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("G", TableTechData, 20)
-                    'xlsxFactory.SetCellValueString("H", myRow, TableTechData, "screen", CellFormatting.RowHeader2, myStyles)
-                    'xlsxFactory.SetColumnWidth("H", TableTechData, 20)
-
-                    'progressMax = globalOutputStore.personDataFull.Count
-                    'progressCount = 1
-                    'stepCount += 1
-                    'For Each testPerson As KeyValuePair(Of String, Person) In From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Order By p.Key
-                    '    If worker.CancellationPending Then
-                    '        e.Cancel = True
-                    '        Exit For
-                    '    End If
-                    '    progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
-                    '    worker.ReportProgress(progressValue, "")
-                    '    progressCount += 1
-
-                    '    For Each booklet As Booklet In From b As Booklet In testPerson.Value.booklets Order By b.id
-                    '        myRow += 1
-                    '        Dim myRowData As New List(Of RowData)
-                    '        Dim techData As BookletTechData = booklet.getTechData(globalOutputStore.bookletSizes)
-                    '        myRowData.Add(New RowData With {.Column = "A", .Value = booklet.id, .CellType = CellTypes.str})
-                    '        myRowData.Add(New RowData With {.Column = "B", .Value = techData.loadStart, .CellType = CellTypes.int})
-                    '        myRowData.Add(New RowData With {.Column = "C", .Value = techData.loadTimeCompleteTS, .CellType = CellTypes.int})
-                    '        myRowData.Add(New RowData With {.Column = "D", .Value = techData.loadspeed, .CellType = CellTypes.dec})
-                    '        myRowData.Add(New RowData With {.Column = "E", .Value = techData.firstUnitRunningAfterMS, .CellType = CellTypes.int})
-                    '        myRowData.Add(New RowData With {.Column = "F", .Value = techData.os, .CellType = CellTypes.str})
-                    '        myRowData.Add(New RowData With {.Column = "G", .Value = techData.browser, .CellType = CellTypes.str})
-                    '        myRowData.Add(New RowData With {.Column = "H", .Value = techData.screen, .CellType = CellTypes.str})
-
-                    '        xlsxFactory.AppendRow(myRow, myRowData, TableTechData)
-                    '    Next
-                    'Next
-
                 End Using
                 worker.ReportProgress(100.0#, "Speichern Datei")
                 Try
@@ -456,7 +400,7 @@ Class WriteOutputToXlsx
         End If
     End Sub
 
-    Public Shared Sub WriteLite(
+    Public Shared Sub XXXWriteLite(
                            workbookTemplate As Byte(),
                            worker As BackgroundWorker,
                            e As DoWorkEventArgs,

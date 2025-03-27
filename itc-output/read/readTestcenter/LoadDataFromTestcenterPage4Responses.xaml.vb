@@ -1,4 +1,6 @@
 ﻿Imports DocumentFormat.OpenXml
+Imports DocumentFormat.OpenXml.Packaging
+Imports DocumentFormat.OpenXml.Spreadsheet
 Imports System.ComponentModel
 
 Public Class LoadDataFromTestcenterPage4Responses
@@ -96,7 +98,7 @@ Public Class LoadDataFromTestcenterPage4Responses
                 Next
             End If
 
-            If ParentDlg.target = DataTarget.Datastore Then
+            If ParentDlg.target = DataTarget.Datastore OrElse ParentDlg.target = DataTarget.Xlsx Then
                 For Each p As KeyValuePair(Of String, Person) In personDataList
                     globalOutputStore.personDataFull.Add(p.Key, p.Value)
                 Next
@@ -122,7 +124,36 @@ Public Class LoadDataFromTestcenterPage4Responses
 
             progressValue += 1
         Next
-        ParentDlg.sqliteConnection.WriteDbInfoData(False)
+        If ParentDlg.target = DataTarget.Xlsx Then
+            Dim targetXlsxFilename As String = My.Settings.lastfile_OutputTargetXlsx
+            Dim myTemplate As Byte() = Nothing
+            Try
+                Dim TmpZielXLS As SpreadsheetDocument = SpreadsheetDocument.Create(targetXlsxFilename, SpreadsheetDocumentType.Workbook)
+                Dim myWorkbookPart As WorkbookPart = TmpZielXLS.AddWorkbookPart()
+                myWorkbookPart.Workbook = New Workbook()
+                myWorkbookPart.Workbook.AppendChild(Of Sheets)(New Sheets())
+                TmpZielXLS.Close()
+
+                myTemplate = IO.File.ReadAllBytes(targetXlsxFilename)
+            Catch ex As Exception
+                myBW.ReportProgress(0.0#, "e: Konnte Datei '" + targetXlsxFilename + "' nicht schreiben (noch geöffnet?)" + vbNewLine + ex.Message)
+            End Try
+
+            If myTemplate IsNot Nothing Then
+                Dim config As New WriteXlsxConfig With {
+                        .targetXlsxFilename = My.Settings.lastfile_OutputTargetXlsx,
+                        .writeResponsesCodes = False,
+                        .writeResponsesScores = False,
+                        .writeResponsesStatus = False,
+                        .writeResponsesValues = True,
+                        .writeSessions = False
+                        }
+                WriteOutputToXlsx.Write(myTemplate, myBW, e, config)
+            End If
+        ElseIf ParentDlg.target = DataTarget.Sqlite Then
+            ParentDlg.sqliteConnection.WriteDbInfoData(False)
+        End If
+
         myBW.ReportProgress(0.0#, "beendet.")
     End Sub
 

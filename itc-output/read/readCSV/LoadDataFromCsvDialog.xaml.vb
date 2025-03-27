@@ -1,4 +1,4 @@
-﻿Public Class OutputDialog
+﻿Public Class LoadDataFromCsvDialog
     Public WriteToXls As Boolean
     Public AllVariables As List(Of String)
     Public sqliteConnection As SQLiteConnector

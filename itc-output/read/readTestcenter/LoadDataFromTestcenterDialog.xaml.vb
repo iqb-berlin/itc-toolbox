@@ -9,6 +9,7 @@ Public Enum DataTarget
     JsonFiles
     Datastore
     Sqlite
+    Xlsx
 End Enum
 Class LoadDataFromTestcenterDialog
     Public selectedDataGroups As List(Of String)

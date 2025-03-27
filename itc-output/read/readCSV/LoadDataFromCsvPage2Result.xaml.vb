@@ -24,7 +24,7 @@ Public Class LoadDataFromCsvPage2Result
 
     Private Sub BtnCancelClose_Click(sender As System.Object, e As System.Windows.RoutedEventArgs)
         If myBackgroundWorker Is Nothing Then
-            Dim parentDlg As OutputDialog = Me.Parent
+            Dim parentDlg As LoadDataFromCsvDialog = Me.Parent
             parentDlg.DialogResult = True
         Else
             If myBackgroundWorker.WorkerSupportsCancellation AndAlso myBackgroundWorker.IsBusy Then
@@ -33,7 +33,7 @@ Public Class LoadDataFromCsvPage2Result
                 BtnCancelClose.Content = "Bitte warten"
                 Me.MBUC.AddMessage("w: Abbruch - bitte warten!")
             Else
-                Dim parentDlg As OutputDialog = Me.Parent
+                Dim parentDlg As LoadDataFromCsvDialog = Me.Parent
                 parentDlg.DialogResult = True
             End If
         End If
@@ -52,7 +52,7 @@ Public Class LoadDataFromCsvPage2Result
 
     Private Sub myBackgroundWorker_DoWork(ByVal sender As Object, ByVal e As DoWorkEventArgs) Handles myBackgroundWorker.DoWork
         Dim myworker As ComponentModel.BackgroundWorker = sender
-        Dim parentDlg As OutputDialog = Me.Parent
+        Dim parentDlg As LoadDataFromCsvDialog = Me.Parent
 
         Dim targetXlsxFilename As String = My.Settings.lastfile_OutputTargetXlsx
         Dim myTemplate As Byte() = Nothing

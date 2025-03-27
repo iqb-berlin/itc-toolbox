@@ -557,6 +557,7 @@ select [browser],[os],[screen],[ts],[loadCompleteMS] from [session] where [bookl
                             Else
                                 Dim sessionCount As Integer = localSessionReports.Count
                                 Dim lastSessionStart As Long = Long.MaxValue
+                                Dim localSessionReportsReverseOrder As New List(Of SessionReport)
                                 For Each rep As SessionReport In (From r As SessionReport In localSessionReports Order By r.sessionStartTs).Reverse
                                     rep.sessionNumber = sessionCount
                                     sessionCount -= 1
@@ -574,8 +575,9 @@ select [browser],[os],[screen],[ts],[loadCompleteMS] from [session] where [bookl
                                         rep.unitsWithResponse = New List(Of String)
                                     End If
                                     lastSessionStart = rep.sessionStartTs
-                                    mySessionReports.Add(rep)
+                                    localSessionReportsReverseOrder.Add(rep)
                                 Next
+                                localSessionReports.AddRange((From rep As SessionReport In localSessionReportsReverseOrder).Reverse)
                             End If
                         End If
                     End If
@@ -623,7 +625,16 @@ where not [status] in ('DISPLAYED','UNSET','NOT_REACHED') and unitId=" + u.Key.T
                         If lastChangedTs < ts Then lastChangedTs = ts
                     End While
                     dbReader.Close()
-                    If lastChangedTs > 0 Then unitsLastChanged.Add(u.Value, lastChangedTs)
+                    If lastChangedTs > 0 Then
+                        If unitsLastChanged.ContainsKey(u.Value) Then
+                            Debug.Print("two entries for unit for same booklet: booklet-id " + bookletId.ToString +
+                                        ", unit " + u.Value + "; take newest")
+                            Dim oldTS As Long = unitsLastChanged.Item(u.Value)
+                            If oldTS < lastChangedTs Then unitsLastChanged.Item(u.Value) = lastChangedTs
+                        Else
+                            unitsLastChanged.Add(u.Value, lastChangedTs)
+                        End If
+                    End If
                 Next
             End Using
         End Using

@@ -3,7 +3,7 @@
         Dim SearchDir As New IO.DirectoryInfo(My.Settings.lastdir_OutputSource)
         Dim LogFileCount As Integer = 0
         Dim ResponsesFileCount As Integer = 0
-        Dim parentDlg As OutputDialog = Me.Parent
+        Dim parentDlg As LoadDataFromCsvDialog = Me.Parent
         For Each fi As IO.FileInfo In SearchDir.GetFiles("*.csv", IO.SearchOption.AllDirectories)
             Try
                 Dim readFile As System.IO.TextReader = New IO.StreamReader(fi.FullName)
@@ -25,7 +25,7 @@
     End Sub
 
     Private Sub BtnOk_Click(sender As System.Object, e As System.Windows.RoutedEventArgs) Handles BtnOK.Click
-        Dim parentDlg As OutputDialog = Me.Parent
+        Dim parentDlg As LoadDataFromCsvDialog = Me.Parent
         If parentDlg.WriteToXls Then
             inputTargetFileName()
         Else

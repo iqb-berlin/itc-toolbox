@@ -151,7 +151,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim myDlg As New OutputDialog(True) With {.Owner = Me}
+            Dim myDlg As New LoadDataFromCsvDialog(True) With {.Owner = Me}
             myDlg.ShowDialog()
         End If
     End Sub
@@ -238,7 +238,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim ActionDlg As New OutputDialog(False) With {.Owner = Me}
+            Dim ActionDlg As New LoadDataFromCsvDialog(False) With {.Owner = Me}
             If ActionDlg.ShowDialog() Then
                 updateGroupCount()
             End If
@@ -351,7 +351,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim myDlg As New OutputDialog(False, SqliteDB) With {.Owner = Me}
+            Dim myDlg As New LoadDataFromCsvDialog(False, SqliteDB) With {.Owner = Me}
             myDlg.ShowDialog()
         End If
     End Sub
@@ -443,7 +443,19 @@ Class MainWindow
     End Sub
 
     Private Sub BtnTestcenterToXlsx_Click(sender As Object, e As RoutedEventArgs)
-        DialogFactory.Msg(Me, "tbd", "BtnTestcenterToXlsx_Click")
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+            My.Settings.Save()
+
+
+            Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Xlsx) With {
+            .Owner = Me, .Title = "Antworten aus Testcenter laden und in Xlsx speichern"}
+            ActionDlg.ShowDialog()
+        End If
     End Sub
 
     Private Function HandleDummyFalseCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
@@ -463,6 +475,18 @@ Class MainWindow
 
             Dim ActionDlg As New ToXlsxDialog(SqliteDB) With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
             ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub BtnTestCsvToXlsx_Click(sender As Object, e As RoutedEventArgs)
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim myDlg As New LoadDataFromCsvDialog(True) With {.Owner = Me, .Title = "Lesen CSV + Schreiben Xlsx"}
+            myDlg.ShowDialog()
         End If
     End Sub
 End Class
