@@ -1,5 +1,6 @@
 ﻿Public Class GroupDataDTO
     Public groupName As String
+    Public groupLabel As String
     Public bookletsStarted As Integer
     Public numUnitsMin As Integer
     Public numUnitsMax As Integer
@@ -37,20 +38,17 @@ Public Class ResponseDTO
     Public originalUnitId As String
 End Class
 
-Public class BookletInfoDTO
-    Public description As String
-    Public label As String
-    Public totalSize As long
-End Class
-
-Public Class BookletDTO
+Public Class WorkspaceFileDTO
     Public name As String
-    Public size As Integer
-    Public modificationTime As Long
+    Public size As Long
     Public type As String
     Public id As String
-    'Public report
-    Public info As BookletInfoDTO
+    Public dependencies As List(Of FileDependencyDTO)
+End Class
+
+Public Class FileDependencyDTO
+    Public object_name As String
+    Public relationship_type As String
 End Class
 
 Public Class ReviewDTO

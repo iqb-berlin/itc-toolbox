@@ -1,14 +1,15 @@
 ﻿Imports System.ComponentModel
 
 Public Class LoadDataFromTestcenterPage3SelectGroups
-    Private dataGroupNames As List(Of String)
+    Private dataGroupsToSelect As Dictionary(Of String, String)
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
-        If ParentDlg.readMode <> TestcenterReadMode.Responses Then Me.CBBigData.Visibility = Visibility.Collapsed
-        Dim dataGroups As List(Of GroupDataDTO) = globalOutputStore.itcConnection.getDataGroups()
-        dataGroupNames = (From ds As GroupDataDTO In dataGroups Order By ds.groupName Where ds.bookletsStarted > 0 Select ds.groupName).ToList
-        ICDataGroups.ItemsSource = dataGroupNames.Select(Of XElement)(Function(name, index) New XElement(<g checked="True" number=<%= index %>><%= name %></g>))
-        CBBigData.IsChecked = True
+        Dim dataGroups As List(Of GroupDataDTO) = ParentDlg.itcConnection.getDataGroups()
+        dataGroupsToSelect = (From ds As GroupDataDTO In dataGroups
+                              Order By ds.groupName
+                              Where ds.bookletsStarted > 0).ToDictionary(Function(a) a.groupName,
+                                                                         Function(a) IIf(a.groupLabel = a.groupName, "", " - " + a.groupLabel).ToString)
+        ICDataGroups.ItemsSource = dataGroupsToSelect.Select(Of XElement)(Function(g, index) New XElement(<g checked="True" number=<%= index %> label=<%= g.Value %>><%= g.Key %></g>))
     End Sub
 
     Private Sub BtnCancel_Click(sender As System.Object, e As System.Windows.RoutedEventArgs)
@@ -20,7 +21,6 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
         Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         ParentDlg.selectedDataGroups = (From xe As XElement In ICDataGroups.Items Where xe.@checked = "True" Select xe.Value).ToList
         If ParentDlg.readMode = TestcenterReadMode.Responses Then
-            ParentDlg.segregateBigdata = CBBigData.IsChecked
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4Responses)
         Else
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage4ReviewsXlsx)
@@ -32,7 +32,7 @@ Public Class LoadDataFromTestcenterPage3SelectGroups
             Dim firstItem As XElement = ICDataGroups.Items.Item(0)
             Dim newValue As String = "True"
             If firstItem.@checked = "True" Then newValue = "False"
-            ICDataGroups.ItemsSource = dataGroupNames.Select(Of XElement)(Function(name, index) New XElement(<g checked=<%= newValue %> number=<%= index %>><%= name %></g>))
+            ICDataGroups.ItemsSource = dataGroupsToSelect.Select(Of XElement)(Function(g, index) New XElement(<g checked=<%= newValue %> number=<%= index %> label=<%= g.Value %>><%= g.Key %></g>))
         End If
     End Sub
 End Class

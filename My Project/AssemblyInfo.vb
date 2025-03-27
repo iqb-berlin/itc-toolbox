@@ -12,10 +12,10 @@ Imports System.Windows
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("IQB-Testcenter Toolbox")>
-<Assembly: AssemblyDescription("Diese Anwendung transformiert Daten des IQB-Testcenters.")>
+<Assembly: AssemblyDescription("Diese Anwendung transformiert Daten des IQB-Testcenters. Das betrifft den Input (Content) und den Output (Reviews, System-Check, Antwortn, Logs).")>
 <Assembly: AssemblyCompany("IQB Berlin")>
 <Assembly: AssemblyProduct("itc-Toolbox")>
-<Assembly: AssemblyCopyright("IQB © 2018, 2023")>
+<Assembly: AssemblyCopyright("IQB © 2018, 2025")>
 <Assembly: AssemblyTrademark("")>
 <Assembly: ComVisible(false)>
 
@@ -55,5 +55,5 @@ Imports System.Windows
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("2.0.0.0")>
-<Assembly: AssemblyFileVersion("2.0.0.0")>
+<Assembly: AssemblyVersion("3.0.0.0")>
+<Assembly: AssemblyFileVersion("3.0.0.0")>

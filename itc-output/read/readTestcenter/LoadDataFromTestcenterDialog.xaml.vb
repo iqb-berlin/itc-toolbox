@@ -3,16 +3,30 @@
     Responses
     SystemCheck
 End Enum
+
+Public Enum DataTarget
+    Standard
+    JsonFiles
+    Datastore
+    Sqlite
+    Xlsx
+End Enum
 Class LoadDataFromTestcenterDialog
     Public selectedDataGroups As List(Of String)
-    Public write As Boolean
-    Public segregateBigdata As Boolean
+    Public target As DataTarget
     Public readMode As TestcenterReadMode
+    Public itcConnection As ITCConnection
+    Public sqliteConnection As SQLiteConnector
 
-    Public Sub New(mode As TestcenterReadMode, Optional instantWrite As Boolean = True)
+    Public Sub New(testcenterConnection As ITCConnection,
+                   mode As TestcenterReadMode,
+                   target As DataTarget,
+                   Optional sqliteConnection As SQLiteConnector = Nothing)
         InitializeComponent()
+        Me.itcConnection = testcenterConnection
         Me.readMode = mode
-        Me.write = instantWrite
+        Me.target = target
+        Me.sqliteConnection = sqliteConnection
+        If Me.target = DataTarget.Sqlite AndAlso Me.sqliteConnection Is Nothing Then Me.target = DataTarget.Datastore
     End Sub
-
 End Class

@@ -1,32 +1,24 @@
 ﻿Imports Newtonsoft.Json
 Public Class JsonReadWrite
-    Public Shared Sub Write(targetJsonFilename As String)
+    Public Shared Sub Write(targetJsonFilename As String, data As PersonList)
         Using file As New IO.StreamWriter(targetJsonFilename)
             Dim js As New JsonSerializer()
             js.Formatting = Formatting.Indented
             js.Serialize(file,
-                         From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull
+                         From p As KeyValuePair(Of String, Person) In data
                          Select p.Value)
         End Using
     End Sub
 
-    Public Shared Sub WriteByGroup(targetFoldername As String)
-        Dim groups As List(Of String) = (From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Select p.Value.group).Distinct.ToList
+    Public Shared Sub WriteByGroup(targetFoldername As String, data As PersonList)
+        Dim groups As List(Of String) = (From p As KeyValuePair(Of String, Person) In data Select p.Value.group).Distinct.ToList
         For Each g As String In groups
             Using file As New IO.StreamWriter(targetFoldername + IO.Path.DirectorySeparatorChar + g + ".json")
                 Dim js As New JsonSerializer()
                 js.Formatting = Formatting.Indented
                 js.Serialize(file,
-                         From p As KeyValuePair(Of String, Person) In globalOutputStore.personDataFull Where p.Value.group = g
+                         From p As KeyValuePair(Of String, Person) In data Where p.Value.group = g
                          Select p.Value)
-            End Using
-        Next
-    End Sub
-
-    Public Shared Sub WriteBigData(targetFoldername As String)
-        For Each big As KeyValuePair(Of String, String) In globalOutputStore.bigData
-            Using file As New IO.StreamWriter(targetFoldername + IO.Path.DirectorySeparatorChar + big.Key)
-                file.Write(big.Value)
             End Using
         Next
     End Sub

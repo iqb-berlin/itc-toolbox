@@ -141,19 +141,10 @@ Public Class Session
     Public loadCompleteMS As Long
 End Class
 
-Public Class BookletTechData
-    Public loadspeed As Long
-    Public firstUnitRunningAfterMS As Long
-    Public browser As String
-    Public os As String
-    Public screen As String
-    Public loadStart As Long
-    Public loadTimeCompleteTS As Long
-End Class
-
 Public Class Booklet
     Public id As String
-    'Public firstUnitEnterTS As Long
+    Public firstTS As Long = 0
+    Public lastTS As Long = 0
     Public logs As List(Of LogEntry)
     Public units As List(Of Unit)
     Public sessions As List(Of Session)
@@ -176,8 +167,24 @@ Public Class Booklet
         sessions.Add(newSession)
     End Sub
 
-    Public Function getTechData(bookletSizes As Dictionary(Of String, Long)) As BookletTechData
-        Return New BookletTechData
-    End Function
-
+    Public Sub setTimestamps()
+        For Each s As Session In sessions
+            If s.ts > lastTS Then lastTS = s.ts
+            If firstTS = 0 OrElse s.ts < firstTS Then firstTS = s.ts
+        Next
+        For Each l As LogEntry In logs
+            If l.ts > lastTS Then lastTS = l.ts
+            If firstTS = 0 OrElse l.ts < firstTS Then firstTS = l.ts
+        Next
+        For Each u As Unit In units
+            For Each l As LogEntry In u.logs
+                If l.ts > lastTS Then lastTS = l.ts
+                If firstTS = 0 OrElse l.ts < firstTS Then firstTS = l.ts
+            Next
+            For Each ch As ResponseChunkData In u.chunks
+                If ch.ts > lastTS Then lastTS = ch.ts
+                If firstTS = 0 OrElse ch.ts < firstTS Then firstTS = ch.ts
+            Next
+        Next
+    End Sub
 End Class

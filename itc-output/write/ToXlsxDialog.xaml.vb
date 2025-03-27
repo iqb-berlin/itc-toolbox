@@ -1,18 +1,14 @@
 ﻿Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
-Imports DocumentFormat.OpenXml.Wordprocessing
-Imports iqb.lib.openxml
-Imports iqb.lib.components
-Imports WordRun = DocumentFormat.OpenXml.Wordprocessing.Run
-Imports WordText = DocumentFormat.OpenXml.Wordprocessing.Text
-Imports QRCoder
 
 Public Class ToXlsxDialog
-
+    Public sqliteConnection As SQLiteConnector
+    Public Shared writeConfig As WriteXlsxConfig = Nothing
 #Region "Vorspann"
-    Public Sub New()
+    Public Sub New(sqliteConnection As SQLiteConnector)
         InitializeComponent()
+        Me.sqliteConnection = sqliteConnection
     End Sub
 
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
@@ -24,18 +20,42 @@ Public Class ToXlsxDialog
         Else
             MBUC.AddMessage("Zieldatei: " + IO.Path.GetFileName(My.Settings.lastfile_OutputTargetXlsx))
             MBUC.AddMessage("Bitte Optionen wählen")
+
+            If writeConfig Is Nothing Then
+                writeConfig = New WriteXlsxConfig With {
+                    .subformMode = SubformMode.None,
+                    .writeResponsesCodes = False,
+                    .writeResponsesValues = True,
+                    .writeResponsesScores = False,
+                    .writeResponsesStatus = False,
+                    .writeSessions = True
+                }
+            End If
+            With writeConfig
+                .targetXlsxFilename = My.Settings.lastfile_OutputTargetXlsx
+                .sourceDatabase = sqliteConnection
+                ChBCode.IsChecked = .writeResponsesCodes
+                ChBValues.IsChecked = .writeResponsesValues
+                ChBScore.IsChecked = .writeResponsesScores
+                ChBStatus.IsChecked = .writeResponsesStatus
+                ChBSessions.IsChecked = .writeSessions
+                RBSubformColumn.IsChecked = .subformMode = SubformMode.Columns
+                RBSubformRow.IsChecked = .subformMode = SubformMode.Rows
+                RBSubformNone.IsChecked = .subformMode = SubformMode.None
+                Dim subformOptionsEnabled As Boolean = sqliteConnection.hasSubforms
+                RBSubformColumn.IsEnabled = subformOptionsEnabled
+                RBSubformRow.IsEnabled = subformOptionsEnabled
+                RBSubformNone.IsEnabled = subformOptionsEnabled
+            End With
+
         End If
     End Sub
 
     Private WithEvents Process1_bw As ComponentModel.BackgroundWorker = Nothing
-    Private WithEvents Process2_bw As ComponentModel.BackgroundWorker = Nothing
 
     Private Sub BtnCancel_Click() Handles BtnCancel.Click
         If Process1_bw IsNot Nothing AndAlso Process1_bw.IsBusy Then
             Process1_bw.CancelAsync()
-            BtnCancel.IsEnabled = False
-        ElseIf Process2_bw IsNot Nothing AndAlso Process2_bw.IsBusy Then
-            Process2_bw.CancelAsync()
             BtnCancel.IsEnabled = False
         Else
             DialogResult = False
@@ -46,7 +66,7 @@ Public Class ToXlsxDialog
         DialogResult = True
     End Sub
 
-    Private Sub bw_ProgressChanged(ByVal sender As Object, ByVal e As ComponentModel.ProgressChangedEventArgs) Handles Process1_bw.ProgressChanged, Process2_bw.ProgressChanged
+    Private Sub bw_ProgressChanged(ByVal sender As Object, ByVal e As ComponentModel.ProgressChangedEventArgs) Handles Process1_bw.ProgressChanged
         Me.APBUC.UpdateProgressState(e.ProgressPercentage)
         If Not String.IsNullOrEmpty(e.UserState) Then MBUC.AddMessage(e.UserState)
     End Sub
@@ -61,7 +81,22 @@ Public Class ToXlsxDialog
     End Sub
 
     Private Sub BtnContinue_Click() Handles BtnContinue.Click
-        If ChBResonses.IsChecked Then
+        With writeConfig
+            .writeResponsesCodes = ChBCode.IsChecked
+            .writeResponsesValues = ChBValues.IsChecked
+            .writeResponsesScores = ChBScore.IsChecked
+            .writeResponsesStatus = ChBStatus.IsChecked
+            .writeSessions = ChBSessions.IsChecked
+            If RBSubformColumn.IsChecked Then
+                .subformMode = SubformMode.Columns
+            ElseIf RBSubformRow.IsChecked Then
+                .subformMode = SubformMode.Rows
+            Else
+                .subformMode = SubformMode.None
+            End If
+        End With
+        If writeConfig.writeResponsesCodes OrElse writeConfig.writeResponsesScores OrElse writeConfig.writeResponsesValues OrElse
+            writeConfig.writeResponsesStatus OrElse writeConfig.writeSessions Then
             DPParameters.IsEnabled = False
             BtnClose.Visibility = Windows.Visibility.Collapsed
             BtnContinue.Visibility = Windows.Visibility.Collapsed
@@ -95,7 +130,7 @@ Public Class ToXlsxDialog
         End Try
 
         If myTemplate IsNot Nothing Then
-            If Not myworker.CancellationPending Then WriteOutputToXlsx.WriteLite(myTemplate, myworker, e, targetXlsxFilename)
+            If Not myworker.CancellationPending Then WriteOutputToXlsx.Write(myTemplate, myworker, e, writeConfig)
         End If
     End Sub
 End Class

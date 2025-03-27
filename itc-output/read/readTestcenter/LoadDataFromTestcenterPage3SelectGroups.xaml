@@ -19,7 +19,6 @@
             <Button Click="BtnCancel_Click">Abrechen</Button>
         </ItemsControl>
         <DockPanel DockPanel.Dock="Bottom" Margin="10" LastChildFill="False">
-            <CheckBox x:Name="CBBigData">Separiere Big Data (z. B. GeoGebra) von Antworten</CheckBox>
             <Button x:Name="BtnToggleCheck" Click="BtnToggleCheck_Click" DockPanel.Dock="Right" Padding="10 0 10 0">Toggle</Button>
         </DockPanel>
         <TextBlock Name="TBlPrompt" DockPanel.Dock="Top" Margin="20 0 20 0" TextWrapping="Wrap">Bitte Login-Gruppen wählen</TextBlock>
@@ -28,8 +27,11 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <DockPanel LastChildFill="False">
-                            <CheckBox IsChecked="{Binding Attribute[checked].Value}" Content="{Binding Value}" Margin="30 2 0 0"/>
-                            <TextBlock Foreground="LightGray" DockPanel.Dock="Right" Text="{Binding Attribute[number].Value}" Margin="0 0 10 0"></TextBlock>
+                            <CheckBox IsChecked="{Binding Attribute[checked].Value}" Margin="30 2 5 0"/>
+                            <TextBlock Text="{Binding Value}"/>
+                            <TextBlock Text="{Binding Attribute[label].Value}" Margin="5 2 0 0"/>
+                            <TextBlock Foreground="LightGray" DockPanel.Dock="Right"
+                                       Text="{Binding Attribute[number].Value}" Margin="0 0 10 0"></TextBlock>
                         </DockPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

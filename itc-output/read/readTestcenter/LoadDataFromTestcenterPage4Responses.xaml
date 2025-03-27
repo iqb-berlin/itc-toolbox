@@ -14,7 +14,7 @@
     <DockPanel>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="2">
             <Button Name="BtnCancelClose" Click="BtnCancelClose_Click" DockPanel.Dock="Bottom" 
-                HorizontalAlignment="Center" TabIndex="4">Schließen</Button>
+                HorizontalAlignment="Center" TabIndex="4">Abbrechen</Button>
         </ItemsControl>
         <libco:AsynchProgressBarUserControl Name="APBUC" Margin="5 0 5 15" DockPanel.Dock="Bottom"/>
         <libco:MessageBoxUserControl Name="MBUC" Margin="5"/>

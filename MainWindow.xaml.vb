@@ -1,5 +1,8 @@
 ﻿Imports iqb.lib.components
 Class MainWindow
+    Private itcConnection As ITCConnection = Nothing
+    Public SqliteDB As SQLiteConnector = Nothing
+
     Private Sub MainApplication_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         AddHandler AppDomain.CurrentDomain.UnhandledException, AddressOf MyUnhandledExceptionEventHandler
 
@@ -38,7 +41,19 @@ Class MainWindow
             End If
         End Try
 
-        If Not ContinueStart Then
+        If ContinueStart Then
+            CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDummyFalseCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
+        Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
                 IO.File.Exists(UserConfigFilename) Then
@@ -137,7 +152,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim myDlg As New OutputDialog With {.Owner = Me}
+            Dim myDlg As New LoadDataFromCsvDialog(True) With {.Owner = Me}
             myDlg.ShowDialog()
         End If
     End Sub
@@ -199,19 +214,21 @@ Class MainWindow
     End Sub
 
     Private Sub BtnGetTestcenterReviewsData_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Reviews) With {.Owner = Me, .Title = "Reviews aus Testcenter laden und speichern"}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Reviews, DataTarget.Standard) With {
+            .Owner = Me, .Title = "Reviews aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
     End Sub
 
     Private Sub BtnTestcenterToJson_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, True) With {
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.JsonFiles) With {
             .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und speichern"}
         ActionDlg.ShowDialog()
         updateGroupCount()
     End Sub
 
     Private Sub BtnMergeDataLoadTC_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterDialog(TestcenterReadMode.Responses, False) With {.Owner = Me, .Title = "Antworten und Logs aus Testcenter laden"}
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Datastore) With {
+            .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden"}
         If ActionDlg.ShowDialog() Then updateGroupCount()
     End Sub
 
@@ -222,7 +239,7 @@ Class MainWindow
             My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
             My.Settings.Save()
 
-            Dim ActionDlg As New OutputDialog(False) With {.Owner = Me}
+            Dim ActionDlg As New LoadDataFromCsvDialog(False) With {.Owner = Me}
             If ActionDlg.ShowDialog() Then
                 updateGroupCount()
             End If
@@ -239,66 +256,237 @@ Class MainWindow
         updateGroupCount()
     End Sub
 
-    Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count > 0 Then
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
-                                                            .InitialDirectory = defaultDir, .DefaultExt = "json", .Title = "JSON Zieldatei wählen"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_OutputTargetJson = filepicker.FileName
-                My.Settings.Save()
+    Private Sub HandleExportToJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        'If globalOutputStore.personDataFull.Count > 0 Then
+        '    Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        '    If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetJson)
+        '    Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetJson, .Filter = "JSON-Dateien|*.json",
+        '                                                    .InitialDirectory = defaultDir, .DefaultExt = "json", .Title = "JSON Zieldatei wählen"}
+        '    If filepicker.ShowDialog Then
+        '        My.Settings.lastfile_OutputTargetJson = filepicker.FileName
+        '        My.Settings.Save()
 
-                JsonReadWrite.Write(filepicker.FileName)
-                DialogFactory.Msg(Me, "DataMerge", "fertig")
-            End If
-        Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
-        End If
+        '        JsonReadWrite.Write(filepicker.FileName)
+        '        DialogFactory.Msg(Me, "DataMerge", "fertig")
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
+        'End If
+        DialogFactory.Msg(Me, "tbd", "HandleExportToJsonExecuted()")
     End Sub
 
     Private Sub BtnMergeDataSaveJsonByGroup_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count > 0 Then
-            Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
-                                                            .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
-            If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
-                My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
-                My.Settings.Save()
+        'If globalOutputStore.personDataFull.Count > 0 Then
+        '    Dim folderpicker As New Forms.FolderBrowserDialog With {.Description = "Zielverzeichnis für die JSON-Dateien",
+        '                                                    .ShowNewFolderButton = True, .SelectedPath = My.Settings.lastfolder_OutputTarget}
+        '    If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+        '        My.Settings.lastfolder_OutputTarget = folderpicker.SelectedPath
+        '        My.Settings.Save()
 
-                JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
-                JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
-                DialogFactory.Msg(Me, "DataMerge", "fertig")
-            End If
-        Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
-        End If
+        '        JsonReadWrite.WriteByGroup(folderpicker.SelectedPath)
+        '        JsonReadWrite.WriteBigData(folderpicker.SelectedPath)
+        '        DialogFactory.Msg(Me, "DataMerge", "fertig")
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store erzeugt werden (derzeit keine Daten).")
+        'End If
+        DialogFactory.Msg(Me, "tbd", "BtnMergeDataSaveJsonByGroup_Click")
     End Sub
 
     Private Sub updateGroupCount()
-        TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
+        'TBStoreCountFull.Text = globalOutputStore.personDataFull.Count.ToString
 
-        TBStoreCountBlobs.Text = globalOutputStore.bigData.Count.ToString
-        TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
+        'TBStoreCountBlobs.Text = ""
+        'TBStoreCountResponses.Text = globalOutputStore.personResponses.Count.ToString
         'TBStoreCountLogs.Text = globalOutputStore.personLogs.Count.ToString
-        TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
+        'TBStoreCountBooklets.Text = globalOutputStore.bookletSizes.Count.ToString
     End Sub
 
     Private Sub BtnMergeDataSaveXlsx_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
-            Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
-            If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
-            Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
-                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
-            If filepicker.ShowDialog Then
-                My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
-                My.Settings.Save()
+        'If globalOutputStore.personDataFull.Count + globalOutputStore.personResponses.Count > 0 Then
+        '    Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        '    If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        '    Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+        '                                                    .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        '    If filepicker.ShowDialog Then
+        '        My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+        '        My.Settings.Save()
 
 
-                Dim ActionDlg As New ToXlsxDialog() With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
-                ActionDlg.ShowDialog()
-            End If
+        '        Dim ActionDlg As New ToXlsxDialog() With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+        '        ActionDlg.ShowDialog()
+        '    End If
+        'Else
+        '    DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
+        'End If
+    End Sub
+
+    Private Sub HandleAppExitExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Me.Close()
+    End Sub
+
+    ' ################################################################################################
+    Private Sub UpdateSqliteDBInfo()
+        If Me.SqliteDB Is Nothing Then
+            TBDBInfo.Text = "Keine Daten"
         Else
-            DialogFactory.MsgError(Me, "DataMerge", "JSON-Output kann nur aus dem Volldaten-Store oder dem Antwort-Store erzeugt werden (derzeit keine Daten).")
+            TBDBInfo.Text = "Datenbank angelegt durch " + Me.SqliteDB.dbCreator + " " + Me.SqliteDB.dbCreatedDateTime + vbNewLine
+            TBDBInfo.Text += "Datenbank-Version " + Me.SqliteDB.dbVersion.ToString + vbNewLine
+            If Me.SqliteDB.dbLastChangedDateTime <> Me.SqliteDB.dbCreatedDateTime Then TBDBInfo.Text += "Datenbank zuletzt geändert durch " + Me.SqliteDB.dbLastChanger + " " + Me.SqliteDB.dbLastChangedDateTime + vbNewLine
+            If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "Antworten mit Unterformularen vorhanden" + vbNewLine
+            TBDBInfo.Text += "Anzahl Personen: " + Me.SqliteDB.dbPersonCount + vbNewLine
+            TBDBInfo.Text += "Anzahl Antworten: " + Me.SqliteDB.dbResponseCount
+        End If
+    End Sub
+
+    Private Sub HandleImportFromTestcenterExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Sqlite, SqliteDB) With {
+            .Owner = Me, .Title = "Antworten und Logs aus Testcenter laden und in DB speichern"}
+        ActionDlg.ShowDialog()
+        UpdateSqliteDBInfo()
+    End Sub
+
+    Private Sub HandleImportFromCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim myDlg As New LoadDataFromCsvDialog(False, SqliteDB) With {.Owner = Me}
+            myDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub HandleImportFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
+            .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = True, .Title = "JSON Daten einlesen - Wähle Datei(en)"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_InputTargetJson = filepicker.FileName
+            My.Settings.Save()
+
+            If filepicker.FileNames.Length > 0 Then
+                Dim ActionDlg As New readJsonFilesToDbDialog(filepicker.FileNames) With {.Owner = Me, .Title = "Einlesen TC-JSON", .SqliteDB = Me.SqliteDB}
+                ActionDlg.ShowDialog()
+                updateGroupCount()
+            End If
+        End If
+    End Sub
+
+    Private Sub HandleImportBookletsFromJsonExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_InputTargetJson) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_InputTargetJson)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_InputTargetJson), .Filter = "JSON-Dateien|*.json",
+            .InitialDirectory = defaultDir, .DefaultExt = "json", .Multiselect = False, .Title = "JSON Booklet-Daten einlesen - Wähle Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_InputTargetJson = filepicker.FileName
+            My.Settings.Save()
+
+            Dim ActionDlg As New readJsonBookletFilesToDbDialog(filepicker.FileName) With {.Owner = Me, .Title = "Einlesen TC-JSON Booklets", .SqliteDB = Me.SqliteDB}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub HandleDBNewExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_SqliteDB, .Filter = "Sqlite-Dateien|*.sqlite",
+            .CheckFileExists = False, .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Neue Datenbank-Datei"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, True)
+            Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
+            UpdateSqliteDBInfo()
+        End If
+    End Sub
+
+    Private Sub HandleDBOpenExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.OpenFileDialog With {.FileName = IO.Path.GetFileName(My.Settings.lastfile_SqliteDB), .Filter = "Sqlite-Dateien|*.sqlite",
+            .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Datenbank-Datei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            Me.SqliteDB = New SQLiteConnector(My.Settings.lastfile_SqliteDB, False)
+            Me.Title = My.Application.Info.AssemblyName + " - " + IO.Path.GetFileName(My.Settings.lastfile_SqliteDB)
+            UpdateSqliteDBInfo()
+        End If
+    End Sub
+    Private Sub HandleDBCopyToExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_SqliteDB) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_SqliteDB)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_SqliteDB, .Filter = "Sqlite-Dateien|*.sqlite",
+            .CheckFileExists = True, .InitialDirectory = defaultDir, .DefaultExt = "sqlite", .Title = "Datenbank-Datei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_SqliteDB = filepicker.FileName
+            My.Settings.Save()
+
+            DialogFactory.Msg(Me, "tbd", "HandleDBCopyToExecuted")
+            UpdateSqliteDBInfo()
+        End If
+    End Sub
+
+    Private Function HandleDBOperationCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+        Dim myreturn As Boolean = Me.SqliteDB IsNot Nothing
+        e.CanExecute = myreturn
+        Return myreturn
+    End Function
+
+    Private Sub BtnMergeDataSaveJson_Click(sender As Object, e As RoutedEventArgs)
+        DialogFactory.Msg(Me, "tbd", "BtnMergeDataSaveJson_Click")
+    End Sub
+
+    Private Sub BtnTestcenterToXlsx_Click(sender As Object, e As RoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+            My.Settings.Save()
+
+
+            Dim ActionDlg As New LoadDataFromTestcenterDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Xlsx) With {
+            .Owner = Me, .Title = "Antworten aus Testcenter laden und in Xlsx speichern"}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Function HandleDummyFalseCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+        e.CanExecute = False
+        Return False
+    End Function
+
+    Private Sub HandleExportToXlsxExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetXlsx) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetXlsx)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetXlsx, .Filter = "Excel-Dateien|*.xlsx",
+                                                            .InitialDirectory = defaultDir, .DefaultExt = "xlsx", .Title = "Xlsx Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetXlsx = filepicker.FileName
+            My.Settings.Save()
+
+
+            Dim ActionDlg As New ToXlsxDialog(SqliteDB) With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+            ActionDlg.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub BtnTestCsvToXlsx_Click(sender As Object, e As RoutedEventArgs)
+        Dim folderpicker As New System.Windows.Forms.FolderBrowserDialog With {.Description = "Wählen des Quellverzeichnisses für die Csv-Dateien",
+                                                        .ShowNewFolderButton = False, .SelectedPath = My.Settings.lastdir_OutputSource}
+        If folderpicker.ShowDialog() AndAlso Not String.IsNullOrEmpty(folderpicker.SelectedPath) Then
+            My.Settings.lastdir_OutputSource = folderpicker.SelectedPath
+            My.Settings.Save()
+
+            Dim myDlg As New LoadDataFromCsvDialog(True) With {.Owner = Me, .Title = "Lesen CSV + Schreiben Xlsx"}
+            myDlg.ShowDialog()
         End If
     End Sub
 End Class

@@ -7,10 +7,11 @@ Public Class LoadDataFromTestcenterPage1Credentials
     Private credentials As Net.NetworkCredential = Nothing
     Private url As String
     Private Sub Me_Loaded() Handles Me.Loaded
+        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         TBUrl.Text = My.Settings.lastServerUrl
         CrUC.UserCredentials = New Net.NetworkCredential(My.Settings.lastlogin_name, "")
         APBUC.UpdateProgressState(0.0#)
-        If globalOutputStore.itcConnection Is Nothing Then
+        If ParentDlg.itcConnection Is Nothing Then
             DPOldLogin.Visibility = Visibility.Collapsed
             TBUrl.Focus()
         Else
@@ -26,7 +27,8 @@ Public Class LoadDataFromTestcenterPage1Credentials
     End Sub
 
     Private Sub BtnContinue_Click(sender As Object, e As RoutedEventArgs)
-        If globalOutputStore.itcConnection Is Nothing Then
+        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
+        If ParentDlg.itcConnection Is Nothing Then
             If String.IsNullOrEmpty(CrUC.UserCredentials.UserName) OrElse String.IsNullOrEmpty(CrUC.UserCredentials.Password) Then
                 DialogFactory.MsgError(Me, Me.Title, "Bitte geben Sie Namen und Kennwort ein!")
             ElseIf String.IsNullOrEmpty(TBUrl.Text) Then
@@ -60,11 +62,12 @@ Public Class LoadDataFromTestcenterPage1Credentials
     End Sub
 
     Private Sub myBackgroundWorker_RunWorkerCompleted(ByVal sender As Object, ByVal e As RunWorkerCompletedEventArgs) Handles myBackgroundWorker.RunWorkerCompleted
+        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         BtnCancel.IsEnabled = True
         BtnContinue.IsEnabled = True
         Me.APBUC.UpdateProgressState(0.0#)
         If String.IsNullOrEmpty(myConnection.lastErrorMsgText) Then
-            globalOutputStore.itcConnection = myConnection
+            ParentDlg.itcConnection = myConnection
             Me.NavigationService.Navigate(New LoadDataFromTestcenterPage2SelectWorkspace)
         Else
             DialogFactory.MsgError(Me, Me.Title + " - Fehler", "Es ist ein Fehler aufgetreten beim Verbindungsversuch: " + myConnection.lastErrorMsgText)
@@ -73,10 +76,11 @@ Public Class LoadDataFromTestcenterPage1Credentials
 
 
     Private Sub BtnOldLogin_Click(sender As Object, e As RoutedEventArgs)
+        Dim ParentDlg As LoadDataFromTestcenterDialog = Me.Parent
         DPOldLogin.Visibility = Visibility.Collapsed
         LbLoginTip.Visibility = Visibility.Visible
         TBUrl.IsEnabled = True
         CrUC.IsEnabled = True
-        globalOutputStore.itcConnection = Nothing
+        ParentDlg.itcConnection = Nothing
     End Sub
 End Class
