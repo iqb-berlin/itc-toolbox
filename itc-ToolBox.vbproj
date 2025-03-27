@@ -206,6 +206,7 @@
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-connection.vb" />
+    <Compile Include="itc-output\classes\ClassesReports.vb" />
     <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">
       <DependentUpon>LoadDataFromTestcenterPage1Credentials.xaml</DependentUpon>
     </Compile>

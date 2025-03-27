@@ -503,4 +503,130 @@ from [response] where response.unitId = " + dbUnit.Key + ";"
         End Using
         Return dbPerson
     End Function
+
+    Public Function getSessionReports(personDbId As Long) As List(Of SessionReport)
+        Dim mySessionReports As New List(Of SessionReport)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                Dim bNames As New Dictionary(Of Long, String)
+                Dim bSizes As New Dictionary(Of Long, Long)
+                cmd.CommandText = "
+select booklet.id,bookletInfo.name,bookletInfo.size from [booklet]
+join [bookletInfo] on bookletInfo.id = booklet.infoId where booklet.personId=" + personDbId.ToString + ";"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim bookletDbId As Long = dbReader.GetInt64(0)
+                    bNames.Add(bookletDbId, dbReader.GetString(1))
+                    bSizes.Add(bookletDbId, dbReader.GetInt64(2))
+                End While
+                dbReader.Close()
+                For Each b As KeyValuePair(Of Long, String) In bNames
+                    Dim unitsLastChanged As Dictionary(Of String, Long) = getUnitsLastChanged(b.Key)
+                    If unitsLastChanged.Count > 0 Then
+                        Dim bookletSize As Long = bSizes.Item(b.Key)
+                        Dim localSessionReports As New List(Of SessionReport)
+                        cmd.CommandText = "
+select [browser],[os],[screen],[ts],[loadCompleteMS] from [session] where [bookletId]=" + b.Key.ToString + ";"
+                        dbReader = cmd.ExecuteReader()
+                        While dbReader.Read()
+                            Dim rep As New SessionReport
+                            rep.browser = dbReader.GetString(0)
+                            rep.os = dbReader.GetString(1)
+                            rep.screen = dbReader.GetString(2)
+                            rep.ts = dbReader.GetInt64(3)
+                            rep.loadCompleteMS = dbReader.GetInt64(4)
+                            rep.sessionStartTs = rep.ts - rep.loadCompleteMS
+                            rep.booklet = b.Value
+                            If rep.loadCompleteMS > 0 Then
+                                rep.contentLoadSpeed = bookletSize / rep.loadCompleteMS
+                            Else
+                                rep.contentLoadSpeed = 0
+                            End If
+                            localSessionReports.Add(rep)
+                        End While
+                        dbReader.Close()
+                        If localSessionReports.Count > 0 Then
+                            If localSessionReports.Count = 1 Then
+                                Dim rep As SessionReport = localSessionReports.First
+                                rep.sessionNumber = 1
+                                rep.firstUnitTS = unitsLastChanged.Values.Min
+                                rep.lastUnitTS = unitsLastChanged.Values.Max
+                                rep.unitsWithResponse = (From u As KeyValuePair(Of String, Long) In unitsLastChanged
+                                                         Order By u.Value Select u.Key).ToList
+                                mySessionReports.Add(rep)
+                            Else
+                                Dim sessionCount As Integer = localSessionReports.Count
+                                Dim lastSessionStart As Long = Long.MaxValue
+                                For Each rep As SessionReport In (From r As SessionReport In localSessionReports Order By r.sessionStartTs).Reverse
+                                    rep.sessionNumber = sessionCount
+                                    sessionCount -= 1
+                                    Dim myUnits As Dictionary(Of String, Long) = (From u As KeyValuePair(Of String, Long) In unitsLastChanged
+                                                                                  Where u.Value < lastSessionStart AndAlso
+                                                                                      u.Value >= rep.sessionStartTs).ToDictionary(Function(a) a.Key, Function(a) a.Value)
+                                    If myUnits.Count > 0 Then
+                                        rep.firstUnitTS = myUnits.Values.Min
+                                        rep.lastUnitTS = myUnits.Values.Max
+                                        rep.unitsWithResponse = (From u As KeyValuePair(Of String, Long) In myUnits
+                                                                 Order By u.Value Select u.Key).ToList
+                                    Else
+                                        rep.firstUnitTS = 0
+                                        rep.lastUnitTS = 0
+                                        rep.unitsWithResponse = New List(Of String)
+                                    End If
+                                    lastSessionStart = rep.sessionStartTs
+                                    mySessionReports.Add(rep)
+                                Next
+                            End If
+                        End If
+                    End If
+                Next
+            End Using
+        End Using
+
+        Return mySessionReports
+    End Function
+
+    Public Function getUnitsLastChanged(bookletId As Long) As Dictionary(Of String, Long)
+        Dim unitsLastChanged As New Dictionary(Of String, Long)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "
+select unit.id,unit.bookletId,unit.name,unit.alias from [unit] where unit.bookletId=" + bookletId.ToString + ";"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                Dim allUnits As New Dictionary(Of Long, String)
+                While dbReader.Read()
+                    Dim unitDbId As Long = dbReader.GetInt64(0)
+                    Dim unitName As String = dbReader.GetString(2)
+                    Dim unitAlias As String = dbReader.GetString(3)
+                    allUnits.Add(unitDbId, IIf(String.IsNullOrEmpty(unitAlias), unitName, unitAlias))
+                End While
+                dbReader.Close()
+                Dim unitVariablesWithValues As New Dictionary(Of Long, String)
+                For Each u As KeyValuePair(Of Long, String) In allUnits
+                    Dim varId As String = Nothing
+                    cmd.CommandText = "
+select [variableId] from [response]
+where not [status] in ('DISPLAYED','UNSET','NOT_REACHED') and unitId=" + u.Key.ToString + " LIMIT 1;"
+                    dbReader = cmd.ExecuteReader()
+                    While dbReader.Read()
+                        varId = dbReader.GetString(0)
+                    End While
+                    dbReader.Close()
+                    If Not String.IsNullOrEmpty(varId) Then unitVariablesWithValues.Add(u.Key, u.Value)
+                Next
+                For Each u As KeyValuePair(Of Long, String) In unitVariablesWithValues
+                    cmd.CommandText = "select [unitId],[ts] from [chunk] where unitId=" + u.Key.ToString + ";"
+                    dbReader = cmd.ExecuteReader()
+                    Dim lastChangedTs As Long = 0
+                    While dbReader.Read()
+                        Dim ts As Long = dbReader.GetInt64(1)
+                        If lastChangedTs < ts Then lastChangedTs = ts
+                    End While
+                    dbReader.Close()
+                    If lastChangedTs > 0 Then unitsLastChanged.Add(u.Value, lastChangedTs)
+                Next
+            End Using
+        End Using
+        Return unitsLastChanged
+    End Function
 End Class

@@ -141,16 +141,6 @@ Public Class Session
     Public loadCompleteMS As Long
 End Class
 
-Public Class BookletTechData
-    Public loadspeed As Long
-    Public firstUnitRunningAfterMS As Long
-    Public browser As String
-    Public os As String
-    Public screen As String
-    Public loadStart As Long
-    Public loadTimeCompleteTS As Long
-End Class
-
 Public Class Booklet
     Public id As String
     Public firstTS As Long = 0
@@ -176,11 +166,6 @@ Public Class Booklet
         End If
         sessions.Add(newSession)
     End Sub
-
-    Public Function getTechData(bookletSizes As Dictionary(Of String, Long)) As BookletTechData
-        'todo add data
-        Return New BookletTechData
-    End Function
 
     Public Sub setTimestamps()
         For Each s As Session In sessions
