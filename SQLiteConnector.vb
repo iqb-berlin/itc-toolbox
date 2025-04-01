@@ -13,6 +13,8 @@ Public Class SQLiteConnector
     Public dbLastChangedDateTime As String
     Public dbPersonCount As String = "0"
     Public dbResponseCount As String = "0"
+    Public hasSubforms As Boolean
+    Public hasCodes As Boolean
     Public Sub New(dbFileName As String, create As Boolean)
         fileName = dbFileName
         Dim fileExists As Boolean = IO.File.Exists(fileName)
@@ -143,6 +145,8 @@ INSERT INTO [db_info] ([key],[value]) VALUES ('lastchanged_By', '" + dbLastChang
 INSERT INTO [db_info] ([key],[value]) VALUES ('lastchanged_DateTime', '" + dbLastChangedDateTime + "');
 INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_people', '0');
 INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_responses', '0');
+INSERT INTO [db_info] ([key],[value]) VALUES ('has_subforms', 'False');
+INSERT INTO [db_info] ([key],[value]) VALUES ('has_codes', 'False');
 COMMIT;"
                     cmd.ExecuteNonQuery()
                 End Using
@@ -157,10 +161,12 @@ COMMIT;"
                             Case "version" : dbVersion = Long.Parse(value)
                             Case "created_By" : dbCreator = value
                             Case "created_DateTime" : dbCreatedDateTime = value
-                            Case "number_of_people" : dbPersonCount = Long.Parse(value)
+                            Case "number_of_people" : dbPersonCount = Long.Parse(value.Replace(".", ""))
                             Case "number_of_responses" : dbResponseCount = value
                             Case "lastchanged_DateTime" : dbLastChangedDateTime = value
                             Case "lastchanged_By" : dbLastChanger = value
+                            Case "has_subforms" : hasSubforms = value = "True"
+                            Case "has_codes" : hasCodes = value = "True"
                         End Select
                     End While
                 End Using
@@ -193,6 +199,23 @@ PRAGMA synchronous=OFF;"
                 tmpLong = cmd.ExecuteScalar()
                 dbResponseCount = tmpLong.ToString("N0", deCulture)
 
+                Dim firstFoundResponseDbId As Long = -1
+                cmd.CommandText = "SELECT 1 FROM [response] where subform not in ('') limit 1;"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    firstFoundResponseDbId = dbReader.GetInt64(0)
+                End While
+                hasSubforms = firstFoundResponseDbId >= 0
+                dbReader.Close()
+                firstFoundResponseDbId = -1
+                cmd.CommandText = "SELECT 1 FROM [response] where status = 'CODING_COMPLETE' limit 1;"
+                dbReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    firstFoundResponseDbId = dbReader.GetInt64(0)
+                End While
+                hasCodes = firstFoundResponseDbId >= 0
+                dbReader.Close()
+
                 cmd.CommandText = "BEGIN TRANSACTION;"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbPersonCount + "' where key = 'number_of_people';"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbResponseCount + "' where key = 'number_of_responses';"
@@ -201,6 +224,8 @@ PRAGMA synchronous=OFF;"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChangedDateTime + "' where key = 'lastchanged_DateTime';"
                 dbLastChanger = ADFactory.GetMyNameLong
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChanger + "' where key = 'lastchanged_By';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasSubforms.ToString + "' where key = 'has_subforms';"
+                cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasCodes.ToString + "' where key = 'has_codes';"
                 cmd.CommandText += "COMMIT;"
                 cmd.ExecuteScalar()
             End Using
@@ -398,21 +423,6 @@ PRAGMA synchronous=OFF;"
         End Using
     End Function
 
-    Function hasSubforms() As Boolean
-        Dim firstSubformResponseDbId As Long = -1
-        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
-            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
-                cmd.CommandText = "SELECT 1 FROM [response] where subform not in ('') limit 1;"
-                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
-                While dbReader.Read()
-                    firstSubformResponseDbId = dbReader.GetInt64(0)
-                End While
-                dbReader.Close()
-            End Using
-        End Using
-        Return firstSubformResponseDbId >= 0
-    End Function
-
     Public Function getVariableList(addSubformSuffix As Boolean) As List(Of String)
         Dim returnList As New List(Of String)
         Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
@@ -460,7 +470,7 @@ join [unit] on unit.id = response.unitId;"
                 While dbReader.Read()
                     dbPerson = New Person(dbReader.GetString(0), dbReader.GetString(1), dbReader.GetString(2))
                 End While
-                dbReader.close()
+                dbReader.Close()
                 cmd.CommandText = "
 select booklet.id,booklet.personId,unit.id,unit.bookletId,unit.name,unit.alias from [unit]
 join [booklet] on booklet.id = unit.bookletId where booklet.personId = " + dbIdString + ";"

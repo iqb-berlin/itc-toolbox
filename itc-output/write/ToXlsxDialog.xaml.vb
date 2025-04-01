@@ -34,20 +34,27 @@ Public Class ToXlsxDialog
             With writeConfig
                 .targetXlsxFilename = My.Settings.lastfile_OutputTargetXlsx
                 .sourceDatabase = sqliteConnection
-                ChBCode.IsChecked = .writeResponsesCodes
+                If Me.sqliteConnection.hasCodes Then
+                    ChBCode.IsChecked = .writeResponsesCodes
+                    ChBScore.IsChecked = .writeResponsesScores
+                Else
+                    ChBCode.IsEnabled = False
+                    ChBScore.IsEnabled = False
+                End If
                 ChBValues.IsChecked = .writeResponsesValues
-                ChBScore.IsChecked = .writeResponsesScores
                 ChBStatus.IsChecked = .writeResponsesStatus
                 ChBSessions.IsChecked = .writeSessions
-                RBSubformColumn.IsChecked = .subformMode = SubformMode.Columns
-                RBSubformRow.IsChecked = .subformMode = SubformMode.Rows
-                RBSubformNone.IsChecked = .subformMode = SubformMode.None
-                Dim subformOptionsEnabled As Boolean = sqliteConnection.hasSubforms
-                RBSubformColumn.IsEnabled = subformOptionsEnabled
-                RBSubformRow.IsEnabled = subformOptionsEnabled
-                RBSubformNone.IsEnabled = subformOptionsEnabled
+                If Me.sqliteConnection.hasSubforms Then
+                    RBSubformColumn.IsChecked = .subformMode = SubformMode.Columns
+                    RBSubformRow.IsChecked = .subformMode = SubformMode.Rows
+                    RBSubformNone.IsChecked = .subformMode = SubformMode.None
+                Else
+                    RBSubformNone.IsChecked = True
+                    RBSubformColumn.IsEnabled = False
+                    RBSubformRow.IsEnabled = False
+                    RBSubformNone.IsEnabled = False
+                End If
             End With
-
         End If
     End Sub
 

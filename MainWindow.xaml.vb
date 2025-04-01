@@ -334,6 +334,7 @@ Class MainWindow
             TBDBInfo.Text += "Datenbank-Version " + Me.SqliteDB.dbVersion.ToString + vbNewLine
             If Me.SqliteDB.dbLastChangedDateTime <> Me.SqliteDB.dbCreatedDateTime Then TBDBInfo.Text += "Datenbank zuletzt geändert durch " + Me.SqliteDB.dbLastChanger + " " + Me.SqliteDB.dbLastChangedDateTime + vbNewLine
             If Me.SqliteDB.hasSubforms Then TBDBInfo.Text += "Antworten mit Unterformularen vorhanden" + vbNewLine
+            If Me.SqliteDB.hasCodes Then TBDBInfo.Text += "Kodierte Antworten vorhanden" + vbNewLine
             TBDBInfo.Text += "Anzahl Personen: " + Me.SqliteDB.dbPersonCount + vbNewLine
             TBDBInfo.Text += "Anzahl Antworten: " + Me.SqliteDB.dbResponseCount
         End If

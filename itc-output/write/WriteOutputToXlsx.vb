@@ -258,7 +258,7 @@ Class WriteOutputToXlsx
                         xlsxFactory.SetCellValueString("F", myRow, TableSessions, "Start At TS", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("F", TableSessions, 10)
                         xlsxFactory.SetCellValueString("G", myRow, TableSessions, "Start At DT", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("G", TableSessions, 10)
+                        xlsxFactory.SetColumnWidth("G", TableSessions, 20)
                         xlsxFactory.SetCellValueString("H", myRow, TableSessions, "First Responses After MS", CellFormatting.RowHeader2, myStyles)
                         xlsxFactory.SetColumnWidth("H", TableSessions, 10)
                         xlsxFactory.SetCellValueString("I", myRow, TableSessions, "Last Responses After MS", CellFormatting.RowHeader2, myStyles)
