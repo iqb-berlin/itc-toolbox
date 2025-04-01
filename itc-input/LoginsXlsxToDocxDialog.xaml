@@ -22,7 +22,10 @@
         <DockPanel DockPanel.Dock="Bottom" Background="#eee" Name="DPParameters">
             <DockPanel DockPanel.Dock="Top">
                 <Label Width="150">Adresse des Testservers</Label>
-                <Label Width="50">https://</Label>
+                <ComboBox Width="70" Name="CBPrefix" SelectedValuePath="Content">
+                    <ComboBoxItem IsSelected="True" Content="https://"></ComboBoxItem>
+                    <ComboBoxItem Content="http://"></ComboBoxItem>
+                </ComboBox>
                 <TextBox x:Name="TBServerUrl"></TextBox>
             </DockPanel>
             <DockPanel DockPanel.Dock="Top">

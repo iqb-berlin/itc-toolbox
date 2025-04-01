@@ -27,8 +27,13 @@ Public Class LoginsXlsxToDocxDialog
 
         ErrorMessages = New Dictionary(Of String, List(Of String))
         Warnings = New Dictionary(Of String, List(Of String))
+        CBPrefix.SelectedItem = "https://"
         Testgroups = New Dictionary(Of String, groupdata)
-        TBServerUrl.Text = My.Settings.lastServerUrl
+        Dim urlSplit As String() = Split(My.Settings.lastServerUrl, "//")
+        If urlSplit.Length > 1 Then
+            CBPrefix.SelectedValue = urlSplit(0) + "//"
+            TBServerUrl.Text = urlSplit(1)
+        End If
         If Not String.IsNullOrEmpty(My.Settings.lastfile_LoginDocxTemplate) Then
             TBTemplate.ToolTip = My.Settings.lastfile_LoginDocxTemplate
             TBTemplate.Text = IO.Path.GetFileName(My.Settings.lastfile_LoginDocxTemplate)
@@ -138,7 +143,7 @@ Public Class LoginsXlsxToDocxDialog
                                                         .InitialDirectory = defaultDir, .DefaultExt = "Docx", .Title = Me.Title + " - Zieldatei wählen"}
             If filepicker.ShowDialog Then
                 My.Settings.lastfile_LoginDocxTarget = filepicker.FileName
-                My.Settings.lastServerUrl = TBServerUrl.Text
+                My.Settings.lastServerUrl = CBPrefix.SelectedValue + TBServerUrl.Text
                 My.Settings.Save()
                 ErrorMessages.Clear()
                 Warnings.Clear()
@@ -356,7 +361,7 @@ Public Class LoginsXlsxToDocxDialog
                         Case "password"
                             p.ReplaceChild(New WordRun(New WordText(login.password)), wt)
                         Case "link"
-                            p.ReplaceChild(New WordRun(New WordText("https://" + serverUrl + "/#/" + login.login)), wt)
+                            p.ReplaceChild(New WordRun(New WordText(getUrl(serverUrl, login.login))), wt)
                         Case "testgroup-name"
                             p.ReplaceChild(New WordRun(New WordText(group.name1 + " - " + group.name2)), wt)
                         Case "testgroup-id"
@@ -365,7 +370,7 @@ Public Class LoginsXlsxToDocxDialog
                             p.ReplaceChild(New WordRun(New WordText(login.mode)), wt)
                         Case "link-qr"
                             Dim qrGenerator As New QRCodeGenerator
-                            Dim QRCodeData As QRCodeData = qrGenerator.CreateQrCode("https://" + serverUrl + "/#/" + login.login, QRCodeGenerator.ECCLevel.Q)
+                            Dim QRCodeData As QRCodeData = qrGenerator.CreateQrCode(getUrl(serverUrl, login.login), QRCodeGenerator.ECCLevel.Q)
                             Dim QRCode As New QRCode(QRCodeData)
                             Dim qrCodeImage As System.Drawing.Bitmap = QRCode.GetGraphic(4)
                             Dim qrCodeImageBytes As Byte()
@@ -380,4 +385,12 @@ Public Class LoginsXlsxToDocxDialog
             End If
         Next
     End Sub
+
+    Private Function getUrl(serverAddress As String, login As String) As String
+        If Not serverAddress.StartsWith("http", StringComparison.CurrentCultureIgnoreCase) Then
+            Return "https://" + serverAddress + "/#/" + login
+        Else
+            Return serverAddress + "/#/" + login
+        End If
+    End Function
 End Class
