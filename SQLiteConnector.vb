@@ -222,7 +222,18 @@ PRAGMA synchronous=OFF;"
                 Dim now As DateTime = DateTime.Now
                 dbLastChangedDateTime = now.ToShortDateString + " " + now.ToShortTimeString
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChangedDateTime + "' where key = 'lastchanged_DateTime';"
-                dbLastChanger = ADFactory.GetMyNameLong
+                Try
+                    dbLastChanger = ADFactory.GetMyNameLong
+                Catch ex As Exception
+                    dbLastChanger = ""
+                End Try
+                If String.IsNullOrEmpty(dbLastChanger) Then
+                    Try
+                        dbLastChanger = ADFactory.GetMyName
+                    Catch ex As Exception
+                        dbLastChanger = "?"
+                    End Try
+                End If
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChanger + "' where key = 'lastchanged_By';"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasSubforms.ToString + "' where key = 'has_subforms';"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasCodes.ToString + "' where key = 'has_codes';"
