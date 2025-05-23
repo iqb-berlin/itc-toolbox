@@ -7,18 +7,24 @@ Public Class transformCsv2Xlsx
     Private lineDataList As List(Of Dictionary(Of String, String))
     Public Sub New(sourceFilename As String)
         lineDataList = New List(Of Dictionary(Of String, String))
+        Dim separator As String = ""","""
         For Each line As String In IO.File.ReadAllLines(sourceFilename)
             If columDefs Is Nothing Then
                 columDefs = New Dictionary(Of String, String)
                 Dim myCol As String = "A"
-                For Each col As String In line.Substring(1, line.Length - 2).Split({""","""}, StringSplitOptions.RemoveEmptyEntries)
+                Dim columnHeaders As String() = line.Substring(1, line.Length - 2).Split({separator}, StringSplitOptions.RemoveEmptyEntries)
+                If columnHeaders.Count = 1 Then
+                    separator = """;"""
+                    columnHeaders = line.Substring(1, line.Length - 2).Split({separator}, StringSplitOptions.RemoveEmptyEntries)
+                End If
+                For Each col As String In columnHeaders
                     columDefs.Add(myCol, col)
                     myCol = xlsxFactory.GetNextColumn(myCol)
                 Next
             Else
                 Dim myCol As String = "A"
                 Dim lineData As New Dictionary(Of String, String)
-                For Each colValue As String In line.Substring(1, line.Length - 2).Split({""","""}, StringSplitOptions.None)
+                For Each colValue As String In line.Substring(1, line.Length - 2).Split({separator}, StringSplitOptions.None)
                     If Not String.IsNullOrEmpty(colValue) Then
                         lineData.Add(myCol, colValue)
                     End If
