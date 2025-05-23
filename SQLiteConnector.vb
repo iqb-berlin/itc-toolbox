@@ -131,7 +131,18 @@ COMMIT;"
                 dbVersion = 1
                 Dim now As DateTime = DateTime.Now
                 dbCreatedDateTime = now.ToShortDateString + " " + now.ToShortTimeString
-                dbCreator = ADFactory.GetMyNameLong
+                Try
+                    dbCreator = ADFactory.GetMyNameLong
+                Catch ex As Exception
+                    dbCreator = ""
+                End Try
+                If String.IsNullOrEmpty(dbLastChanger) Then
+                    Try
+                        dbCreator = ADFactory.GetMyName
+                    Catch ex As Exception
+                        dbCreator = "?"
+                    End Try
+                End If
                 dbLastChangedDateTime = dbCreatedDateTime
                 dbLastChanger = dbCreator
                 Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
