@@ -14,7 +14,6 @@ Public Class ToCsvDialog
             BtnCancelClose.Content = "Schließen"
             MBUC.AddMessage("Keine Datenbank geöffnet.")
         Else
-            MBUC.AddMessage("Prüfe Datenbank - bitte warten")
             Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}
             Process1_bw.RunWorkerAsync()
         End If
@@ -50,7 +49,7 @@ Public Class ToCsvDialog
     Private Sub Process1_bw_DoWork(ByVal sender As Object, ByVal e As ComponentModel.DoWorkEventArgs) Handles Process1_bw.DoWork
         Dim worker As ComponentModel.BackgroundWorker = sender
         If Not worker.CancellationPending Then
-            worker.ReportProgress(0.0#, "h:Prüfe auf Personen-Dopplungen")
+            worker.ReportProgress(5.0#, "h:Schreibe " + IO.Path.GetFileName(My.Settings.lastfile_OutputTargetCsv) + " - bitte warten")
             Dim peopleListAll As Dictionary(Of Long, String) = DB.getPeopleListAll()
             Dim progressMax As Long = peopleListAll.Count
             Dim progressStep As Long = 1
@@ -62,7 +61,7 @@ Public Class ToCsvDialog
             file.WriteLine(firstCsvLine)
             For Each p As KeyValuePair(Of Long, String) In peopleListAll
                 If worker.CancellationPending Then Exit For
-                Dim progressValue As Double = 100 * progressStep / progressMax
+                Dim progressValue As Double = 5 + 95 * progressStep / progressMax
                 progressStep += 1
                 Dim responses As List(Of PersonResponseLong) = DB.getPersonResponsesLong(p.Key)
                 For Each r As PersonResponseLong In responses
@@ -90,9 +89,14 @@ Public Class ToCsvDialog
         returnStr += separator + r.responseCode.ToString
         returnStr += separator + r.responseScore.ToString
         returnStr += separator + r.ts
-        Dim tsDt As New DateTime(1970, 1, 1, 0, 0, 0, 0)
-        tsDt = tsDt.AddMilliseconds(r.ts)
-        returnStr += separator + """" + tsDt.ToString(deCulture) + """"
+        Dim tsLong As Long
+        If Long.TryParse(r.ts, tsLong) Then
+            Dim tsDt As New DateTime(1970, 1, 1, 0, 0, 0, 0)
+            tsDt = tsDt.AddMilliseconds(tsLong)
+            returnStr += separator + """" + tsDt.ToString(deCulture) + """"
+        Else
+            returnStr += separator + """?"""
+        End If
 
         Return returnStr
     End Function
