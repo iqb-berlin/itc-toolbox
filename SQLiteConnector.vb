@@ -665,4 +665,58 @@ where not [status] in ('DISPLAYED','UNSET','NOT_REACHED') and unitId=" + u.Key.T
         End Using
         Return unitsLastChanged
     End Function
+
+    Public Function getPeopleListAll() As Dictionary(Of Long, String)
+        Dim returnList As New Dictionary(Of Long, String)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                cmd.CommandText = "select [id],[group],[login],[code] from [person];"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim personDbId As Long = dbReader.GetInt64(0)
+                    Dim personKey As String = dbReader.GetString(1) + dbReader.GetString(2) + dbReader.GetString(3)
+                    returnList.Add(personDbId, personKey)
+                End While
+            End Using
+        End Using
+        Return returnList
+    End Function
+
+    Public Function getUnitList(personDbId As Long) As Dictionary(Of String, Dictionary(Of String, Integer))
+        Dim myUnitReport As New Dictionary(Of String, Dictionary(Of String, Integer))
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                Dim bNames As New Dictionary(Of Long, String)
+                cmd.CommandText = "
+select booklet.id,bookletInfo.name from [booklet]
+join [bookletInfo] on bookletInfo.id = booklet.infoId where booklet.personId=" + personDbId.ToString + ";"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim bookletDbId As Long = dbReader.GetInt64(0)
+                    bNames.Add(bookletDbId, dbReader.GetString(1))
+                End While
+                dbReader.Close()
+                For Each b As KeyValuePair(Of Long, String) In bNames
+                    Dim unitCounter As New Dictionary(Of String, Integer)
+                    cmd.CommandText = "
+select [name],[alias] from [unit] where [bookletId]=" + b.Key.ToString + ";"
+                    dbReader = cmd.ExecuteReader()
+                        While dbReader.Read()
+                        Dim unitName As String = dbReader.GetString(0)
+                        Dim unitAlias As String = dbReader.GetString(1)
+                        If unitAlias <> unitName Then unitName = unitAlias + " (" + unitName + ")"
+                        If Not unitCounter.ContainsKey(unitName) Then
+                            unitCounter.Add(unitName, 1)
+                        Else
+                            unitCounter.Item(unitName) = unitCounter.Item(unitName) + 1
+                        End If
+                    End While
+                    dbReader.Close()
+                    myUnitReport.Add(b.Value, unitCounter)
+                Next
+            End Using
+        End Using
+
+        Return myUnitReport
+    End Function
 End Class

@@ -175,7 +175,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Löschkandidaten\ToSqliteDialog.xaml">
+    <Page Include="Löschkandidaten\SqliteCheckDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -235,8 +235,8 @@
       <DependentUpon>readJsonFilesToDbDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="SQLiteConnector.vb" />
-    <Compile Include="Löschkandidaten\ToSqliteDialog.xaml.vb">
-      <DependentUpon>ToSqliteDialog.xaml</DependentUpon>
+    <Compile Include="Löschkandidaten\SqliteCheckDialog.xaml.vb">
+      <DependentUpon>SqliteCheckDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-output\write\ToXlsxDialog.xaml.vb">
       <DependentUpon>ToXlsxDialog.xaml</DependentUpon>

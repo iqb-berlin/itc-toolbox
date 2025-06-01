@@ -195,6 +195,7 @@
                             <MenuItem Command="local:AppCommands.DBNew"/>
                             <MenuItem Command="local:AppCommands.DBOpen"/>
                             <MenuItem Command="local:AppCommands.DBCopyTo"/>
+                            <MenuItem Command="local:AppCommands.DBCheck"/>
                             <Separator/>
                             <MenuItem Command="local:AppCommands.AppExit"/>
                         </MenuItem>

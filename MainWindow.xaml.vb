@@ -44,13 +44,14 @@ Class MainWindow
         If ContinueStart Then
             CommandBindings.Add(New CommandBinding(AppCommands.DBNew, AddressOf HandleDBNewExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.DBOpen, AddressOf HandleDBOpenExecuted))
-            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf HandleDummyFalseCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCopyTo, AddressOf HandleDBCopyToExecuted, AddressOf CanExecuteFalse))
+            CommandBindings.Add(New CommandBinding(AppCommands.DBCheck, AddressOf HandleDBCheckToExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.AppExit, AddressOf HandleAppExitExecuted))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromTestcenter, AddressOf HandleImportFromTestcenterExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromJson, AddressOf HandleImportFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportBookletsFromJson, AddressOf HandleImportBookletsFromJsonExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
-            CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf CanExecuteFalse))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
         Else
@@ -433,8 +434,18 @@ Class MainWindow
         End If
     End Sub
 
+    Private Sub HandleDBCheckToExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim myDialog As New SqliteCheckDialog(SqliteDB) With {.Owner = Me}
+        myDialog.ShowDialog()
+    End Sub
+
     Private Function HandleDBOperationCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
         Dim myreturn As Boolean = Me.SqliteDB IsNot Nothing
+        e.CanExecute = myreturn
+        Return myreturn
+    End Function
+    Private Function CanExecuteFalse(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
+        Dim myreturn As Boolean = False
         e.CanExecute = myreturn
         Return myreturn
     End Function
@@ -458,11 +469,6 @@ Class MainWindow
             ActionDlg.ShowDialog()
         End If
     End Sub
-
-    Private Function HandleDummyFalseCanExecute(ByVal sender As Object, ByVal e As System.Windows.Input.CanExecuteRoutedEventArgs) As Boolean
-        e.CanExecute = False
-        Return False
-    End Function
 
     Private Sub HandleExportToXlsxExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
         Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
