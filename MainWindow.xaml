@@ -208,6 +208,7 @@
                         <MenuItem Header="E_xport">
                             <MenuItem Command="local:AppCommands.ExportToJson"/>
                             <MenuItem Command="local:AppCommands.ExportToXlsx"/>
+                            <MenuItem Command="local:AppCommands.ExportResponsesToCsv"/>
                         </MenuItem>
                     </Menu>
                     <TextBlock TextWrapping="Wrap" Margin="0 15" Name="TBDBInfo">

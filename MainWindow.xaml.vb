@@ -53,6 +53,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ImportFromCsv, AddressOf HandleImportFromCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf CanExecuteFalse))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportResponsesToCsv, AddressOf HandleExportResponsesToCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
@@ -496,4 +497,19 @@ Class MainWindow
             myDlg.ShowDialog()
         End If
     End Sub
+
+    Private Sub HandleExportResponsesToCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetCsv) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetCsv)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetCsv, .Filter = "CSV-Dateien|*.csv",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "csv", .Title = "CSV Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetCsv = filepicker.FileName
+            My.Settings.Save()
+
+            Dim myDialog As New ToCsvDialog(SqliteDB) With {.Owner = Me}
+            myDialog.ShowDialog()
+        End If
+    End Sub
+
 End Class

@@ -719,4 +719,81 @@ select [name],[alias] from [unit] where [bookletId]=" + b.Key.ToString + ";"
 
         Return myUnitReport
     End Function
+
+    Public Function getPersonResponsesLong(dbIdString As String) As List(Of PersonResponseLong)
+        Dim allResponses As New List(Of PersonResponseLong)
+        Using sqliteConnection As SQLiteConnection = GetOpenConnection(True)
+            Using cmd As SQLiteCommand = sqliteConnection.CreateCommand()
+                Dim returnGroup As String = ""
+                Dim returnLogin As String = ""
+                Dim returnCode As String = ""
+                Dim returnBooklet As String = ""
+
+                cmd.CommandText = "select [group],[login],[code] from [person] where [id]=" + dbIdString + " LIMIT 1;"
+                Dim dbReader As SQLiteDataReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    returnGroup = dbReader.GetString(0)
+                    returnLogin = dbReader.GetString(1)
+                    returnCode = dbReader.GetString(2)
+                End While
+                dbReader.Close()
+
+                Dim bNames As New Dictionary(Of Long, String)
+                cmd.CommandText = "
+select booklet.id,bookletInfo.name from [booklet]
+join [bookletInfo] on bookletInfo.id = booklet.infoId where booklet.personId=" + dbIdString + ";"
+                dbReader = cmd.ExecuteReader()
+                While dbReader.Read()
+                    Dim bookletDbId As Long = dbReader.GetInt64(0)
+                    bNames.Add(bookletDbId, dbReader.GetString(1))
+                End While
+                dbReader.Close()
+                For Each b As KeyValuePair(Of Long, String) In bNames
+                    returnBooklet = b.Value
+                    Dim bookletDbIdString As String = b.Key.ToString
+                    Dim unitChunkData As New Dictionary(Of Long, List(Of ResponseChunkData))
+                    cmd.CommandText = "
+select chunk.variables,chunk.unitId,chunk.ts from [chunk]
+join [unit] on unit.id = chunk.unitId where unit.bookletId = " + bookletDbIdString + ";"
+                    dbReader = cmd.ExecuteReader()
+                    While dbReader.Read()
+                        Dim variablesString As String = dbReader.GetString(0)
+                        If Not String.IsNullOrEmpty(variablesString) Then
+                            Dim rCh As New ResponseChunkData
+                            rCh.variables = variablesString.Split({" "}, StringSplitOptions.RemoveEmptyEntries).ToList
+                            If rCh.variables.Count > 0 Then
+                                Dim unitId As Long = dbReader.GetInt64(1)
+                                rCh.id = unitId.ToString
+                                rCh.ts = dbReader.GetInt64(2).ToString
+                                If Not unitChunkData.ContainsKey(unitId) Then unitChunkData.Add(unitId, New List(Of ResponseChunkData))
+                                unitChunkData.Item(unitId).Add(rCh)
+                            End If
+                        End If
+                    End While
+                    dbReader.Close()
+
+                    cmd.CommandText = "
+select response.unitId,response.variableId,response.status,response.value,response.subform,response.code,response.score,unit.name,unit.alias from [response]
+join [unit] on unit.id = response.unitId where unit.bookletId = " + bookletDbIdString + ";"
+                    dbReader = cmd.ExecuteReader()
+                    While dbReader.Read()
+                        Dim unitId As Long = dbReader.GetInt64(0)
+                        Dim newResponse As New PersonResponseLong With {.group = returnGroup, .login = returnLogin, .code = returnCode, .booklet = returnBooklet,
+                            .responseId = dbReader.GetString(1), .responseStatus = dbReader.GetString(2), .responseValue = dbReader.GetString(3),
+                            .responseSubform = dbReader.GetString(4), .responseCode = dbReader.GetInt64(5), .responseScore = dbReader.GetInt64(6),
+                            .unitName = dbReader.GetString(7), .unitAlias = dbReader.GetString(8), .ts = "?"
+                        }
+                        If unitChunkData.ContainsKey(unitId) Then
+                            Dim variableTs = (From rCh As ResponseChunkData In unitChunkData.Item(unitId)
+                                              Where rCh.variables.Contains(newResponse.responseId) Select rCh.ts).FirstOrDefault
+                            If Not String.IsNullOrEmpty(variableTs) Then newResponse.ts = variableTs
+                        End If
+                        allResponses.Add(newResponse)
+                    End While
+                    dbReader.Close()
+                Next
+            End Using
+        End Using
+        Return allResponses
+    End Function
 End Class

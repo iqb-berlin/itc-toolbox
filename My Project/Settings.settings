@@ -56,5 +56,8 @@
     <Setting Name="lastfile_SqliteDB" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="lastfile_OutputTargetCsv" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

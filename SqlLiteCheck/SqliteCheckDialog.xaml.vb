@@ -9,7 +9,7 @@
     Private Sub Me_Loaded(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
         If DB Is Nothing Then
             BtnCancelClose.Content = "Schließen"
-            MBUC.AddMessage("Keine Datenbank geöffent.")
+            MBUC.AddMessage("Keine Datenbank geöffnet.")
         Else
             MBUC.AddMessage("Prüfe Datenbank - bitte warten")
             Process1_bw = New ComponentModel.BackgroundWorker With {.WorkerReportsProgress = True, .WorkerSupportsCancellation = True}

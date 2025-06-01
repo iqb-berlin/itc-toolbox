@@ -24,6 +24,22 @@ Public Class PersonResponses
     Public subforms As List(Of SubForm)
 End Class
 
+Public Class PersonResponseLong
+    Public group As String
+    Public login As String
+    Public code As String
+    Public booklet As String
+    Public unitName As String
+    Public unitAlias As String
+    Public responseId As String
+    Public responseStatus As String
+    Public responseValue As String
+    Public responseSubform As String
+    Public responseCode As Integer = 0
+    Public responseScore As Integer = 0
+    Public ts As String
+End Class
+
 Public Class ResponseData
     Public Const bigDataMarker = "data:application/octet-stream;base64"
     Public Const geoGebraFixMarker = "UEsDBBQAAAA"
