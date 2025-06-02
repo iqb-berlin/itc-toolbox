@@ -784,11 +784,13 @@ join [unit] on unit.id = response.unitId where unit.bookletId = " + bookletDbIdS
                             .unitName = dbReader.GetString(7), .unitAlias = dbReader.GetString(8), .ts = "?"
                         }
                         If unitChunkData.ContainsKey(unitId) Then
+                            Dim varIdSearchString As String = newResponse.responseId
+                            If Not String.IsNullOrEmpty(newResponse.responseSubform) Then varIdSearchString = newResponse.responseSubform + "##" + varIdSearchString
                             Dim variableTs = (From rCh As ResponseChunkData In unitChunkData.Item(unitId)
-                                              Where rCh.variables.Contains(newResponse.responseId) Select rCh.ts).FirstOrDefault
-                            If Not String.IsNullOrEmpty(variableTs) Then newResponse.ts = variableTs
-                        End If
-                        allResponses.Add(newResponse)
+                                                  Where rCh.variables.Contains(varIdSearchString) Select rCh.ts).FirstOrDefault
+                                If Not String.IsNullOrEmpty(variableTs) Then newResponse.ts = variableTs
+                            End If
+                            allResponses.Add(newResponse)
                     End While
                     dbReader.Close()
                 Next

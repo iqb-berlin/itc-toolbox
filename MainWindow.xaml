@@ -194,7 +194,7 @@
                         <MenuItem Header="_Datenbank">
                             <MenuItem Command="local:AppCommands.DBNew"/>
                             <MenuItem Command="local:AppCommands.DBOpen"/>
-                            <MenuItem Command="local:AppCommands.DBCopyTo"/>
+                            <!--<MenuItem Command="local:AppCommands.DBCopyTo"/>-->
                             <MenuItem Command="local:AppCommands.DBCheck"/>
                             <Separator/>
                             <MenuItem Command="local:AppCommands.AppExit"/>
@@ -206,7 +206,7 @@
                             <MenuItem Command="local:AppCommands.ImportFromCsv"/>
                         </MenuItem>
                         <MenuItem Header="E_xport">
-                            <MenuItem Command="local:AppCommands.ExportToJson"/>
+                            <!--<MenuItem Command="local:AppCommands.ExportToJson"/>-->
                             <MenuItem Command="local:AppCommands.ExportToXlsx"/>
                             <MenuItem Command="local:AppCommands.ExportResponsesToCsv"/>
                         </MenuItem>
