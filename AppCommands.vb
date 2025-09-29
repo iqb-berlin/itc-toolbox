@@ -11,4 +11,6 @@
     Public Shared ReadOnly DBOpen As RoutedUICommand = New RoutedUICommand("Datenbank-Datei öffnen", "DB Open", GetType(FrameworkElement))
     Public Shared ReadOnly DBCheck As RoutedUICommand = New RoutedUICommand("Datenbank-Datei prüfen", "DB Check", GetType(FrameworkElement))
     Public Shared ReadOnly DBCopyTo As RoutedUICommand = New RoutedUICommand("Kopie von Datenbank erzeugen", "DB Kopieren", GetType(FrameworkElement))
+    Public Shared ReadOnly DevTrigger As RoutedUICommand = New RoutedUICommand("Temporäres Commando im Entwicklungsprozess", "DevTrigger", GetType(FrameworkElement),
+                                                                            New InputGestureCollection From {New KeyGesture(Key.Y, ModifierKeys.Control, "Ctrl+Y")})
 End Class

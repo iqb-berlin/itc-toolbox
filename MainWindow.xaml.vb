@@ -55,6 +55,12 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportResponsesToCsv, AddressOf HandleExportResponsesToCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
+            Try
+                Dim userName As String = iqb.lib.windows.ADFactory.GetMyName
+                If userName = "mechtelm" Then CommandBindings.Add(New CommandBinding(AppCommands.DevTrigger, AddressOf HandleDevTriggerExecuted))
+            Catch ex As Exception
+                Debug.Print("user is not mechtel")
+            End Try
         Else
             If Not String.IsNullOrEmpty(UserConfigFilename) AndAlso
                 UserConfigFilename.IndexOfAny(IO.Path.GetInvalidFileNameChars()) < 0 AndAlso
@@ -512,4 +518,7 @@ Class MainWindow
         End If
     End Sub
 
+    Private Async Sub HandleDevTriggerExecuted(sender As Object, e As ExecutedRoutedEventArgs)
+        Console.WriteLine(Await ReadTC.f1())
+    End Sub
 End Class
