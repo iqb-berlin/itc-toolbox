@@ -2,9 +2,27 @@
 Imports System.Data.SQLite
 Imports System.Globalization
 Imports iqb.lib.windows
+Imports Newtonsoft.Json
 
 Public Class SQLiteConnector
-    Const currentDbVersion = 1
+    Public Shared ReadOnly responseStatesNumericMap As New Dictionary(Of Byte, String) From {
+        {0, "UNSET"},
+        {1, "NOT_REACHED"},
+        {2, "DISPLAYED"},
+        {3, "VALUE_CHANGED"},
+        {4, "DERIVE_ERROR"},
+        {5, "CODING_COMPLETE"},
+        {6, "NO_CODING"},
+        {7, "INVALID"},
+        {8, "CODING_INCOMPLETE"},
+        {9, "CODING_ERROR"},
+        {10, "PARTLY_DISPLAYED"},
+        {11, "DERIVE_PENDING"},
+        {12, "INTENDED_INCOMPLETE"},
+        {13, "CODE_SELECTION_PENDING"}
+    }
+    Public usedResponseStatus As New Dictionary(Of Byte, String)
+    Const currentDbVersion = 2
     Private fileName As String
     Public ReadOnly dbVersion As Integer
     Public ReadOnly dbCreator As String
@@ -100,11 +118,11 @@ CREATE TABLE [chunk] (
 CREATE TABLE [response] (
   [unitId] bigint NOT NULL
 , [variableId] text NOT NULL
-, [status] text NOT NULL
+, [status] int DEFAULT (0) NOT NULL
 , [value] text NULL
 , [subform] text NULL
-, [code] bigint DEFAULT (0) NOT NULL
-, [score] bigint DEFAULT (0) NOT NULL
+, [code] int DEFAULT (0) NOT NULL
+, [score] int DEFAULT (0) NOT NULL
 , CONSTRAINT [FK_response_0_0] FOREIGN KEY ([unitId]) REFERENCES [unit] ([id]) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 CREATE TRIGGER [fki_booklet_personId_person_id] BEFORE Insert ON [booklet] FOR EACH ROW BEGIN SELECT RAISE(ROLLBACK, 'Insert on table booklet violates foreign key constraint FK_booklet_0_0') WHERE (SELECT id FROM person WHERE  id = NEW.personId) IS NULL; END;
@@ -128,7 +146,7 @@ CREATE TRIGGER [fku_response_unitId_unit_id] BEFORE Update ON [response] FOR EAC
 COMMIT;"
                     cmd.ExecuteNonQuery()
                 End Using
-                dbVersion = 1
+                dbVersion = currentDbVersion
                 Dim now As DateTime = DateTime.Now
                 dbCreatedDateTime = now.ToShortDateString + " " + now.ToShortTimeString
                 Try
@@ -158,6 +176,7 @@ INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_people', '0');
 INSERT INTO [db_info] ([key],[value]) VALUES ('number_of_responses', '0');
 INSERT INTO [db_info] ([key],[value]) VALUES ('has_subforms', 'False');
 INSERT INTO [db_info] ([key],[value]) VALUES ('has_codes', 'False');
+INSERT INTO [db_info] ([key],[value]) VALUES ('response_status', '[]');
 COMMIT;"
                     cmd.ExecuteNonQuery()
                 End Using
@@ -178,6 +197,12 @@ COMMIT;"
                             Case "lastchanged_By" : dbLastChanger = value
                             Case "has_subforms" : hasSubforms = value = "True"
                             Case "has_codes" : hasCodes = value = "True"
+                            Case "response_status"
+                                Try
+                                    usedResponseStatus = JsonConvert.DeserializeObject(value, GetType(Dictionary(Of Byte, String)))
+                                Catch ex As Exception
+                                    usedResponseStatus = New Dictionary(Of Byte, String)
+                                End Try
                         End Select
                     End While
                 End Using
@@ -218,14 +243,20 @@ PRAGMA synchronous=OFF;"
                 End While
                 hasSubforms = firstFoundResponseDbId >= 0
                 dbReader.Close()
-                firstFoundResponseDbId = -1
-                cmd.CommandText = "SELECT 1 FROM [response] where status = 'CODING_COMPLETE' limit 1;"
-                dbReader = cmd.ExecuteReader()
-                While dbReader.Read()
-                    firstFoundResponseDbId = dbReader.GetInt64(0)
-                End While
-                hasCodes = firstFoundResponseDbId >= 0
-                dbReader.Close()
+
+                If dbVersion > 1 Then
+                    Dim codingCompleteFound = From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "CODING_COMPLETE"
+                    hasCodes = codingCompleteFound IsNot Nothing AndAlso codingCompleteFound.Count > 0
+                Else
+                    firstFoundResponseDbId = -1
+                    cmd.CommandText = "SELECT 1 FROM [response] where status = 'CODING_COMPLETE' limit 1;"
+                    dbReader = cmd.ExecuteReader()
+                    While dbReader.Read()
+                        firstFoundResponseDbId = dbReader.GetInt64(0)
+                    End While
+                    hasCodes = firstFoundResponseDbId >= 0
+                    dbReader.Close()
+                End If
 
                 cmd.CommandText = "BEGIN TRANSACTION;"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbPersonCount + "' where key = 'number_of_people';"
@@ -248,6 +279,7 @@ PRAGMA synchronous=OFF;"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + dbLastChanger + "' where key = 'lastchanged_By';"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasSubforms.ToString + "' where key = 'has_subforms';"
                 cmd.CommandText += "UPDATE [db_info] SET [value]= '" + hasCodes.ToString + "' where key = 'has_codes';"
+                If dbVersion > 1 Then cmd.CommandText += "UPDATE [db_info] SET [value]= '" + JsonConvert.SerializeObject(usedResponseStatus) + "' where key = 'response_status';"
                 cmd.CommandText += "COMMIT;"
                 cmd.ExecuteScalar()
             End Using
@@ -392,10 +424,30 @@ INSERT INTO [chunk] ([unitId],[key],[type],[variables],[ts]) VALUES (" +
                             For Each sf As SubForm In u.subforms
                                 cmd.CommandText = ""
                                 For Each resp As ResponseData In sf.responses
-                                    cmd.CommandText += "
+                                    If dbVersion > 1 Then
+                                        Dim numericStatus As Integer = -1
+                                        Dim numericStatusFound = From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = resp.status Select s.Key
+                                        If numericStatusFound IsNot Nothing AndAlso numericStatusFound.Count > 0 Then
+                                            numericStatus = numericStatusFound(0)
+                                        Else
+                                            numericStatusFound = From s As KeyValuePair(Of Byte, String) In SQLiteConnector.responseStatesNumericMap Where s.Value = resp.status Select s.Key
+                                            If numericStatusFound IsNot Nothing AndAlso numericStatusFound.Count > 0 Then
+                                                numericStatus = numericStatusFound(0)
+                                            Else
+                                                numericStatus = Math.Max(usedResponseStatus.Keys.Max, SQLiteConnector.responseStatesNumericMap.Keys.Max) + 1
+                                            End If
+                                            usedResponseStatus.Add(numericStatus, resp.status)
+                                        End If
+                                        cmd.CommandText += "
 INSERT INTO [response] ([unitId],[subform],[variableId],[value],[status],[code],[score]) VALUES (" + lastInsert_UnitId.ToString + ",'" +
-                                    IIf(String.IsNullOrEmpty(sf.id), "", sf.id) + "', '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" + resp.status + "'," +
-                                        resp.code.ToString + "," + resp.score.ToString + ");"
+                                        IIf(String.IsNullOrEmpty(sf.id), "", sf.id) + "', '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" +
+                                            numericStatus.ToString + "'," + resp.code.ToString + "," + resp.score.ToString + ");"
+                                    Else
+                                        cmd.CommandText += "
+INSERT INTO [response] ([unitId],[subform],[variableId],[value],[status],[code],[score]) VALUES (" + lastInsert_UnitId.ToString + ",'" +
+                                        IIf(String.IsNullOrEmpty(sf.id), "", sf.id) + "', '" + resp.id + "','" + resp.value.Replace("'", "''") + "','" +
+                                            resp.status + "'," + resp.code.ToString + "," + resp.score.ToString + ");"
+                                    End If
                                 Next
                                 If Not String.IsNullOrEmpty(cmd.CommandText) Then
                                     cmd.CommandText = "BEGIN TRANSACTION;" + cmd.CommandText + "COMMIT;"
@@ -514,9 +566,15 @@ from [response] where response.unitId = " + dbUnit.Key + ";"
                     While dbReader.Read()
                         Dim subformKey As String = dbReader.GetString(1)
                         If Not subformList.ContainsKey(subformKey) Then subformList.Add(subformKey, New List(Of ResponseData))
-                        subformList.Item(subformKey).Add(New ResponseData(
+                        If dbVersion > 1 Then
+                            subformList.Item(subformKey).Add(New ResponseData(
+                                                         dbReader.GetString(2), dbReader.GetString(3), usedResponseStatus(dbReader.GetByte(4))) With {
+                                                         .code = dbReader.GetInt64(5), .score = dbReader.GetInt64(6)})
+                        Else
+                            subformList.Item(subformKey).Add(New ResponseData(
                                                          dbReader.GetString(2), dbReader.GetString(3), dbReader.GetString(4)) With {
                                                          .code = dbReader.GetInt64(5), .score = dbReader.GetInt64(6)})
+                        End If
                     End While
                     dbReader.Close()
                     For Each sf As KeyValuePair(Of String, List(Of ResponseData)) In subformList
@@ -629,11 +687,20 @@ select unit.id,unit.bookletId,unit.name,unit.alias from [unit] where unit.bookle
                 End While
                 dbReader.Close()
                 Dim unitVariablesWithValues As New Dictionary(Of Long, String)
+                Dim statusSearchArray As String = "('DISPLAYED','UNSET','NOT_REACHED')"
+                If dbVersion > 1 Then
+                    Dim statusKey As Byte = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "DISPLAYED" Select s.Key).First
+                    statusSearchArray = "(" + statusKey.ToString
+                    statusKey = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "UNSET" Select s.Key).First
+                    statusSearchArray += "," + statusKey.ToString
+                    statusKey = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "NOT_REACHED" Select s.Key).First
+                    statusSearchArray += "," + statusKey.ToString + ")"
+                End If
                 For Each u As KeyValuePair(Of Long, String) In allUnits
                     Dim varId As String = Nothing
                     cmd.CommandText = "
 select [variableId] from [response]
-where not [status] in ('DISPLAYED','UNSET','NOT_REACHED') and unitId=" + u.Key.ToString + " LIMIT 1;"
+where not [status] in " + statusSearchArray + " and unitId=" + u.Key.ToString + " LIMIT 1;"
                     dbReader = cmd.ExecuteReader()
                     While dbReader.Read()
                         varId = dbReader.GetString(0)
@@ -701,7 +768,7 @@ join [bookletInfo] on bookletInfo.id = booklet.infoId where booklet.personId=" +
                     cmd.CommandText = "
 select [name],[alias] from [unit] where [bookletId]=" + b.Key.ToString + ";"
                     dbReader = cmd.ExecuteReader()
-                        While dbReader.Read()
+                    While dbReader.Read()
                         Dim unitName As String = dbReader.GetString(0)
                         Dim unitAlias As String = dbReader.GetString(1)
                         If unitAlias <> unitName Then unitName = unitAlias + " (" + unitName + ")"
@@ -778,19 +845,28 @@ join [unit] on unit.id = response.unitId where unit.bookletId = " + bookletDbIdS
                     dbReader = cmd.ExecuteReader()
                     While dbReader.Read()
                         Dim unitId As Long = dbReader.GetInt64(0)
-                        Dim newResponse As New PersonResponseLong With {.group = returnGroup, .login = returnLogin, .code = returnCode, .booklet = returnBooklet,
-                            .responseId = dbReader.GetString(1), .responseStatus = dbReader.GetString(2), .responseValue = dbReader.GetString(3),
-                            .responseSubform = dbReader.GetString(4), .responseCode = dbReader.GetInt64(5), .responseScore = dbReader.GetInt64(6),
-                            .unitName = dbReader.GetString(7), .unitAlias = dbReader.GetString(8), .ts = "?"
-                        }
+                        Dim newResponse As PersonResponseLong
+                        If dbVersion > 1 Then
+                            newResponse = New PersonResponseLong With {.group = returnGroup, .login = returnLogin, .code = returnCode, .booklet = returnBooklet,
+                                .responseId = dbReader.GetString(1), .responseStatus = usedResponseStatus(dbReader.GetByte(2)), .responseValue = dbReader.GetString(3),
+                                .responseSubform = dbReader.GetString(4), .responseCode = dbReader.GetInt64(5), .responseScore = dbReader.GetInt64(6),
+                                .unitName = dbReader.GetString(7), .unitAlias = dbReader.GetString(8), .ts = "?"
+                            }
+                        Else
+                            newResponse = New PersonResponseLong With {.group = returnGroup, .login = returnLogin, .code = returnCode, .booklet = returnBooklet,
+                                .responseId = dbReader.GetString(1), .responseStatus = dbReader.GetString(2), .responseValue = dbReader.GetString(3),
+                                .responseSubform = dbReader.GetString(4), .responseCode = dbReader.GetInt64(5), .responseScore = dbReader.GetInt64(6),
+                                .unitName = dbReader.GetString(7), .unitAlias = dbReader.GetString(8), .ts = "?"
+                            }
+                        End If
                         If unitChunkData.ContainsKey(unitId) Then
                             Dim varIdSearchString As String = newResponse.responseId
                             If Not String.IsNullOrEmpty(newResponse.responseSubform) Then varIdSearchString = newResponse.responseSubform + "##" + varIdSearchString
                             Dim variableTs = (From rCh As ResponseChunkData In unitChunkData.Item(unitId)
-                                                  Where rCh.variables.Contains(varIdSearchString) Select rCh.ts).FirstOrDefault
-                                If Not String.IsNullOrEmpty(variableTs) Then newResponse.ts = variableTs
-                            End If
-                            allResponses.Add(newResponse)
+                                              Where rCh.variables.Contains(varIdSearchString) Select rCh.ts).FirstOrDefault
+                            If Not String.IsNullOrEmpty(variableTs) Then newResponse.ts = variableTs
+                        End If
+                        allResponses.Add(newResponse)
                     End While
                     dbReader.Close()
                 Next
