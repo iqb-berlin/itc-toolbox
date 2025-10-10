@@ -3,7 +3,7 @@ Imports System.Net.Http
 
 Public Class ReadTC
     Const url = "https://www.iqb-testcenter.de"
-    Shared credentials As New Net.NetworkCredential("mmee", "tutti22")
+    Shared credentials As New Net.NetworkCredential("mememo", "konfetti")
 
     Public Shared Async Function f1() As Task(Of String)
         Dim resp As Net.WebResponse = Nothing
