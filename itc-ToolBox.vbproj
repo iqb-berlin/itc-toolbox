@@ -237,6 +237,7 @@
     <Compile Include="itc-input\readContent\DownloadContentPage3Action.xaml.vb">
       <DependentUpon>DownloadContentPage3Action.xaml</DependentUpon>
     </Compile>
+    <Compile Include="itc-input\readContent\IndexHtml.vb" />
     <Compile Include="services\itc-connection.vb" />
     <Compile Include="itc-output\classes\ClassesReports.vb" />
     <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">

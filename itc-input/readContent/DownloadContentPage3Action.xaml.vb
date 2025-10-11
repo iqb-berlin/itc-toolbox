@@ -67,6 +67,10 @@ Public Class DownloadContentPage3Action
 
             progressValue += 1
         Next
+        If Not myBW.CancellationPending AndAlso Not fatalError Then
+            myBW.ReportProgress(0.0#, "Schreibe Index")
+            IndexHtml.WriteTo(My.Settings.lastfolder_ContentTargetFolder + IO.Path.DirectorySeparatorChar + "index.html", fullFileList)
+        End If
     End Sub
 
     Private Sub myBackgroundWorker_ProgressChanged(ByVal sender As Object, ByVal e As ProgressChangedEventArgs) Handles myBackgroundWorker.ProgressChanged
