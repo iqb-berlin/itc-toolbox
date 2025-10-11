@@ -523,7 +523,7 @@ Class MainWindow
     End Sub
 
     Private Sub BtnDownloadContent_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New DownloadContentDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Xlsx) With {
+        Dim ActionDlg As New DownloadContentDialog(itcConnection) With {
         .Owner = Me, .Title = "Content-Dateien aus Testcenter laden und lokal speichern"}
         ActionDlg.ShowDialog()
     End Sub

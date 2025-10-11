@@ -1,6 +1,16 @@
-﻿Imports System.Net
+﻿Imports System.ComponentModel
+Imports System.Net
 Imports Newtonsoft.Json
 Public Class ITCConnection
+    Private _BufferSize As Integer = 4096
+    Public Property BufferSize() As Integer
+        Get
+            Return _BufferSize
+        End Get
+        Set(ByVal value As Integer)
+            _BufferSize = value
+        End Set
+    End Property
     Public Shared ReadOnly validBookletDependencies() As String = {"containsUnit", "usesPlayer", "isDefinedBy"}
     Public selectedWorkspace As Integer = 0
     Private _url As String
@@ -141,7 +151,7 @@ Public Class ITCConnection
         Return myReturn
     End Function
 
-    Private Function getFullFileList() As List(Of WorkspaceFileDTO)
+    Public Function getFullFileList() As List(Of WorkspaceFileDTO)
         Dim myReturn As New List(Of WorkspaceFileDTO)
         Dim resp As Net.WebResponse
         _lastErrorMsgText = ""
@@ -175,9 +185,8 @@ Public Class ITCConnection
         Return myReturn
     End Function
 
-    Public Function getBookletSizes() As Dictionary(Of String, Long)
-        Dim bookletSizes As New Dictionary(Of String, Long)
-        Dim allFilesEmptyDependency As List(Of WorkspaceFileDTO) = getFullFileList()
+    Public Function getFileDependencies(fileList As List(Of String)) As List(Of WorkspaceFileDTO)
+        Dim myReturn As New List(Of WorkspaceFileDTO)
         Dim resp As Net.WebResponse
         _lastErrorMsgText = ""
         Try
@@ -187,7 +196,6 @@ Public Class ITCConnection
             requ.ContentType = "application/json"
             requ.Headers.Item("AuthToken") = Me.tokenStr
 
-            Dim fileList As List(Of String) = (From f As WorkspaceFileDTO In allFilesEmptyDependency Where f.type = "Booklet" Select f.name).ToList
             Dim bodyContent As String = "{""body"":" + JsonConvert.SerializeObject(fileList) + "}"
 
             requ.Method = "POST"
@@ -215,13 +223,12 @@ Public Class ITCConnection
             If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
         End Try
         If resp IsNot Nothing Then
-            Dim bookletsWithDependency As New List(Of WorkspaceFileDTO)
             Using WebReader As New System.IO.StreamReader(resp.GetResponseStream(), Text.Encoding.UTF8)
                 Try
                     _response_string = WebReader.ReadToEnd()
                     Dim allFiles As Dictionary(Of String, Linq.JToken) = JsonConvert.DeserializeObject(_response_string, GetType(Dictionary(Of String, Linq.JToken)))
                     For Each f As KeyValuePair(Of String, Linq.JToken) In allFiles
-                        bookletsWithDependency.AddRange(f.Value.ToObject(Of List(Of WorkspaceFileDTO)))
+                        myReturn.AddRange(f.Value.ToObject(Of List(Of WorkspaceFileDTO)))
                     Next
                     Me._lastErrorMsgText = ""
                 Catch ex As Exception
@@ -229,6 +236,52 @@ Public Class ITCConnection
                     If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
                 End Try
             End Using
+        End If
+        Return myReturn
+    End Function
+
+    Public Function getFile(fileInfo As WorkspaceFileDTO, ByRef TargetFileStream As IO.FileStream, myBW As BackgroundWorker) As Boolean
+        Dim myReturn As Boolean = False
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/file/" + fileInfo.type + "/" + fileInfo.name)
+            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.BinaryReader(resp.GetResponseStream())
+                Dim Buffer As Byte() = Nothing
+                Try
+                    Do
+                        If Not myBW.CancellationPending Then
+                            Buffer = WebReader.ReadBytes(_BufferSize)
+                            If Buffer.Length > 0 Then TargetFileStream.Write(Buffer, 0, Buffer.Length)
+                        End If
+                    Loop Until myBW.CancellationPending OrElse Buffer.Length < BufferSize
+                    myReturn = True
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
+
+    Public Function getBookletSizes() As Dictionary(Of String, Long)
+        Dim bookletSizes As New Dictionary(Of String, Long)
+        _lastErrorMsgText = ""
+        Dim allFilesEmptyDependency As List(Of WorkspaceFileDTO) = getFullFileList()
+        Dim bookletsWithDependency As List(Of WorkspaceFileDTO) = getFileDependencies((From f As WorkspaceFileDTO In allFilesEmptyDependency
+                                                                                       Where f.type = "Booklet" Select f.name).ToList)
+        If String.IsNullOrEmpty(_lastErrorMsgText) Then
             Dim flatFileSizes As Dictionary(Of String, Long) = (From f As WorkspaceFileDTO In allFilesEmptyDependency).ToDictionary(Function(a) a.name, Function(a) a.size)
 
             For Each booklet As WorkspaceFileDTO In bookletsWithDependency

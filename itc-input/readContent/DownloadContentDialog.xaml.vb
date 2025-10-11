@@ -1,19 +1,8 @@
 ﻿Class DownloadContentDialog
-    Public selectedDataGroups As List(Of String)
-    Public target As DataTarget
-    Public readMode As TestcenterReadMode
     Public itcConnection As ITCConnection
-    Public sqliteConnection As SQLiteConnector
 
-    Public Sub New(testcenterConnection As ITCConnection,
-                   mode As TestcenterReadMode,
-                   target As DataTarget,
-                   Optional sqliteConnection As SQLiteConnector = Nothing)
+    Public Sub New(testcenterConnection As ITCConnection)
         InitializeComponent()
         Me.itcConnection = testcenterConnection
-        Me.readMode = mode
-        Me.target = target
-        Me.sqliteConnection = sqliteConnection
-        If Me.target = DataTarget.Sqlite AndAlso Me.sqliteConnection Is Nothing Then Me.target = DataTarget.Datastore
     End Sub
 End Class

@@ -15,27 +15,10 @@
             <libco:IntegerBooleanExact1Converter x:Key="IntegerBooleanExact1Converter"/>
         </DockPanel.Resources>
         <ItemsControl Style="{StaticResource gsDialogBoxFooter}" DockPanel.Dock="Bottom" ItemContainerStyle="{StaticResource gsDialogBoxFooterButton}" Panel.ZIndex="2">
-            <Button Click="BtnContinue_Click" Name="BtnContinue">Weiter</Button>
-            <Button Click="BtnCancel_Click">Abrechen</Button>
+            <Button Name="BtnCancelClose" Click="BtnCancelClose_Click" DockPanel.Dock="Bottom" 
+                HorizontalAlignment="Center" TabIndex="4">Abbrechen</Button>
         </ItemsControl>
-        <DockPanel DockPanel.Dock="Bottom" Margin="10" LastChildFill="False">
-            <Button x:Name="BtnToggleCheck" Click="BtnToggleCheck_Click" DockPanel.Dock="Right" Padding="10 0 10 0">Toggle</Button>
-        </DockPanel>
-        <TextBlock Name="TBlPrompt" DockPanel.Dock="Top" Margin="20 0 20 0" TextWrapping="Wrap">Bitte Login-Gruppen wählen</TextBlock>
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Margin="10">
-            <ItemsControl Name="ICDataGroups">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <DockPanel LastChildFill="False">
-                            <CheckBox IsChecked="{Binding Attribute[checked].Value}" Margin="30 2 5 0"/>
-                            <TextBlock Text="{Binding Value}"/>
-                            <TextBlock Text="{Binding Attribute[label].Value}" Margin="5 2 0 0"/>
-                            <TextBlock Foreground="LightGray" DockPanel.Dock="Right"
-                                       Text="{Binding Attribute[number].Value}" Margin="0 0 10 0"></TextBlock>
-                        </DockPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <libco:AsynchProgressBarUserControl Name="APBUC" Margin="5 0 5 15" DockPanel.Dock="Bottom"/>
+        <libco:MessageBoxUserControl Name="MBUC" Margin="5"/>
     </DockPanel>
 </Page>

@@ -41,6 +41,7 @@ End Class
 Public Class WorkspaceFileDTO
     Public name As String
     Public size As Long
+    Public modificationTime As Long
     Public type As String
     Public id As String
     Public dependencies As List(Of FileDependencyDTO)
