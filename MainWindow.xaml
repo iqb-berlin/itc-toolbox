@@ -84,6 +84,12 @@
                         Einlesen einer speziell vorbereiteten Excel-Tabelle und Erzeugen von Docx-Dateien zum Ausdruck für Testpersonen.
                         </TextBlock>
                     </DockPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnDownloadContent_Click">Download Content</Button>
+                        <TextBlock TextWrapping="Wrap">
+                            Die Input-Dateien eines Arbeitsbereiches im Testcenter werden heruntergeladen.
+                        </TextBlock>
+                    </DockPanel>
                 </StackPanel>
             </TabItem>
             <TabItem Name="TIVariables">

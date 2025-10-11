@@ -521,4 +521,10 @@ Class MainWindow
     Private Async Sub HandleDevTriggerExecuted(sender As Object, e As ExecutedRoutedEventArgs)
         Console.WriteLine(Await ReadTC.f1())
     End Sub
+
+    Private Sub BtnDownloadContent_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New DownloadContentDialog(itcConnection, TestcenterReadMode.Responses, DataTarget.Xlsx) With {
+        .Owner = Me, .Title = "Content-Dateien aus Testcenter laden und lokal speichern"}
+        ActionDlg.ShowDialog()
+    End Sub
 End Class

@@ -127,6 +127,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-input\readContent\DownloadContentDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-input\readContent\DownloadContentPage1Credentials.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-input\readContent\DownloadContentPage2SelectWorkspace.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-input\readContent\DownloadContentPage3Action.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -208,6 +224,18 @@
     </Compile>
     <Compile Include="itc-input\BookletXlsxDialog.xaml.vb">
       <DependentUpon>BookletXlsxDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-input\readContent\DownloadContentDialog.xaml.vb">
+      <DependentUpon>DownloadContentDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-input\readContent\DownloadContentPage1Credentials.xaml.vb">
+      <DependentUpon>DownloadContentPage1Credentials.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-input\readContent\DownloadContentPage2SelectWorkspace.xaml.vb">
+      <DependentUpon>DownloadContentPage2SelectWorkspace.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-input\readContent\DownloadContentPage3Action.xaml.vb">
+      <DependentUpon>DownloadContentPage3Action.xaml</DependentUpon>
     </Compile>
     <Compile Include="services\itc-connection.vb" />
     <Compile Include="itc-output\classes\ClassesReports.vb" />
