@@ -50,16 +50,37 @@ Public Class DownloadContentPage3Action
 
             Dim TargetFilename As String = My.Settings.lastfolder_ContentTargetFolder + IO.Path.DirectorySeparatorChar + fileToDownload.name
 
+            Dim ProcessStatus As String = "new"
             Try
-                Dim TargetFile As New IO.FileStream(TargetFilename, IO.FileMode.Create)
-                myBW.ReportProgress(progressValue * 100 / maxProgressValue, IO.Path.GetFileName(TargetFile.Name))
-                If Not ParentDlg.itcConnection.getFile(fileToDownload, TargetFile, myBW) Then
-                    myBW.ReportProgress(progressValue * 100 / maxProgressValue, "- unbekannter Fehler")
+                Dim createOrOverwrite As Boolean = True
+                Dim remoteDT As New DateTime(1970, 1, 1, 0, 0, 0, 0)
+                remoteDT = remoteDT.AddSeconds(fileToDownload.modificationTime)
+                If IO.File.Exists(TargetFilename) Then
+                    Dim fi_pre As New IO.FileInfo(TargetFilename)
+                    Dim localeDT As New DateTime
+                    With fi_pre.LastWriteTime
+                        localeDT = New DateTime(.Year, .Month, .Day, .Hour, .Minute, .Second)
+                    End With
+                    createOrOverwrite = remoteDT > localeDT
+                    If createOrOverwrite Then
+                        ProcessStatus = "update"
+                    Else
+                        ProcessStatus = "skip"
+                    End If
                 End If
-                TargetFile.Close()
-                Dim fi As New IO.FileInfo(TargetFilename)
-                If myBW.CancellationPending Then
-                    fi.Delete()
+                If createOrOverwrite Then
+                    Dim TargetFile As New IO.FileStream(TargetFilename, IO.FileMode.Create)
+                    myBW.ReportProgress(progressValue * 100 / maxProgressValue, IO.Path.GetFileName(TargetFile.Name) + " - " + ProcessStatus)
+                    If Not ParentDlg.itcConnection.getFile(fileToDownload, TargetFile, myBW) Then
+                        myBW.ReportProgress(progressValue * 100 / maxProgressValue, "- unbekannter Fehler")
+                    End If
+                    TargetFile.Close()
+                    Dim fi As New IO.FileInfo(TargetFilename)
+                    If myBW.CancellationPending Then
+                        fi.Delete()
+                    Else
+                        fi.LastWriteTime = remoteDT
+                    End If
                 End If
             Catch ex As Exception
                 myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e:Konnte Datei nicht schreiben: " + fileToDownload.name + " (" + ex.Message + ")")
@@ -68,8 +89,12 @@ Public Class DownloadContentPage3Action
             progressValue += 1
         Next
         If Not myBW.CancellationPending AndAlso Not fatalError Then
-            myBW.ReportProgress(0.0#, "Schreibe Index")
-            IndexHtml.WriteTo(My.Settings.lastfolder_ContentTargetFolder + IO.Path.DirectorySeparatorChar + "index.html", fullFileList)
+            myBW.ReportProgress(95.0#, "Schreibe Index")
+            Dim filesWithDependency As List(Of WorkspaceFileDTO) = ParentDlg.itcConnection.getFileDependencies((From f As WorkspaceFileDTO In fullFileList
+                                                                                                                Where f.type = "Unit" Select f.name).ToList)
+            filesWithDependency.AddRange(From f As WorkspaceFileDTO In fullFileList Where f.type <> "Unit")
+            IndexHtml.WriteTo(My.Settings.lastfolder_ContentTargetFolder + IO.Path.DirectorySeparatorChar + "index.html",
+                              ParentDlg.itcConnection.url, ParentDlg.itcConnection.selectedWorkspaceName, filesWithDependency)
         End If
     End Sub
 

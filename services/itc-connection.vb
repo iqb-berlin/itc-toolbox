@@ -13,6 +13,7 @@ Public Class ITCConnection
     End Property
     Public Shared ReadOnly validBookletDependencies() As String = {"containsUnit", "usesPlayer", "isDefinedBy"}
     Public selectedWorkspace As Integer = 0
+    Public selectedWorkspaceName As String
     Private _url As String
     Public ReadOnly Property url() As String
         Get

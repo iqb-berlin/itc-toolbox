@@ -13,7 +13,9 @@
     Private Sub BtnContinue_Click(sender As Object, e As RoutedEventArgs)
         If LBIDList.SelectedItems.Count > 0 Then
             Dim ParentDlg As DownloadContentDialog = Me.Parent
-            ParentDlg.itcConnection.selectedWorkspace = LBIDList.SelectedValue
+            Dim SelectedWS As KeyValuePair(Of Integer, String) = LBIDList.SelectedItem
+            ParentDlg.itcConnection.selectedWorkspace = SelectedWS.Key
+            ParentDlg.itcConnection.selectedWorkspaceName = SelectedWS.Value
             Me.NavigationService.Navigate(New DownloadContentPage3Action)
         End If
     End Sub

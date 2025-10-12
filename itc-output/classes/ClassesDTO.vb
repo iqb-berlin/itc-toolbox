@@ -38,6 +38,11 @@ Public Class ResponseDTO
     Public originalUnitId As String
 End Class
 
+Public Class WorkspaceFileInfoDTO
+    Public label As String
+    Public description As String
+    Public testtakers As Integer
+End Class
 Public Class WorkspaceFileDTO
     Public name As String
     Public size As Long
@@ -45,6 +50,7 @@ Public Class WorkspaceFileDTO
     Public type As String
     Public id As String
     Public dependencies As List(Of FileDependencyDTO)
+    Public info As WorkspaceFileInfoDTO
 End Class
 
 Public Class FileDependencyDTO
