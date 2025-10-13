@@ -1,9 +1,10 @@
-﻿Imports Newtonsoft.Json
+﻿Imports System.ComponentModel
+Imports System.Text
 Imports DocumentFormat.OpenXml
-Imports DocumentFormat.OpenXml.Spreadsheet
 Imports DocumentFormat.OpenXml.Packaging
+Imports DocumentFormat.OpenXml.Spreadsheet
 Imports iqb.lib.openxml
-Imports System.ComponentModel
+Imports Newtonsoft.Json
 
 Public Class LoadDataFromTestcenterToCsvPage4Result
     Private WithEvents myBackgroundWorker As BackgroundWorker = Nothing
@@ -34,7 +35,7 @@ Public Class LoadDataFromTestcenterToCsvPage4Result
         Dim progressValue As Integer = 0
         Dim fatalError As Boolean = False
 
-        Dim TargetFile As New IO.FileStream(My.Settings.lastfile_OutputTargetCsv, IO.FileMode.Create)
+        Dim firstGroup As Boolean = True
         For Each dataGroupId As String In ParentDlg.selectedDataGroups
             If myBW.CancellationPending Then Exit For
             If myBW.CancellationPending Then
@@ -49,7 +50,16 @@ Public Class LoadDataFromTestcenterToCsvPage4Result
                     If Not ParentDlg.itcConnection.getResponsesCsvFile(dataGroupId, buffer, myBW) Then
                         myBW.ReportProgress(progressValue * 100 / maxProgressValue, "- unbekannter Fehler")
                     End If
-                    TargetFile.Write(buffer.ToArray, 0, buffer.Length)
+                    Dim decoded As String = Encoding.UTF8.GetString(buffer.ToArray())
+                    If firstGroup Then
+                        'remove BOM
+                        My.Computer.FileSystem.WriteAllText(My.Settings.lastfile_OutputTargetCsv, decoded.Substring(1), False)
+                        firstGroup = False
+                    Else
+                        Dim posFirstLf As Integer = decoded.IndexOf(vbLf)
+                        'keep LF
+                        If posFirstLf > 0 Then My.Computer.FileSystem.WriteAllText(My.Settings.lastfile_OutputTargetCsv, decoded.Substring(posFirstLf), True)
+                    End If
                 End Using
             Catch ex As Exception
                 myBW.ReportProgress(progressValue * 100 / maxProgressValue, "e:Konnte Gruppe nicht lesen: " + ex.Message)
@@ -57,7 +67,6 @@ Public Class LoadDataFromTestcenterToCsvPage4Result
 
             progressValue += 1
         Next
-        TargetFile.Close()
     End Sub
 
     Private Sub myBackgroundWorker_ProgressChanged(ByVal sender As Object, ByVal e As ProgressChangedEventArgs) Handles myBackgroundWorker.ProgressChanged
