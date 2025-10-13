@@ -143,6 +143,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage1Credentials.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage2SelectWorkspace.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage3SelectGroups.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage4Result.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -238,6 +258,21 @@
       <DependentUpon>DownloadContentPage3Action.xaml</DependentUpon>
     </Compile>
     <Compile Include="itc-input\readContent\IndexHtml.vb" />
+    <Compile Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvDialog.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterToCsvDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage1Credentials.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterToCsvPage1Credentials.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage2SelectWorkspace.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterToCsvPage2SelectWorkspace.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage3SelectGroups.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterToCsvPage3SelectGroups.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="itc-output\read\readTestcenterToCsv\LoadDataFromTestcenterToCsvPage4Result.xaml.vb">
+      <DependentUpon>LoadDataFromTestcenterToCsvPage4Result.xaml</DependentUpon>
+    </Compile>
     <Compile Include="services\itc-connection.vb" />
     <Compile Include="itc-output\classes\ClassesReports.vb" />
     <Compile Include="itc-output\read\readTestcenter\LoadDataFromTestcenterPage1Credentials.xaml.vb">

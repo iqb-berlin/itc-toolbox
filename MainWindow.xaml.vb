@@ -527,4 +527,10 @@ Class MainWindow
         .Owner = Me, .Title = "Content-Dateien aus Testcenter laden und lokal speichern"}
         ActionDlg.ShowDialog()
     End Sub
+
+    Private Sub BtnTestcenterToCsv_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterToCsvDialog(itcConnection) With {
+            .Owner = Me, .Title = "Antworten aus Testcenter als Csv speichern"}
+        ActionDlg.ShowDialog()
+    End Sub
 End Class

@@ -1,5 +1,6 @@
 ﻿Imports System.ComponentModel
 Imports System.Net
+Imports DocumentFormat.OpenXml.Drawing.Charts
 Imports Newtonsoft.Json
 Public Class ITCConnection
     Private _BufferSize As Integer = 4096
@@ -264,6 +265,42 @@ Public Class ITCConnection
                         If Not myBW.CancellationPending Then
                             Buffer = WebReader.ReadBytes(_BufferSize)
                             If Buffer.Length > 0 Then TargetFileStream.Write(Buffer, 0, Buffer.Length)
+                        End If
+                    Loop Until myBW.CancellationPending OrElse Buffer.Length < BufferSize
+                    myReturn = True
+                Catch ex As Exception
+                    _lastErrorMsgText = ex.Message
+                    If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+                End Try
+            End Using
+        End If
+        Return myReturn
+    End Function
+
+    Public Function getResponsesCsvFile(dataGroupId As String, ByRef targetStream As IO.MemoryStream, myBW As BackgroundWorker) As Boolean
+        Dim myReturn As Boolean = False
+        Dim resp As Net.WebResponse
+        _lastErrorMsgText = ""
+        Try
+            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/response?dataIds=" + dataGroupId + "&useNewVersion=false")
+            Dim requ As HttpWebRequest = HttpWebRequest.Create(uri)
+            requ.Method = "GET"
+            requ.Accept = "text/csv"
+            requ.Headers.Item("AuthToken") = Me.tokenStr
+            resp = requ.GetResponse
+        Catch ex As Exception
+            resp = Nothing
+            _lastErrorMsgText = ex.Message
+            If ex.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex.InnerException.Message
+        End Try
+        If resp IsNot Nothing Then
+            Using WebReader As New System.IO.BinaryReader(resp.GetResponseStream())
+                Dim Buffer As Byte() = Nothing
+                Try
+                    Do
+                        If Not myBW.CancellationPending Then
+                            Buffer = WebReader.ReadBytes(_BufferSize)
+                            If Buffer.Length > 0 Then targetStream.Write(Buffer, 0, Buffer.Length)
                         End If
                     Loop Until myBW.CancellationPending OrElse Buffer.Length < BufferSize
                     myReturn = True

@@ -160,6 +160,20 @@
                         </TextBlock>
                     </DockPanel>
                     <DockPanel>
+                        <Button DockPanel.Dock="Left" Click="BtnTestcenterToCsv_Click">
+                            <Button.Content>
+                                <StackPanel>
+                                    <TextBlock TextAlignment="Center">Antworten</TextBlock>
+                                    <TextBlock TextAlignment="Center">Testcenter -> Csv</TextBlock>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <TextBlock TextWrapping="Wrap">
+                            Verbinden mit einem Testcenter und Abrufen aller Antworten;
+                            Speichern sofort als eine große Csv-Datei (nur Antworten, ohne Transformation)
+                        </TextBlock>
+                    </DockPanel>
+                    <DockPanel>
                         <Button DockPanel.Dock="Left" Click="BtnTestCsvToXlsx_Click">
                             <Button.Content>
                                 <StackPanel>
