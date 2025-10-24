@@ -621,7 +621,7 @@ select [browser],[os],[screen],[ts],[loadCompleteMS] from [session] where [bookl
                             rep.sessionStartTs = rep.ts - rep.loadCompleteMS
                             rep.booklet = b.Value
                             If rep.loadCompleteMS > 0 Then
-                                rep.contentLoadSpeed = bookletSize / rep.loadCompleteMS
+                                rep.contentLoadSpeed = (bookletSize * 8) / (rep.loadCompleteMS / 1000)
                             Else
                                 rep.contentLoadSpeed = 0
                             End If
@@ -687,14 +687,14 @@ select unit.id,unit.bookletId,unit.name,unit.alias from [unit] where unit.bookle
                 End While
                 dbReader.Close()
                 Dim unitVariablesWithValues As New Dictionary(Of Long, String)
-                Dim statusSearchArray As String = "('DISPLAYED','UNSET','NOT_REACHED')"
+                Dim relevantStatus As New List(Of String) From {"DISPLAYED", "UNSET", "NOT_REACHED"}
+                Dim statusSearchArray As String = "('" + String.Join("','", relevantStatus) + "')"
                 If dbVersion > 1 Then
-                    Dim statusKey As Byte = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "DISPLAYED" Select s.Key).First
-                    statusSearchArray = "(" + statusKey.ToString
-                    statusKey = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "UNSET" Select s.Key).First
-                    statusSearchArray += "," + statusKey.ToString
-                    statusKey = (From s As KeyValuePair(Of Byte, String) In usedResponseStatus Where s.Value = "NOT_REACHED" Select s.Key).First
-                    statusSearchArray += "," + statusKey.ToString + ")"
+                    Dim statusIds As New List(Of String)
+                    For Each s As KeyValuePair(Of Byte, String) In usedResponseStatus
+                        If relevantStatus.Contains(s.Value) Then statusIds.Add(s.Key.ToString)
+                    Next
+                    statusSearchArray = "('" + String.Join("','", statusIds) + "')"
                 End If
                 For Each u As KeyValuePair(Of Long, String) In allUnits
                     Dim varId As String = Nothing

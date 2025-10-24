@@ -27,8 +27,7 @@ Public Class ToXlsxDialog
                     .writeResponsesCodes = False,
                     .writeResponsesValues = True,
                     .writeResponsesScores = False,
-                    .writeResponsesStatus = False,
-                    .writeSessions = True
+                    .writeResponsesStatus = False
                 }
             End If
             With writeConfig
@@ -43,7 +42,6 @@ Public Class ToXlsxDialog
                 End If
                 ChBValues.IsChecked = .writeResponsesValues
                 ChBStatus.IsChecked = .writeResponsesStatus
-                ChBSessions.IsChecked = .writeSessions
                 If Me.sqliteConnection.hasSubforms Then
                     RBSubformColumn.IsChecked = .subformMode = SubformMode.Columns
                     RBSubformRow.IsChecked = .subformMode = SubformMode.Rows
@@ -93,7 +91,6 @@ Public Class ToXlsxDialog
             .writeResponsesValues = ChBValues.IsChecked
             .writeResponsesScores = ChBScore.IsChecked
             .writeResponsesStatus = ChBStatus.IsChecked
-            .writeSessions = ChBSessions.IsChecked
             If RBSubformColumn.IsChecked Then
                 .subformMode = SubformMode.Columns
             ElseIf RBSubformRow.IsChecked Then
@@ -103,7 +100,7 @@ Public Class ToXlsxDialog
             End If
         End With
         If writeConfig.writeResponsesCodes OrElse writeConfig.writeResponsesScores OrElse writeConfig.writeResponsesValues OrElse
-            writeConfig.writeResponsesStatus OrElse writeConfig.writeSessions Then
+            writeConfig.writeResponsesStatus Then
             DPParameters.IsEnabled = False
             BtnClose.Visibility = Windows.Visibility.Collapsed
             BtnContinue.Visibility = Windows.Visibility.Collapsed

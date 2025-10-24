@@ -150,8 +150,7 @@ Public Class LoadDataFromCsvPage2Result
                         .writeResponsesCodes = False,
                         .writeResponsesScores = False,
                         .writeResponsesStatus = False,
-                        .writeResponsesValues = True,
-                        .writeSessions = False
+                        .writeResponsesValues = True
                         }
                     WriteOutputToXlsx.Write(myTemplate, myworker, e, config)
                 Else

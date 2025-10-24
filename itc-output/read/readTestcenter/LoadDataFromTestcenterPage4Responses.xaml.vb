@@ -145,8 +145,7 @@ Public Class LoadDataFromTestcenterPage4Responses
                         .writeResponsesCodes = False,
                         .writeResponsesScores = False,
                         .writeResponsesStatus = False,
-                        .writeResponsesValues = True,
-                        .writeSessions = False
+                        .writeResponsesValues = True
                         }
                 WriteOutputToXlsx.Write(myTemplate, myBW, e, config)
             End If

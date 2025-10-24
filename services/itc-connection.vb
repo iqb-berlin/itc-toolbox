@@ -1,12 +1,6 @@
 ﻿Imports System.ComponentModel
 Imports System.Net
-Imports DocumentFormat.OpenXml.Drawing.Charts
 Imports Newtonsoft.Json
-
-Public Enum CsvType
-    LOG
-    RESPONSES
-End Enum
 
 Public Class ITCConnection
     Private _BufferSize As Integer = 4096

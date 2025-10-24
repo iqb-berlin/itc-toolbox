@@ -54,6 +54,7 @@ Class MainWindow
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToJson, AddressOf HandleExportToJsonExecuted, AddressOf CanExecuteFalse))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportToXlsx, AddressOf HandleExportToXlsxExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(AppCommands.ExportResponsesToCsv, AddressOf HandleExportResponsesToCsvExecuted, AddressOf HandleDBOperationCanExecute))
+            CommandBindings.Add(New CommandBinding(AppCommands.ExportSessionsToCsv, AddressOf HandleExportSessionsToCsvExecuted, AddressOf HandleDBOperationCanExecute))
             CommandBindings.Add(New CommandBinding(ApplicationCommands.Help, AddressOf HandleHelpExecuted))
             Try
                 Dim userName As String = iqb.lib.windows.ADFactory.GetMyName
@@ -487,7 +488,7 @@ Class MainWindow
             My.Settings.Save()
 
 
-            Dim ActionDlg As New ToXlsxDialog(SqliteDB) With {.Owner = Me, .Title = "Schreiben Xslx-Output"}
+            Dim ActionDlg As New ToXlsxDialog(SqliteDB) With {.Owner = Me, .Title = AppCommands.ExportToXlsx.Text}
             ActionDlg.ShowDialog()
         End If
     End Sub
@@ -513,7 +514,21 @@ Class MainWindow
             My.Settings.lastfile_OutputTargetCsv = filepicker.FileName
             My.Settings.Save()
 
-            Dim myDialog As New ToCsvDialog(SqliteDB) With {.Owner = Me}
+            Dim myDialog As New ToCsvDialog(SqliteDB, CsvContent.RESPONSES) With {.Owner = Me, .Title = AppCommands.ExportResponsesToCsv.Text}
+            myDialog.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub HandleExportSessionsToCsvExecuted(ByVal sender As Object, ByVal e As ExecutedRoutedEventArgs)
+        Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
+        If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetCsv) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetCsv)
+        Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetCsv, .Filter = "CSV-Dateien|*.csv",
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "csv", .Title = "CSV Zieldatei wählen"}
+        If filepicker.ShowDialog Then
+            My.Settings.lastfile_OutputTargetCsv = filepicker.FileName
+            My.Settings.Save()
+
+            Dim myDialog As New ToCsvDialog(SqliteDB, CsvContent.SESSIONS) With {.Owner = Me, .Title = AppCommands.ExportSessionsToCsv.Text}
             myDialog.ShowDialog()
         End If
     End Sub

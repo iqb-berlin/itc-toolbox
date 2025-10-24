@@ -31,7 +31,6 @@
                 <CheckBox x:Name="ChBStatus" DockPanel.Dock="Top" Margin="5 0">Status</CheckBox>
                 <CheckBox x:Name="ChBCode" DockPanel.Dock="Top" Margin="5 0">Codes</CheckBox>
                 <CheckBox x:Name="ChBScore" DockPanel.Dock="Top" Margin="5 0">Scores</CheckBox>
-                <CheckBox x:Name="ChBSessions" DockPanel.Dock="Top" Margin="5 0">Sessions</CheckBox>
             </StackPanel>
 
         </DockPanel>

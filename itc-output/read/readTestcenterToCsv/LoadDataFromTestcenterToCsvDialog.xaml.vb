@@ -1,4 +1,9 @@
-﻿Class LoadDataFromTestcenterToCsvDialog
+﻿Public Enum CsvType
+    LOG
+    RESPONSES
+End Enum
+
+Class LoadDataFromTestcenterToCsvDialog
     Public selectedDataGroups As List(Of String)
     Public itcConnection As ITCConnection
     Public csvType As CsvType

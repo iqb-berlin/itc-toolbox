@@ -16,7 +16,6 @@ Public Class WriteXlsxConfig
     Public writeResponsesStatus As Boolean
     Public writeResponsesCodes As Boolean
     Public writeResponsesScores As Boolean
-    Public writeSessions As Boolean
     Public subformMode As SubformMode
     Public sourceDatabase As SQLiteConnector = Nothing
 End Class
@@ -55,7 +54,6 @@ Class WriteOutputToXlsx
                         config.writeResponsesScores OrElse config.writeResponsesCodes
                     Dim stepMax As Integer = 0
                     If writeResponses Then stepMax += 2
-                    If config.writeSessions Then stepMax += 1
 
                     Dim stepCount As Integer = 1
                     Dim progressMax As Integer = 0
@@ -242,85 +240,6 @@ Class WriteOutputToXlsx
 
 
                     '########################################################
-                    If config.writeSessions Then
-                        Dim TableSessions As WorksheetPart = xlsxFactory.InsertWorksheet(ZielXLS.WorkbookPart, "Sessions")
-                        Dim myRow As Integer = 1
-                        xlsxFactory.SetCellValueString("A", myRow, TableSessions, "Person", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("A", TableSessions, 30)
-                        xlsxFactory.SetCellValueString("B", myRow, TableSessions, "Booklet", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("B", TableSessions, 20)
-                        xlsxFactory.SetCellValueString("C", myRow, TableSessions, "Session No", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("C", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("D", myRow, TableSessions, "Sessions Total", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("D", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("E", myRow, TableSessions, "Units w Value", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("E", TableSessions, 30)
-                        xlsxFactory.SetCellValueString("F", myRow, TableSessions, "Start At TS", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("F", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("G", myRow, TableSessions, "Start At DT", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("G", TableSessions, 20)
-                        xlsxFactory.SetCellValueString("H", myRow, TableSessions, "First Responses After MS", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("H", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("I", myRow, TableSessions, "Last Responses After MS", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("I", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("J", myRow, TableSessions, "Load Speed", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("J", TableSessions, 10)
-                        xlsxFactory.SetCellValueString("K", myRow, TableSessions, "Browser", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("K", TableSessions, 20)
-                        xlsxFactory.SetCellValueString("L", myRow, TableSessions, "OS", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("L", TableSessions, 20)
-                        xlsxFactory.SetCellValueString("M", myRow, TableSessions, "Screen", CellFormatting.RowHeader2, myStyles)
-                        xlsxFactory.SetColumnWidth("M", TableSessions, 10)
-                        myRow += 1
-
-                        If config.sourceDatabase Is Nothing Then
-                            xlsxFactory.SetCellValueString("A", myRow, TableSessions, "coming soon (db only)", CellFormatting.RowHeader2, myStyles)
-                        Else
-                            progressValue = (100 / stepMax) * (stepCount - 1)
-                            worker.ReportProgress(progressValue, "Lese Sessions")
-
-                            progressMax = peopleList.Count
-                            progressCount = 1
-                            For Each personKey As KeyValuePair(Of String, String) In
-                                From p As KeyValuePair(Of String, String) In peopleList Order By p.Key
-                                If worker.CancellationPending Then
-                                    e.Cancel = True
-                                    Exit For
-                                End If
-                                progressValue = progressCount * (100 / stepMax) / progressMax + (100 / stepMax) * (stepCount - 1)
-                                worker.ReportProgress(progressValue, personKey.Key)
-                                progressCount += 1
-
-                                Dim sessions As List(Of SessionReport) = Nothing
-                                If config.sourceDatabase Is Nothing Then
-                                    'yo nee
-                                Else
-                                    sessions = config.sourceDatabase.getSessionReports(personKey.Value)
-                                End If
-                                For Each s As SessionReport In sessions
-                                    Dim myRowData As New List(Of RowData)
-                                    myRowData.Add(New RowData With {.Column = "A", .Value = personKey.Key, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "B", .Value = s.booklet, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "C", .Value = s.sessionNumber, .CellType = CellTypes.int})
-                                    myRowData.Add(New RowData With {.Column = "D", .Value = sessions.Count, .CellType = CellTypes.int})
-                                    myRowData.Add(New RowData With {.Column = "E", .Value = String.Join(" ", s.unitsWithResponse), .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "F", .Value = s.sessionStartTs, .CellType = CellTypes.int})
-                                    Dim sessionStart As New DateTime(1970, 1, 1, 0, 0, 0, 0)
-                                    sessionStart = sessionStart.AddMilliseconds(s.sessionStartTs)
-                                    myRowData.Add(New RowData With {.Column = "G", .Value = sessionStart.ToString(deCulture), .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "H", .Value = s.firstUnitTS - s.sessionStartTs, .CellType = CellTypes.int})
-                                    myRowData.Add(New RowData With {.Column = "I", .Value = s.lastUnitTS - s.sessionStartTs, .CellType = CellTypes.int})
-                                    myRowData.Add(New RowData With {.Column = "J", .Value = s.contentLoadSpeed.ToString, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "K", .Value = s.browser, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "L", .Value = s.os, .CellType = CellTypes.str})
-                                    myRowData.Add(New RowData With {.Column = "M", .Value = s.screen, .CellType = CellTypes.str})
-                                    xlsxFactory.AppendRow(myRow, myRowData, TableSessions)
-                                    myRow += 1
-                                Next
-                            Next
-                        End If
-                        stepCount += 1
-                    End If
 
                     ''########################################################
                     ''TimeOnPage
