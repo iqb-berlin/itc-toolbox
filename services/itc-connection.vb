@@ -2,6 +2,12 @@
 Imports System.Net
 Imports DocumentFormat.OpenXml.Drawing.Charts
 Imports Newtonsoft.Json
+
+Public Enum CsvType
+    LOG
+    RESPONSES
+End Enum
+
 Public Class ITCConnection
     Private _BufferSize As Integer = 4096
     Public Property BufferSize() As Integer
@@ -277,12 +283,13 @@ Public Class ITCConnection
         Return myReturn
     End Function
 
-    Public Function getResponsesCsvFile(dataGroupId As String, ByRef targetStream As IO.MemoryStream, myBW As BackgroundWorker) As Boolean
+    Public Function getCsvFile(type As CsvType, dataGroupId As String, ByRef targetStream As IO.MemoryStream, myBW As BackgroundWorker) As Boolean
         Dim myReturn As Boolean = False
         Dim resp As Net.WebResponse
         _lastErrorMsgText = ""
+        Dim url As String = Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/" + IIf(type = CsvType.RESPONSES, "response", "log")
         Try
-            Dim uri As New Uri(Me._url + "/workspace/" + selectedWorkspace.ToString + "/report/response?dataIds=" + dataGroupId + "&useNewVersion=false")
+            Dim uri As New Uri(url + "?dataIds=" + dataGroupId + "&useNewVersion=false")
             Dim requ As HttpWebRequest = HttpWebRequest.Create(uri)
             requ.Method = "GET"
             requ.Accept = "text/csv"

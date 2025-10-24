@@ -528,9 +528,15 @@ Class MainWindow
         ActionDlg.ShowDialog()
     End Sub
 
-    Private Sub BtnTestcenterToCsv_Click(sender As Object, e As RoutedEventArgs)
-        Dim ActionDlg As New LoadDataFromTestcenterToCsvDialog(itcConnection) With {
+    Private Sub BtnTestcenterToCsvResponses_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterToCsvDialog(itcConnection, CsvType.RESPONSES) With {
             .Owner = Me, .Title = "Antworten aus Testcenter als Csv speichern"}
+        ActionDlg.ShowDialog()
+    End Sub
+
+    Private Sub BtnTestcenterToCsvLogs_Click(sender As Object, e As RoutedEventArgs)
+        Dim ActionDlg As New LoadDataFromTestcenterToCsvDialog(itcConnection, CsvType.LOG) With {
+            .Owner = Me, .Title = "Logs aus Testcenter als Csv speichern"}
         ActionDlg.ShowDialog()
     End Sub
 End Class

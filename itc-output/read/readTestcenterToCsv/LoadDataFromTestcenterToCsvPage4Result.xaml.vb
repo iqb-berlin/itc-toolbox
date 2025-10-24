@@ -1,10 +1,6 @@
 ﻿Imports System.ComponentModel
 Imports System.Text
 Imports DocumentFormat.OpenXml
-Imports DocumentFormat.OpenXml.Packaging
-Imports DocumentFormat.OpenXml.Spreadsheet
-Imports iqb.lib.openxml
-Imports Newtonsoft.Json
 
 Public Class LoadDataFromTestcenterToCsvPage4Result
     Private WithEvents myBackgroundWorker As BackgroundWorker = Nothing
@@ -12,11 +8,11 @@ Public Class LoadDataFromTestcenterToCsvPage4Result
     Private Sub Me_Loaded() Handles Me.Loaded
         Dim ParentDlg As LoadDataFromTestcenterToCsvDialog = Me.Parent
         Me.BtnCancelClose.IsEnabled = False
-
+        Dim fileSavePrompt As String = IIf(ParentDlg.csvType = CsvType.RESPONSES, "Antworten Zieldatei wählen", "Logs Zieldatei wählen")
         Dim defaultDir As String = My.Computer.FileSystem.SpecialDirectories.MyDocuments
         If Not String.IsNullOrEmpty(My.Settings.lastfile_OutputTargetCsv) Then defaultDir = IO.Path.GetDirectoryName(My.Settings.lastfile_OutputTargetCsv)
         Dim filepicker As New Microsoft.Win32.SaveFileDialog With {.FileName = My.Settings.lastfile_OutputTargetCsv, .Filter = "CSV-Dateien|*.csv",
-                                                        .InitialDirectory = defaultDir, .DefaultExt = "csv", .Title = "Antworten Zieldatei wählen"}
+                                                        .InitialDirectory = defaultDir, .DefaultExt = "csv", .Title = fileSavePrompt}
         If filepicker.ShowDialog Then
             My.Settings.lastfile_OutputTargetCsv = filepicker.FileName
             My.Settings.Save()
@@ -47,7 +43,7 @@ Public Class LoadDataFromTestcenterToCsvPage4Result
             Try
                 Using buffer As New IO.MemoryStream
                     myBW.ReportProgress(progressValue * 100 / maxProgressValue, dataGroupId)
-                    If Not ParentDlg.itcConnection.getResponsesCsvFile(dataGroupId, buffer, myBW) Then
+                    If Not ParentDlg.itcConnection.getCsvFile(ParentDlg.csvType, dataGroupId, buffer, myBW) Then
                         myBW.ReportProgress(progressValue * 100 / maxProgressValue, "- unbekannter Fehler")
                     End If
                     Dim decoded As String = Encoding.UTF8.GetString(buffer.ToArray())
