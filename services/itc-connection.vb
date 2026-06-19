@@ -318,8 +318,15 @@ Public Class ITCConnection
         Dim bookletSizes As New Dictionary(Of String, Long)
         _lastErrorMsgText = ""
         Dim allFilesEmptyDependency As List(Of WorkspaceFileDTO) = getFullFileList()
-        Dim bookletsWithDependency As List(Of WorkspaceFileDTO) = getFileDependencies((From f As WorkspaceFileDTO In allFilesEmptyDependency
-                                                                                       Where f.type = "Booklet" Select f.name).ToList)
+        Dim bookletNames As List(Of String) = (From f As WorkspaceFileDTO In allFilesEmptyDependency
+                                               Where f.type = "Booklet" Select f.name).ToList
+        Dim bookletsWithDependency As New List(Of WorkspaceFileDTO)
+        Const dependencyBatchSize As Integer = 600
+        For batchStart As Integer = 0 To bookletNames.Count - 1 Step dependencyBatchSize
+            Dim batch As List(Of String) = bookletNames.Skip(batchStart).Take(dependencyBatchSize).ToList
+            bookletsWithDependency.AddRange(getFileDependencies(batch))
+            If Not String.IsNullOrEmpty(_lastErrorMsgText) Then Exit For
+        Next
         If String.IsNullOrEmpty(_lastErrorMsgText) Then
             Dim flatFileSizes As Dictionary(Of String, Long) = (From f As WorkspaceFileDTO In allFilesEmptyDependency).ToDictionary(Function(a) a.name, Function(a) a.size)
 
