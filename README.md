@@ -24,7 +24,7 @@ Dokumentationen:
 
 Es handelt sich um eine Windows-Anwendung, die ohne Administrationsrechte installiert und genutzt werden kann. Die Anwendung ist mit einem gültigen Zertifikat des IQB signiert und sollte keine Warnungen provozieren. Zum Installieren gehen Sie bitte auf folgende Internet-Seite:
 
-[www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox](https://www.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox)
+[www2.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox](https://www2.iqb.hu-berlin.de/institut/ab/it/itc-ToolBox)
 
 ## Entwickeln
 Nach dem Download des Codes sind über den Paketmanager nuget einige Pakete zu installieren. Die Entwicklung erfolgte mit dem Visual Studio 2022 von Microsoft.
