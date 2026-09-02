@@ -41,19 +41,34 @@ Public Class ITCConnection
             AddressOf AcceptAllCertifications)
         Dim resp As Net.WebResponse = Nothing
         If worker IsNot Nothing Then worker.ReportProgress(10.0#)
+        Dim loginBody As String = JsonConvert.SerializeObject(New Dictionary(Of String, String) From {
+            {"name", credentials.UserName}, {"password", credentials.Password}})
         Try
-            Dim uri As New Uri(url + "/session/admin")
-            Dim requ As Net.WebRequest = Net.WebRequest.Create(uri)
-            requ.Method = "PUT"
-            requ.ContentType = "application/json"
-            Dim enc As New Text.UTF8Encoding
-            Dim dataBin As Byte() = enc.GetBytes("{""name"":""" + credentials.UserName + """,""password"": """ + credentials.Password + """}")
-            requ.ContentLength = dataBin.Length
-            Dim s As IO.Stream = requ.GetRequestStream()
-            s.Write(dataBin, 0, dataBin.Length)
-            s.Close()
-
-            resp = requ.GetResponse
+            resp = SendJsonRequest(url + "/session/admin", "PUT", loginBody)
+        Catch ex As Net.WebException
+            resp = Nothing
+            Dim errorBody As String = ReadErrorBody(ex)
+            Dim statusCode As Net.HttpStatusCode = 0
+            If TypeOf ex.Response Is Net.HttpWebResponse Then statusCode = CType(ex.Response, Net.HttpWebResponse).StatusCode
+            If statusCode = Net.HttpStatusCode.BadRequest AndAlso
+                    (errorBody.Contains("Challenge") OrElse errorBody.Contains("Brute Force")) Then
+                ' Testcenter ab Version 18.2 mit aktivem Brute-Force-Schutz: Anmeldung erfordert Altcha-Challenge
+                Try
+                    resp = CreateSessionWithChallenge(credentials, worker)
+                Catch ex2 As Net.WebException
+                    resp = Nothing
+                    _lastErrorMsgText = ex2.Message
+                    Dim errorBody2 As String = ReadErrorBody(ex2)
+                    If Not String.IsNullOrEmpty(errorBody2) Then _lastErrorMsgText += " / " + errorBody2
+                Catch ex2 As Exception
+                    resp = Nothing
+                    _lastErrorMsgText = ex2.Message
+                    If ex2.InnerException IsNot Nothing Then _lastErrorMsgText += vbNewLine + ex2.InnerException.Message
+                End Try
+            Else
+                _lastErrorMsgText = ex.Message
+                If Not String.IsNullOrEmpty(errorBody) Then _lastErrorMsgText += " / " + errorBody
+            End If
         Catch ex As Exception
             resp = Nothing
             _lastErrorMsgText = ex.Message
@@ -91,6 +106,78 @@ Public Class ITCConnection
                                                    sslPolicyErrors As System.Net.Security.SslPolicyErrors) As Boolean
         Return True
     End Function
+
+    Private Function SendJsonRequest(requestUrl As String, method As String, jsonBody As String) As Net.WebResponse
+        Dim requ As Net.WebRequest = Net.WebRequest.Create(New Uri(requestUrl))
+        requ.Method = method
+        requ.ContentType = "application/json"
+        Dim enc As New Text.UTF8Encoding
+        Dim dataBin As Byte() = enc.GetBytes(jsonBody)
+        requ.ContentLength = dataBin.Length
+        Using s As IO.Stream = requ.GetRequestStream()
+            s.Write(dataBin, 0, dataBin.Length)
+        End Using
+        Return requ.GetResponse
+    End Function
+
+    Private Shared Function ReadErrorBody(ex As Net.WebException) As String
+        If ex.Response Is Nothing Then Return ""
+        Try
+            Using rdr As New IO.StreamReader(ex.Response.GetResponseStream())
+                Return rdr.ReadToEnd()
+            End Using
+        Catch
+            Return ""
+        End Try
+    End Function
+
+    Private Function CreateSessionWithChallenge(credentials As Net.NetworkCredential, worker As ComponentModel.BackgroundWorker) As Net.WebResponse
+        If worker IsNot Nothing Then worker.ReportProgress(12.0#)
+        Dim challengeRequestBody As String = JsonConvert.SerializeObject(New Dictionary(Of String, String) From {
+            {"loginType", "admin"}, {"name", credentials.UserName}, {"password", credentials.Password}})
+        Dim challengeJson As String
+        Using challengeResp As Net.WebResponse = SendJsonRequest(Me._url + "/session/challenge", "POST", challengeRequestBody)
+            Using rdr As New IO.StreamReader(challengeResp.GetResponseStream(), Text.Encoding.UTF8)
+                challengeJson = rdr.ReadToEnd()
+            End Using
+        End Using
+        Dim challenge As Dictionary(Of String, Linq.JToken) = JsonConvert.DeserializeObject(challengeJson, GetType(Dictionary(Of String, Linq.JToken)))
+        Dim salt As String = challenge.Item("salt").ToObject(Of String)
+        Dim targetHash As String = challenge.Item("challenge").ToObject(Of String)
+        Dim maxNumber As Long = challenge.Item("maxNumber").ToObject(Of Long)
+        If worker IsNot Nothing Then worker.ReportProgress(15.0#)
+        Dim number As Long = SolveAltchaChallenge(salt, targetHash, maxNumber)
+        If number < 0 Then Throw New Exception("Brute-Force-Schutz: Die Challenge des Servers konnte nicht gelöst werden.")
+        If worker IsNot Nothing Then worker.ReportProgress(18.0#)
+        Dim sessionBody As String = JsonConvert.SerializeObject(New Dictionary(Of String, Object) From {
+            {"algorithm", challenge.Item("algorithm").ToObject(Of String)},
+            {"challenge", targetHash},
+            {"salt", salt},
+            {"signature", challenge.Item("signature").ToObject(Of String)},
+            {"number", number}})
+        Return SendJsonRequest(Me._url + "/session", "PUT", sessionBody)
+    End Function
+
+    Private Shared Function SolveAltchaChallenge(salt As String, targetHash As String, maxNumber As Long) As Long
+        Dim targetBytes As Byte() = New Byte(targetHash.Length \ 2 - 1) {}
+        For i As Integer = 0 To targetBytes.Length - 1
+            targetBytes(i) = Convert.ToByte(targetHash.Substring(i * 2, 2), 16)
+        Next
+        Dim enc As New Text.UTF8Encoding
+        Using sha As System.Security.Cryptography.SHA256 = System.Security.Cryptography.SHA256.Create()
+            For n As Long = 0 To maxNumber
+                Dim hashBytes As Byte() = sha.ComputeHash(enc.GetBytes(salt + n.ToString))
+                Dim match As Boolean = hashBytes.Length = targetBytes.Length
+                For i As Integer = 0 To hashBytes.Length - 1
+                    If Not match Then Exit For
+                    If hashBytes(i) <> targetBytes(i) Then match = False
+                Next
+                If match Then Return n
+            Next
+        End Using
+        Return -1
+    End Function
+
     Private Function GetWorkspaceName(wsId As Integer) As String
         Dim myReturn As String = wsId.ToString
         Dim resp As Net.WebResponse
